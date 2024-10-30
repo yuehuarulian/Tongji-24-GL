@@ -9,7 +9,7 @@ link_directories(./lib)
 
 aux_source_directory(./common COMMON_LIST)
 
-add_executable(main src/main.cpp src/glad.c task/sphere.cpp ${COMMON_LIST})
+add_executable(main src/main.cpp src/glad.c ${COMMON_LIST})
 target_link_libraries(main glfw3 libassimpd)
 
 add_custom_target(copy_assimp_dll ALL
