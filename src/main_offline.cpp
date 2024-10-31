@@ -5,68 +5,49 @@
 #include <iomanip>
 #include <filesystem>
 
-#include "glad/glad.h"
 #define GLM_ENABLE_EXPERIMENTAL
+#define STB_IMAGE_IMPLEMENTATION
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "glad/glad.h"
+#include "stb_image_write.h"
 #include "glm/glm.hpp"
 #include "glm/gtx/transform.hpp"
 #include "glm/gtc/type_ptr.hpp"
 #include "GLFW/glfw3.h"
-#include "shader.hpp"
+
 #include "camera_control.hpp"
-#include "model.hpp"
-#define STB_IMAGE_WRITE_IMPLEMENTATION
-#include "stb_image_write.h" // 用于将渲染的帧保存为图片
+#include "room.hpp"
 
 const unsigned int WINDOW_WIDTH = 1080 * 2;
 const unsigned int WINDOW_HEIGHT = 720 * 2;
 
 glm::vec3 LightPosition_worldspace = glm::vec3(0.0f, 0.0f, 0.0f);
-glm::vec3 LightColor = glm::vec3(1, 1, 1);
-float LightPower = 0.7f;
 
-float specularStrength = 0.4f;
-
-void save_framebuffer_to_image(int width, int height, int frame_number)
-{
-    // 获取帧缓冲区数据
-    std::vector<unsigned char> pixels(width * height * 3);
-    glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, pixels.data());
-
-    // 生成文件名
-    std::ostringstream oss;
-    oss << "./offline_rendering/frame_" << std::setw(3) << std::setfill('0') << frame_number << ".png";
-    std::string filename = oss.str();
-
-    // 保存图片
-    stbi_flip_vertically_on_write(true); // 翻转图片
-    stbi_write_png(filename.c_str(), width, height, 3, pixels.data(), width * 3);
-}
-
-int main()
+// 初始化窗口和 OpenGL 上下文
+GLFWwindow *initialize_glfw_window()
 {
     glfwInit();
-
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE); // 不显示窗口
+    glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE); // 隐藏窗口
 
     GLFWwindow *window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Offscreen", NULL, NULL);
     glfwMakeContextCurrent(window);
-
     gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
-
     glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
 
-    Model model("./source/model/test.obj");
-    Shader shader("source/shader/house.vert", "source/shader/house.frag");
-    Camera camera(window, 45.0f, glm::vec3(0.0f, 0.0f, 20.0f), glm::pi<float>(), 0.f, 5.0f, 4.0f);
+    return window;
+}
 
+// 初始化帧缓冲区
+unsigned int initialize_framebuffer(unsigned int &textureColorbuffer, unsigned int &rbo)
+{
     unsigned int fbo;
     glGenFramebuffers(1, &fbo);
     glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 
-    unsigned int textureColorbuffer;
+    // 颜色缓冲纹理
     glGenTextures(1, &textureColorbuffer);
     glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, WINDOW_WIDTH, WINDOW_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
@@ -74,7 +55,7 @@ int main()
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorbuffer, 0);
 
-    unsigned int rbo;
+    // 深度和模板缓冲
     glGenRenderbuffers(1, &rbo);
     glBindRenderbuffer(GL_RENDERBUFFER, rbo);
     glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, WINDOW_WIDTH, WINDOW_HEIGHT);
@@ -84,44 +65,62 @@ int main()
         std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-    glEnable(GL_DEPTH_TEST);
+    return fbo;
+}
 
-    int frames = 120; // 4 秒，每秒 30 帧，共 60 帧
+// 保存帧缓冲区到图片
+void save_framebuffer_to_image(int width, int height, int frame_number)
+{
+    std::vector<unsigned char> pixels(width * height * 3);
+    glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, pixels.data());
+
+    std::ostringstream oss;
+    oss << "./offline_rendering/frame_" << std::setw(3) << std::setfill('0') << frame_number << ".png";
+    std::string filename = oss.str();
+
+    stbi_flip_vertically_on_write(true);
+    stbi_write_png(filename.c_str(), width, height, 3, pixels.data(), width * 3);
+}
+
+// 更新相机位置
+void update_camera(Camera &camera, GLFWwindow *window)
+{
+    camera.set_position(camera.get_pos() + camera.get_direction() * 0.1f);
+    camera.computeMatricesFromInputs(window);
+}
+
+// 渲染帧
+void render_frame(Camera &camera, GL_TASK::Room &room, unsigned int fbo, int frame_number)
+{
+    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+    glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    const glm::mat4 P = camera.ProjectionMatrix;
+    const glm::mat4 V = camera.ViewMatrix;
+    room.draw(P, V, camera.get_pos(), LightPosition_worldspace);
+
+    save_framebuffer_to_image(WINDOW_WIDTH, WINDOW_HEIGHT, frame_number);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+int main()
+{
+    GLFWwindow *window = initialize_glfw_window();
+    GL_TASK::Room room("source/model/room.obj", "source/shader/room.vert", "source/shader/room.frag");
+    Camera camera(window, 45.0f, glm::vec3(0.0f, 0.0f, 20.0f), glm::pi<float>(), 0.f, 5.0f, 4.0f);
+
+    unsigned int textureColorbuffer, rbo;
+    unsigned int fbo = initialize_framebuffer(textureColorbuffer, rbo);
+
+    glEnable(GL_DEPTH_TEST);
     std::filesystem::create_directories("./offline_rendering");
+
+    const int frames = 120;
     for (int i = 0; i < frames; ++i)
     {
-        glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        camera.set_position(camera.get_pos() + camera.get_direction() * 0.1f);
-
-        camera.computeMatricesFromInputs(window);
-        glm::mat4 P = camera.ProjectionMatrix;
-        glm::mat4 V = camera.ViewMatrix;
-        glm::mat4 M = glm::mat4(1.0f);
-
-        shader.use();
-        M = glm::translate(M, glm::vec3(0.f, 0.f, 0.f));
-        M = glm::rotate(M, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-        M = glm::scale(M, glm::vec3(1.f, 1.f, 1.f) * 5.0f);
-        shader.setMat4("M", M);
-        shader.setMat4("V", V);
-        shader.setMat4("P", P);
-        shader.setVec3("CameraPosition_worldspace", camera.get_pos());
-        shader.setVec3("pointlight.position", LightPosition_worldspace);
-        shader.setVec3("pointlight.ambient", 0.8f, 0.8f, 0.8f);
-        shader.setVec3("pointlight.diffuse", 0.8f, 0.8f, 0.8f);
-        shader.setVec3("pointlight.specular", 1.0f, 1.0f, 1.0f);
-        shader.setFloat("pointlight.constant", 1.0f);
-        shader.setFloat("pointlight.linear", 0.09);
-        shader.setFloat("pointlight.quadratic", 0.032);
-
-        model.Draw(shader);
-
-        save_framebuffer_to_image(WINDOW_WIDTH, WINDOW_HEIGHT, i);
-
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        update_camera(camera, window);
+        render_frame(camera, room, fbo, i);
         glfwPollEvents();
     }
 
