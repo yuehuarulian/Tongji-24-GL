@@ -3,7 +3,6 @@
 
 namespace GL_TASK
 {
-
     Room::Room(const std::string &modelPath, const std::string &vertexShaderPath, const std::string &fragmentShaderPath)
         : model(modelPath), shader(vertexShaderPath, fragmentShaderPath) {}
 
@@ -20,8 +19,6 @@ namespace GL_TASK
         shader.setMat4("M", M);
         shader.setMat4("V", V);
         shader.setMat4("P", P);
-        // cout << "camera_pos: " << camera_pos.x << " " << camera_pos.y << " " << camera_pos.z << endl;
-        // cout << "light_pos: " << light_pos.x << " " << light_pos.y << " " << light_pos.z << endl;
         shader.setVec3("CameraPosition_worldspace", camera_pos);
         shader.setVec3("pointlight.position", light_pos);
         shader.setVec3("pointlight.ambient", 0.8f, 0.8f, 0.8f);

@@ -9,6 +9,8 @@
 #include "GLFW/glfw3.h"
 
 #include "camera_control.hpp"
+#include "scene.hpp"
+#include "renderable.hpp"
 #include "room.hpp"
 
 const unsigned int WINDOW_WIDTH = 1080 * 2;
@@ -32,20 +34,14 @@ GLFWwindow *initialize_glfw_window()
     return window;
 }
 
-void draw_frame(Camera &camera, GL_TASK::Room &room)
-{
-    glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    const glm::mat4 P = camera.ProjectionMatrix;
-    const glm::mat4 V = camera.ViewMatrix;
-    room.draw(P, V, camera.get_pos(), LightPosition_worldspace);
-}
-
 int main()
 {
     GLFWwindow *window = initialize_glfw_window();
-    GL_TASK::Room room("source/model/room.obj", "source/shader/room.vert", "source/shader/room.frag");
+
+    GL_TASK::Scene scene;
+    auto room = std::make_shared<GL_TASK::Room>("source/model/room.obj", "source/shader/room.vert", "source/shader/room.frag");
+    scene.addObject(room);
+
     Camera camera(window, 45.0f, glm::vec3(0.0f, 0.0f, 20.0f), glm::pi<float>(), 0.f, 5.0f, 4.0f);
 
     glEnable(GL_DEPTH_TEST);
@@ -56,7 +52,12 @@ int main()
     {
         camera.computeMatricesFromInputs(window);
 
-        draw_frame(camera, room);
+        // renderer.clear();
+
+        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        scene.render(camera.ProjectionMatrix, camera.ViewMatrix, camera.get_pos(), LightPosition_worldspace);
 
         glfwSwapBuffers(window);
         glfwPollEvents();

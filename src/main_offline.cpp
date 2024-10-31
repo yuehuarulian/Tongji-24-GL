@@ -16,6 +16,8 @@
 #include "GLFW/glfw3.h"
 
 #include "camera_control.hpp"
+#include "scene.hpp"
+#include "renderable.hpp"
 #include "room.hpp"
 
 const unsigned int WINDOW_WIDTH = 1080 * 2;
@@ -90,15 +92,13 @@ void update_camera(Camera &camera, GLFWwindow *window)
 }
 
 // 渲染帧
-void render_frame(Camera &camera, GL_TASK::Room &room, unsigned int fbo, int frame_number)
+void render_frame(Camera &camera, GL_TASK::Scene scene, unsigned int fbo, int frame_number)
 {
     glBindFramebuffer(GL_FRAMEBUFFER, fbo);
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    const glm::mat4 P = camera.ProjectionMatrix;
-    const glm::mat4 V = camera.ViewMatrix;
-    room.draw(P, V, camera.get_pos(), LightPosition_worldspace);
+    scene.render(camera.ProjectionMatrix, camera.ViewMatrix, camera.get_pos(), LightPosition_worldspace);
 
     save_framebuffer_to_image(WINDOW_WIDTH, WINDOW_HEIGHT, frame_number);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -107,7 +107,11 @@ void render_frame(Camera &camera, GL_TASK::Room &room, unsigned int fbo, int fra
 int main()
 {
     GLFWwindow *window = initialize_glfw_window();
-    GL_TASK::Room room("source/model/room.obj", "source/shader/room.vert", "source/shader/room.frag");
+
+    GL_TASK::Scene scene;
+    auto room = std::make_shared<GL_TASK::Room>("source/model/room.obj", "source/shader/room.vert", "source/shader/room.frag");
+    scene.addObject(room);
+
     Camera camera(window, 45.0f, glm::vec3(0.0f, 0.0f, 20.0f), glm::pi<float>(), 0.f, 5.0f, 4.0f);
 
     unsigned int textureColorbuffer, rbo;
@@ -120,7 +124,7 @@ int main()
     for (int i = 0; i < frames; ++i)
     {
         update_camera(camera, window);
-        render_frame(camera, room, fbo, i);
+        render_frame(camera, scene, fbo, i);
         glfwPollEvents();
     }
 
