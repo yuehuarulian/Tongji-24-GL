@@ -22,9 +22,22 @@ public:
 
     void computeMatricesFromInputs(GLFWwindow *window, glm::vec3 center = glm::vec3(0, 0, 0));
 
-    glm::vec3 get_camerapos()
+    glm::vec3 get_pos()
     {
         return _position;
+    }
+
+    void set_position(glm::vec3 position)
+    {
+        _position = position;
+    }
+
+    glm::vec3 get_direction()
+    {
+        return glm::vec3(
+            cos(_vertical_angle) * sin(_horizontal_angle),
+            sin(_vertical_angle),
+            cos(_vertical_angle) * cos(_horizontal_angle));
     }
 
 private:

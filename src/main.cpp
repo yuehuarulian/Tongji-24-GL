@@ -41,12 +41,12 @@ int main()
 
     // 读取模型
     Model model("./source/model/test.obj");
-
     Shader shader("source/shader/house.vert", "source/shader/house.frag");
+    Camera camera(window, 45.0f, glm::vec3(0.0f, 0.0f, 20.0f), glm::pi<float>(), 0.f, 5.0f, 4.0f);
 
     glEnable(GL_DEPTH_TEST);
-    // glDepthFunc(GL_LESS);
-    Camera camera(window, 45.0f, glm::vec3(0.0f, 0.0f, 20.0f), glm::pi<float>(), 0.f, 5.0f, 4.0f);
+    glDepthFunc(GL_LESS);
+
     glfwSwapInterval(1);                                                                            // 垂直同步，参数：在 glfwSwapBuffers 交换缓冲区之前要等待的最小屏幕更新数
     while (glfwWindowShouldClose(window) == 0 && glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS) // 窗口没有关闭，esc键没有按下
     {
@@ -70,7 +70,7 @@ int main()
         shader.setMat4("M", M);
         shader.setMat4("V", V);
         shader.setMat4("P", P);
-        shader.setVec3("CameraPosition_worldspace", camera.get_camerapos());
+        shader.setVec3("CameraPosition_worldspace", camera.get_pos());
         shader.setVec3("pointlight.position", LightPosition_worldspace);
         shader.setVec3("pointlight.ambient", 0.8f, 0.8f, 0.8f);
         shader.setVec3("pointlight.diffuse", 0.8f, 0.8f, 0.8f);
