@@ -11,21 +11,22 @@
 class Camera
 {
 public:
-    // 投影和观察矩阵
-    glm::mat4 ProjectionMatrix;
-    glm::mat4 ViewMatrix;
+    Camera() = default;
 
     Camera(GLFWwindow *window, float initialfov = 45.0f, glm::vec3 position = glm::vec3(0, 0, 20), float horizontal_angle = GLM_PI, float vertical_angle = 0.f,
            float speed = 5.0f, float mouse_speed = 1.0f);
 
-    Camera() = default;
+    void compute_matrices_from_inputs(GLFWwindow *window, glm::vec3 center = glm::vec3(0, 0, 0));
 
-    void computeMatricesFromInputs(GLFWwindow *window, glm::vec3 center = glm::vec3(0, 0, 0));
+    glm::vec3 get_pos();
 
-    glm::vec3 get_camerapos()
-    {
-        return _position;
-    }
+    void set_position(glm::vec3 position);
+
+    glm::vec3 get_direction();
+
+    // 投影和观察矩阵
+    glm::mat4 projection;
+    glm::mat4 view;
 
 private:
     glm::vec3 _position;     // 摄像机初始位置

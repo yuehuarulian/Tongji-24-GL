@@ -21,7 +21,7 @@ Camera::Camera(GLFWwindow *window, float initialfov, glm::vec3 position, float h
     glfwSetScrollCallback(window, scroll_callback);
 }
 
-void Camera::computeMatricesFromInputs(GLFWwindow *window, glm::vec3 center)
+void Camera::compute_matrices_from_inputs(GLFWwindow *window, glm::vec3 center)
 {
     // 时间差
     static double lastTime = glfwGetTime();
@@ -86,8 +86,24 @@ void Camera::computeMatricesFromInputs(GLFWwindow *window, glm::vec3 center)
     // 更新投影和观察矩阵
     // ProjectionMatrix = glm::ortho(-10.0f * float(width) / height, 10.0f * float(width) / height, -10.0f, 10.0f, 0.0f, 100.0f);
 
-    ProjectionMatrix = glm::perspective(_initial_fov, float(width) / height, 0.5f, 300.0f);
-    ViewMatrix = glm::lookAt(_position, _position + direction, up);
-    // auto test = ViewMatrix * glm::vec4(_position, 1);
-    // std::cout << "camera position: " << test.x << " " << test.y << " " << test.z << std::endl;
+    projection = glm::perspective(_initial_fov, float(width) / height, 0.5f, 300.0f);
+    view = glm::lookAt(_position, _position + direction, up);
+}
+
+glm::vec3 Camera::get_pos()
+{
+    return _position;
+}
+
+void Camera::set_position(glm::vec3 position)
+{
+    _position = position;
+}
+
+glm::vec3 Camera::get_direction()
+{
+    return glm::vec3(
+        cos(_vertical_angle) * sin(_horizontal_angle),
+        sin(_vertical_angle),
+        cos(_vertical_angle) * cos(_horizontal_angle));
 }
