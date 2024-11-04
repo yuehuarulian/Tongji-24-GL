@@ -2,10 +2,9 @@ cmake_minimum_required(VERSION 3.5)
 
 project(bigworlk)
 
-include_directories(./include ./common ./task/classic)
+include_directories(./include ./common ./task/classic ./task)
 
 link_directories(./lib)
-# find_library(assimp-5d TOOLS_SHARED ./bin)
 
 aux_source_directory(./common COMMON_LIST)
 aux_source_directory(./task/classic CLASSIC_LIST)
@@ -13,7 +12,7 @@ aux_source_directory(./task/classic CLASSIC_LIST)
 add_executable(main src/main.cpp src/glad.c ${COMMON_LIST} ${CLASSIC_LIST})
 target_link_libraries(main glfw3 libassimpd)
 
-add_executable(offline_rendering src/main_offline.cpp src/glad.c ${COMMON_LIST} ${CLASSIC_LIST})
+add_executable(offline_rendering src/main_offline.cpp src/glad.c task/render_manager.cpp ${COMMON_LIST} ${CLASSIC_LIST})
 target_link_libraries(offline_rendering glfw3 libassimpd)
 
 add_custom_target(copy_assimp_dll ALL
