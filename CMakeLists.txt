@@ -29,4 +29,10 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${OUTPUT_DIR})
 add_executable(main src/main.cpp ${GLAD_SRC} ${COMMON_LIST})
 target_link_libraries(main glfw3 ${LIB_DIR}/libassimp-5d.dll)
 
-
+# 自定义目标以复制 DLL
+add_custom_target(copy_assimp_dll ALL
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+    "${LIB_DIR}/libassimp-5d.dll"
+    "${OUTPUT_DIR}/libassimp-5d.dll"
+    COMMENT "Copying libassimp-5d.dll to output directory"
+)

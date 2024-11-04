@@ -1,22 +1,24 @@
-#include <vector>
-#include <string>
-#include <glad/glad.h>
-#include <iostream>
+#ifndef CLASSIC_SCENE_HPP
+#define CLASSIC_SCENE_HPP
 
-#include "stb_image.h"
-#include "shader.hpp" // 包含Shader类，用于加载和使用着色器
+#include "scene.hpp"
+#include "shader_manager.hpp"
+#include "light_manager.hpp"
+#include "renderable_model.hpp"
+#include <memory>
 
-class Skybox
+namespace GL_TASK
 {
-public:
-    Skybox(const std::vector<std::string> &faces, const std::string &vertex_shader, const std::string &fragment_shader);
-    void render(const glm::mat4 &view, const glm::mat4 &projection);
-    ~Skybox();
+    class ClassicScene : public Scene
+    {
+    public:
+        ClassicScene(ShaderManager &shader_manager, LightManager &light_manager);
+        ~ClassicScene() = default;
 
-private:
-    unsigned int skybox_VAO, skybox_VBO, cubemap_texture;
-    Shader skybox_shader;
+        void render(const glm::mat4 &projection, const glm::mat4 &view, glm::vec3 &camera_pos) override;
 
-    unsigned int load_cubemap(const std::vector<std::string> &faces);
-    void setup_skybox();
-};
+    private:
+        void setup_scene() override;
+    };
+}
+#endif

@@ -1,33 +1,28 @@
+#include "room.hpp"
+#include "glm/gtx/transform.hpp"
 
-#include "classic_scene.hpp"
+GL_TASK::Room::Room(const std::string &model_path, std::shared_ptr<Shader> shader, bool gamma)
+    : RenderableModel(model_path, std::move(shader), gamma) {}
 
-namespace GL_TASK
+void GL_TASK::Room::draw(const glm::mat4 &projection, const glm::mat4 &view, const glm::vec3 &camera_pos)
 {
-    ClassicScene::ClassicScene(ShaderManager &shader_manager, LightManager &light_manager) : Scene(shader_manager, light_manager)
-    {
-        setup_scene();
-    }
+    glm::mat4 M = glm::mat4(1.0f);
+    M = glm::translate(M, glm::vec3(0.f, 0.f, 0.f));
+    M = glm::rotate(M, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    M = glm::scale(M, glm::vec3(1.f, 1.f, 1.f) * 5.0f);
 
-    void ClassicScene::setup_scene()
-    {
+    shader->use();
+    shader->setMat4("M", M);
+    shader->setMat4("V", view);
+    shader->setMat4("P", projection);
+    shader->setVec3("CameraPosition_worldspace", camera_pos);
+    shader->setVec3("pointlight.position", glm::vec3(0.0f, 0.0f, 0.0f));
+    shader->setVec3("pointlight.ambient", 0.8f, 0.8f, 0.8f);
+    shader->setVec3("pointlight.diffuse", 0.8f, 0.8f, 0.8f);
+    shader->setVec3("pointlight.specular", 1.0f, 1.0f, 1.0f);
+    shader->setFloat("pointlight.constant", 1.0f);
+    shader->setFloat("pointlight.linear", 0.09);
+    shader->setFloat("pointlight.quadratic", 0.032);
 
-        // 加载着色器
-        shader_manager.load_shader("roomShader", "source/shader/room.vert", "source/shader/room.frag");
-        // shaderManager.loadShader("basicShader", "assets/shaders/basic.vert", "assets/shaders/basic.frag");
-
-        // 创建模型并为每个模型分配着色器
-        // room
-        auto shader = shader_manager.get_shader("roomShader");
-        light_manager.apply_lights(shader);
-        auto room_model = std::make_shared<Room>("source/model/room.obj", shader, true);
-        models.push_back(room_model);
-    }
-
-    void ClassicScene::render(const glm::mat4 &projection, const glm::mat4 &view, glm::vec3 &camera_pos)
-    {
-        for (const auto &model : models)
-        {
-            model->draw(projection, view, camera_pos);
-        }
-    }
+    model.Draw(*shader);
 }
