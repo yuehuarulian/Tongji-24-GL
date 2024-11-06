@@ -44,5 +44,5 @@ void main()
     vec3 color = CalcPointLight(pointlight, Normal_worldspace, Pos_worldspace, viewDirection_worldspace);
     
     FragColor = vec4(color, 1.0);
-    // FragColor = texture(texture_diffuse1, TexCoords);
+    // FragColor = vec4(1.0,1.0,1.0,1.0);
 }

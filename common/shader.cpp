@@ -186,6 +186,7 @@ Shader::Shader(const char *vertexPath, const char *fragmentPath, const char *geo
     glDeleteShader(fragment);
     if (geometryPath != nullptr)
         glDeleteShader(geometry);
+    printf("end load shader: %s, %s, %s\n", vertexPath, fragmentPath, geometryPath);
 }
 
 void Shader::use()
