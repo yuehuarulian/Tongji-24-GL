@@ -86,7 +86,7 @@ void Camera::compute_matrices_from_inputs(GLFWwindow *window, glm::vec3 center)
     // 更新投影和观察矩阵
     // ProjectionMatrix = glm::ortho(-10.0f * float(width) / height, 10.0f * float(width) / height, -10.0f, 10.0f, 0.0f, 100.0f);
 
-    projection = glm::perspective(_initial_fov, float(width) / height, 0.5f, 300.0f);
+    projection = glm::perspective(_initial_fov, float(width) / height, 0.5f, 1000.0f);
     view = glm::lookAt(_position, _position + direction, up);
 }
 

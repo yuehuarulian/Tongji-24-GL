@@ -10,8 +10,9 @@ void GL_TASK::Room::draw(const glm::mat4 &projection, const glm::mat4 &view, con
     checkGLError("room draw");
     glm::mat4 M = glm::mat4(1.0f);
     M = glm::translate(M, glm::vec3(0.f, 0.f, 0.f));
-    M = glm::rotate(M, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-    M = glm::scale(M, glm::vec3(1.f, 1.f, 1.f) * 5.0f);
+    M = glm::rotate(M, glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+    M = glm::rotate(M, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+    M = glm::scale(M, glm::vec3(1.f, 1.f, 1.f) * 1.0f);
 
     shader->use();
     shader->setMat4("projection", projection);

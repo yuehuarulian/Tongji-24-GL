@@ -21,8 +21,8 @@ namespace GL_TASK
         auto shader = shader_manager.get_shader("room_shader");
         light_manager.apply_lights(shader);
         // auto room_model = std::make_shared<Room>("source/model/room.obj", shader, true);
-        // auto room_model = std::make_shared<Room>("source/model/room/overall.obj", shader, true);
-        auto room_model = std::make_shared<Room>("C:/Users/13294/Desktop/ToyEffects/ToyEffects/assets/SceneModels/tree1/trees9.obj", shader, true);
+        auto room_model = std::make_shared<Room>("source/model/room/overall.obj", shader, true);
+        // auto room_model = std::make_shared<Room>("C:/Users/13294/Desktop/ToyEffects/ToyEffects/assets/SceneModels/tree1/trees9.obj", shader, true);
         models.push_back(room_model);
     }
 
