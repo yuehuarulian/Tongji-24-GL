@@ -24,7 +24,9 @@ RenderManager::~RenderManager()
 void RenderManager::initialize()
 {
     initialize_GLFW();
-    camera = std::make_shared<Camera>(window, 45.0f, glm::vec3(0.0f, 0.0f, 20.0f)); // x y z
+    camera = std::make_shared<Camera>(window, 90.0f, glm::vec3(0.0f, -30.0f, 180.0f));
+
+    // camera = std::make_shared<Camera>(window, 45.0f, glm::vec3(0.0f, 0.0f, 20.0f)); // x y z
     scene = std::make_unique<GL_TASK::ClassicScene>(shader_manager, light_manager);
     glEnable(GL_DEPTH_TEST);
 }
@@ -81,6 +83,8 @@ void RenderManager::start_rendering(bool offscreen)
 
     if (offscreen)
     {
+        glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+        glViewport(0, 0, window_width, window_height); // 确保视口匹配 FBO 尺寸
         std::filesystem::create_directories("./offline_rendering");
     }
 
@@ -94,7 +98,9 @@ void RenderManager::start_rendering(bool offscreen)
 
 void RenderManager::update_camera()
 {
-    camera->compute_matrices_from_inputs(window);
+    auto camera_pos = camera->get_pos();
+    // camera->set_position(camera_pos + glm::vec3(0, 0, 1.0));
+    // camera->compute_matrices_from_inputs(window);
 }
 
 void RenderManager::render_frame(int frameNumber)
@@ -102,7 +108,7 @@ void RenderManager::render_frame(int frameNumber)
     if (offscreen)
         glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 
-    glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+    glClearColor(0.f, 0.f, 0.f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     auto camera_pos = camera->get_pos();

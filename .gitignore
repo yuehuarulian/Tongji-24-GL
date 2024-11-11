@@ -3,4 +3,5 @@ build/
 bin/
 lib/
 offline_rendering/
+source/model/
 *.mp4
