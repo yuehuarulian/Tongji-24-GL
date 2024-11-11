@@ -9,9 +9,8 @@
 
 #include "camera_control.hpp"
 #include "classic_scene.hpp"
-
-const unsigned int WINDOW_HEIGHT = 1080;
-const unsigned int WINDOW_WIDTH = 720;
+#include "gui_manager.hpp"
+#include "config.hpp"
 
 // 初始化窗口和 OpenGL 上下文
 GLFWwindow *initialize_glfw_window()
@@ -37,7 +36,9 @@ int main()
     LightManager light_manager;
     GL_TASK::ClassicScene classic_scene(shader_manager, light_manager);
 
-    Camera camera(window, 90.0f, glm::vec3(0.0f, -30.0f, 180.0f), glm::pi<float>(), 0.f, 20.0f, 4.0f);
+    Camera camera(window, 75 * D2R, glm::vec3(0.0f, -30.0f, 180.0f), glm::pi<float>(), 0.f, 20.0f, 4.0f);
+
+    GUIManager gui_manager(window, camera, light_manager);
 
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
@@ -52,6 +53,8 @@ int main()
 
         auto camera_pos = camera.get_pos();
         classic_scene.render(camera.projection, camera.view, camera_pos);
+
+        gui_manager.render();
 
         glfwSwapBuffers(window);
         glfwPollEvents();

@@ -5,3 +5,4 @@ lib/
 offline_rendering/
 source/model/
 *.mp4
+*.ini

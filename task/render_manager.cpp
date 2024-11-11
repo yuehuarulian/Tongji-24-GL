@@ -1,6 +1,7 @@
 #include "render_manager.hpp"
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
+#include "config.hpp"
 #include <iostream>
 #include <vector>
 #include <sstream>
@@ -24,9 +25,9 @@ RenderManager::~RenderManager()
 void RenderManager::initialize()
 {
     initialize_GLFW();
-    camera = std::make_shared<Camera>(window, 90.0f, glm::vec3(0.0f, -30.0f, 180.0f));
 
-    // camera = std::make_shared<Camera>(window, 45.0f, glm::vec3(0.0f, 0.0f, 20.0f)); // x y z
+    camera = std::make_shared<Camera>(window, 75 * D2R, glm::vec3(0.0f, -30.0f, 180.0f));
+
     scene = std::make_unique<GL_TASK::ClassicScene>(shader_manager, light_manager);
     glEnable(GL_DEPTH_TEST);
 }

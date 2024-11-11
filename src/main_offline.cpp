@@ -1,8 +1,5 @@
 #include "render_manager.hpp"
-
-const unsigned int WINDOW_HEIGHT = 1080;
-const unsigned int WINDOW_WIDTH = 720;
-const unsigned int FRAMES = 60;
+#include "config.hpp"
 
 int main()
 {
