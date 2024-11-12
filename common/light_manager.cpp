@@ -16,6 +16,12 @@ void LightManager::add_spot_light(const glm::vec3 &position, const glm::vec3 &co
     // spot_lights.push_back();
 }
 
+void LightManager::add_area_light(const glm::vec3 &position, const glm::vec3 &normal, float width, float height, const glm::vec3 &color, int num_samples)
+{
+    AreaLight light(position, normal, width, height, color, num_samples);
+    area_lights.push_back(light);
+}
+
 void LightManager::apply_lights(const std::shared_ptr<Shader> &shader)
 {
 
@@ -30,6 +36,8 @@ void LightManager::apply_lights(const std::shared_ptr<Shader> &shader)
         shader->setVec3("point_lights[" + std::to_string(i) + "].diffuse", point_lights[i].diffuse);
         shader->setVec3("point_lights[" + std::to_string(i) + "].specular", point_lights[i].specular);
     }
+    if (point_lights.size() > 0)
+        shader->setInt("num_point_lights", point_lights.size());
 
     // 传递 DirectionalLights
     for (size_t i = 0; i < directional_lights.size(); ++i)
@@ -39,6 +47,8 @@ void LightManager::apply_lights(const std::shared_ptr<Shader> &shader)
         shader->setVec3("directional_lights[" + std::to_string(i) + "].diffuse", directional_lights[i].diffuse);
         shader->setVec3("directional_lights[" + std::to_string(i) + "].specular", directional_lights[i].specular);
     }
+    if (directional_lights.size() > 0)
+        shader->setInt("num_directional_lights", directional_lights.size());
 
     // 传递 SpotLights
     for (size_t i = 0; i < spot_lights.size(); ++i)
@@ -54,4 +64,21 @@ void LightManager::apply_lights(const std::shared_ptr<Shader> &shader)
         shader->setVec3("spot_lights[" + std::to_string(i) + "].diffuse", spot_lights[i].diffuse);
         shader->setVec3("spot_lights[" + std::to_string(i) + "].specular", spot_lights[i].specular);
     }
+    if (spot_lights.size() > 0)
+        shader->setInt("num_spot_lights", spot_lights.size());
+
+    // 传递 AreaLights
+    for (size_t i = 0; i < area_lights.size(); i++)
+    {
+        const auto &light = area_lights[i];
+
+        shader->setVec3("area_lights[" + std::to_string(i) + "].position", light.position);
+        shader->setVec3("area_lights[" + std::to_string(i) + "].normal", light.normal);
+        shader->setVec3("area_lights[" + std::to_string(i) + "].color", light.color / static_cast<float>(light.num_samples));
+        shader->setFloat("area_lights[" + std::to_string(i) + "].width", light.width);
+        shader->setFloat("area_lights[" + std::to_string(i) + "].height", light.height);
+        shader->setInt("area_lights[" + std::to_string(i) + "].num_samples", light.num_samples);
+    }
+    if (area_lights.size() > 0)
+        shader->setInt("num_area_lights", area_lights.size());
 }

@@ -95,7 +95,7 @@ void render_cube()
 // render_sphere 函数：渲染一个大小为1的球体
 // 参数：无
 // ------------------------------------------------------------
-void render_sphere()
+void render_sphere(glm::vec3 position = glm::vec3(0.f), glm::vec3 scale = glm::vec3(1.0f))
 {
     static unsigned int sphere_vao = 0;
     static unsigned int index_count;
@@ -146,9 +146,9 @@ void render_sphere()
         std::vector<float> data;
         for (size_t i = 0; i < positions.size(); ++i)
         {
-            data.push_back(positions[i].x);
-            data.push_back(positions[i].y);
-            data.push_back(positions[i].z);
+            data.push_back(positions[i].x * scale.x + position.x);
+            data.push_back(positions[i].y * scale.y + position.y);
+            data.push_back(positions[i].z * scale.z + position.z);
             data.push_back(normals[i].x);
             data.push_back(normals[i].y);
             data.push_back(normals[i].z);

@@ -11,8 +11,13 @@
 #include "classic_scene.hpp"
 #include "gui_manager.hpp"
 #include "config.hpp"
+#include "skybox.hpp"
 
-// 初始化窗口和 OpenGL 上下文
+void framebuffer_size_callback(GLFWwindow *window, int width, int height)
+{
+    glViewport(0, 0, width, height);
+}
+
 GLFWwindow *initialize_glfw_window()
 {
     glfwInit();
@@ -22,6 +27,10 @@ GLFWwindow *initialize_glfw_window()
 
     GLFWwindow *window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "scene", NULL, NULL);
     glfwMakeContextCurrent(window);
+
+    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
     gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
     glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
 
@@ -36,7 +45,9 @@ int main()
     LightManager light_manager;
     GL_TASK::ClassicScene classic_scene(shader_manager, light_manager);
 
-    Camera camera(window, 75 * D2R, glm::vec3(0.0f, -30.0f, 180.0f), glm::pi<float>(), 0.f, 20.0f, 4.0f);
+    Camera camera(window, 75 * D2R, glm::vec3(0.0f, -30.0f, 180.0f), glm::pi<float>(), 0.f, 30.0f, 1.0f);
+
+    Skybox skybox(faces, "source/shader/skybox.vs", "source/shader/skybox.fs");
 
     GUIManager gui_manager(window, camera, light_manager);
 
@@ -54,6 +65,7 @@ int main()
         auto camera_pos = camera.get_pos();
         classic_scene.render(camera.projection, camera.view, camera_pos);
 
+        skybox.render(camera.view, camera.projection);
         gui_manager.render();
 
         glfwSwapBuffers(window);
