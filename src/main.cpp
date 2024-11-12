@@ -12,6 +12,7 @@
 #include "gui_manager.hpp"
 #include "config.hpp"
 #include "skybox.hpp"
+#include "scene.hpp"
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height)
 {
@@ -43,7 +44,7 @@ int main()
 
     ShaderManager shader_manager;
     LightManager light_manager;
-    // GL_TASK::ClassicScene classic_scene(shader_manager, light_manager);
+    GL_TASK::ClassicScene classic_scene(shader_manager, light_manager);
 
     Camera camera(window, 75 * D2R, glm::vec3(0.0f, -30.0f, 180.0f), glm::pi<float>(), 0.f, 30.0f, 1.0f);
 

@@ -11,6 +11,7 @@
 
 #include "mesh.hpp"
 #include "shader.hpp"
+#include "BVH.hpp"
 
 #include <string>
 #include <fstream>
@@ -23,29 +24,25 @@ using namespace std;
 class Model
 {
 public:
-    // constructor, expects a filepath to a 3D model.
+    Model() = default;
     Model(string const &path, bool gamma = false);
 
     // draws the model, and thus all its meshes
     void Draw(Shader &shader);
 
-    // model data
-    vector<Texture> textures_loaded; // stores all the textures loaded so far, optimization to make sure textures aren't loaded more than once.
-    vector<Mesh> meshes;
-    string directory;
+    // 模型数据
+    vector<Texture> textures_loaded; // 用于优化，避免多次加载相同纹理
+    vector<Mesh *> meshes;           // 存储模型中的所有网格
+    string directory;                // 模型文件目录
     bool gammaCorrection;
 
+    bool LoadFromFile(const std::string &filePath) { return loadModel(filePath); }
+    std::vector<Mesh *> getMeshes() const { return meshes; }
+
 private:
-    // loads a model with supported ASSIMP extensions from file and stores the resulting meshes in the meshes vector.
-    void loadModel(string const &path);
-
-    // processes a node in a recursive fashion. Processes each individual mesh located at the node and repeats this process on its children nodes (if any).
+    bool loadModel(string const &path);
     void processNode(aiNode *node, const aiScene *scene);
-
-    Mesh processMesh(aiMesh *mesh, const aiScene *scene);
-
-    // checks all material textures of a given type and loads the textures if they're not loaded yet.
-    // the required info is returned as a Texture struct.
+    Mesh *processMesh(aiMesh *mesh, const aiScene *scene);
     vector<Texture> loadMaterialTextures(aiMaterial *mat, aiTextureType type, string typeName);
 };
 

@@ -32,13 +32,8 @@ namespace GL_TASK
         // 加载着色器
         shader_manager.load_shader("room_shader", "source/shader/classic/room.vs", "source/shader/classic/room.fs");
 
-        // 创建模型并为每个模型分配着色器
-        // room
-        auto shader = shader_manager.get_shader("room_shader");
-        light_manager.apply_lights(shader);
-        auto room_model = std::make_shared<Room>("source/model/room/overall.obj", shader, true);
-        room_model->set_model_matrix(room_model_matrix);
-        models.push_back(room_model);
+        AddMesh("source/model/room/overall.obj");
+        AddMesh("source/model/shark.obj");
     }
 
     void ClassicScene::render(const glm::mat4 &projection, const glm::mat4 &view, glm::vec3 &camera_pos)

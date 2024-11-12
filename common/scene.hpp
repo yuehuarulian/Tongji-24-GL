@@ -19,9 +19,14 @@ public:
 protected:
     virtual void setup_scene() = 0;
 
+    std::vector<Mesh *> meshes;
+
     ShaderManager &shader_manager;
     LightManager light_manager;
     std::vector<std::shared_ptr<RenderableModel>> models;
+
+    bool AddMesh(const std::string &filePath);
+    bool AddTexture(const std::string &filename);
 };
 
 #endif // SCENE_HPP

@@ -20,6 +20,8 @@ target_link_libraries(offline_rendering glfw3 libassimpd imgui)
 add_executable(imgui_test src/imgui_test.cpp src/glad.c ${COMMON_LIST} ${IMGUI_LIST})
 target_link_libraries(imgui_test glfw3 libassimpd imgui)
 
+add_executable(test_main src/test_main.cpp)
+
 add_custom_target(copy_assimp_dll ALL
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
     "${PROJECT_SOURCE_DIR}/bin/libassimp-5d.dll"

@@ -2,14 +2,6 @@
 #include <iostream>
 #include <algorithm>
 
-// 计算一个三角形的 AABB 包围盒
-AABB getTriangleAABB(const Vertex &v0, const Vertex &v1, const Vertex &v2)
-{
-    glm::vec3 minVertex = glm::min(v0.Position, glm::min(v1.Position, v2.Position));
-    glm::vec3 maxVertex = glm::max(v0.Position, glm::max(v1.Position, v2.Position));
-    return AABB{minVertex, maxVertex};
-}
-
 // BVH 节点构造函数：叶节点
 BVHNode::BVHNode(const AABB &bbox, const std::vector<unsigned int> &indices)
     : bbox(bbox), triangleIndices(indices), left(nullptr), right(nullptr) {}
@@ -26,9 +18,8 @@ BVHNode *buildBVHTree(const std::vector<unsigned int> &indices, const std::vecto
     // 叶子节点条件
     if (indices.size() <= 3)
     {
-        AABB bbox = getTriangleAABB(vertices[indices[0]], vertices[indices[1]], vertices[indices[2]]);
-        std::cout << "Leaf node: AABB(min: [" << bbox.min.x << ", " << bbox.min.y << ", " << bbox.min.z << "], "
-                  << "max: [" << bbox.max.x << ", " << bbox.max.y << ", " << bbox.max.z << "])" << std::endl;
+        AABB bbox = getTriangleAABB(vertices[indices[0]].Position, vertices[indices[1]].Position, vertices[indices[2]].Position);
+        std::cout << bbox << std::endl;
         return new BVHNode(bbox, indices);
     }
 
@@ -36,18 +27,16 @@ BVHNode *buildBVHTree(const std::vector<unsigned int> &indices, const std::vecto
     AABB bbox;
     for (size_t i = 0; i < indices.size(); i += 3)
     {
-        AABB triangleBbox = getTriangleAABB(vertices[indices[i]], vertices[indices[i + 1]], vertices[indices[i + 2]]);
-        bbox = bbox.merge(triangleBbox);
+        AABB triangleBbox = getTriangleAABB(vertices[indices[i]].Position, vertices[indices[i + 1]].Position, vertices[indices[i + 2]].Position);
+        bbox += triangleBbox;
     }
 
     // 输出包围盒信息
-    std::cout << "Bounding box for current node: AABB(min: ["
-              << bbox.min.x << ", " << bbox.min.y << ", " << bbox.min.z << "], "
-              << "max: [" << bbox.max.x << ", " << bbox.max.y << ", " << bbox.max.z << "])" << std::endl;
+    std::cout << bbox << std::endl;
 
     // 选择分割轴：根据当前深度选择 x、y、z 轴中的一个
     int axis = BVHDepth % 3;
-    float splitValue = (bbox.min[axis] + bbox.max[axis]) / 2.0f;
+    float splitValue = (bbox.GetMinP()[axis] + bbox.GetMaxP()[axis]) / 2.0f;
 
     // 分割索引到左右子节点
     std::vector<unsigned int> leftIndices, rightIndices;
