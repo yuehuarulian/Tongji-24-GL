@@ -65,7 +65,7 @@ int main()
         auto camera_pos = camera.get_pos();
         classic_scene.render(camera.projection, camera.view, camera_pos);
 
-        skybox.render(camera.view, camera.projection);
+        // skybox.render(camera.view, camera.projection);
         gui_manager.render();
 
         glfwSwapBuffers(window);
