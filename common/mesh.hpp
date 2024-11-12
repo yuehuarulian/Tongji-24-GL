@@ -6,32 +6,13 @@
 #include "glm/gtc/matrix_transform.hpp"
 
 #include "shader.hpp"
+#include "BVH.hpp"
 
 #include <string>
 #include <vector>
 #include <map>
 
 using namespace std;
-
-#define MAX_BONE_INFLUENCE 4
-
-struct Vertex
-{
-    // position
-    glm::vec3 Position;
-    // normal
-    glm::vec3 Normal;
-    // texCoords
-    glm::vec2 TexCoords;
-    // tangent
-    glm::vec3 Tangent;
-    // bitangent
-    glm::vec3 Bitangent;
-    // bone indexes which will influence this vertex
-    int m_BoneIDs[MAX_BONE_INFLUENCE];
-    // weights from each bone
-    float m_Weights[MAX_BONE_INFLUENCE];
-};
 
 struct Texture
 {
@@ -49,11 +30,16 @@ public:
     vector<Texture> textures;
     unsigned int VAO;
 
+    // BVH 树
+    BVHNode *rootNode;
+
     // constructor
     Mesh(vector<Vertex> vertices, vector<unsigned int> indices, vector<Texture> textures)
         : vertices(vertices), indices(indices), textures(textures)
     {
         setupMesh();
+        rootNode = buildBVHTree(indices, vertices, 1);
+        std::cout << "BVH树建立成功" << std::endl;
     }
 
     unsigned int createDefaultTexture()
@@ -74,6 +60,7 @@ public:
 
         return textureID;
     }
+
     // render the mesh
     void Draw(Shader &shader)
     {

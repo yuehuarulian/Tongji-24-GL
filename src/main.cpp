@@ -43,7 +43,7 @@ int main()
 
     ShaderManager shader_manager;
     LightManager light_manager;
-    GL_TASK::ClassicScene classic_scene(shader_manager, light_manager);
+    // GL_TASK::ClassicScene classic_scene(shader_manager, light_manager);
 
     Camera camera(window, 75 * D2R, glm::vec3(0.0f, -30.0f, 180.0f), glm::pi<float>(), 0.f, 30.0f, 1.0f);
 
@@ -54,6 +54,8 @@ int main()
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
 
+    Model *model = new Model("./source/model/shark.obj");
+
     glfwSwapInterval(1);                                                                            // 垂直同步，参数：在 glfwSwapBuffers 交换缓冲区之前要等待的最小屏幕更新数
     while (glfwWindowShouldClose(window) == 0 && glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS) // 窗口没有关闭，esc键没有按下
     {
@@ -63,7 +65,7 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         auto camera_pos = camera.get_pos();
-        classic_scene.render(camera.projection, camera.view, camera_pos);
+        // classic_scene.render(camera.projection, camera.view, camera_pos);
 
         skybox.render(camera.view, camera.projection);
         gui_manager.render();
