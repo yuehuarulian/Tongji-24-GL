@@ -8,6 +8,7 @@
 #include "classic_scene.hpp"
 #include <memory>
 #include <GLFW/glfw3.h>
+#include "skybox.hpp"
 
 class RenderManager
 {
@@ -29,6 +30,7 @@ private:
     ShaderManager shader_manager;
     LightManager light_manager;
     std::unique_ptr<Scene> scene;
+    std::unique_ptr<Skybox> skybox;
 
     unsigned int fbo, texture_color_buffer, rbo;
     int window_width, window_height, frames;

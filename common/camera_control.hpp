@@ -30,12 +30,17 @@ public:
     glm::mat4 view;
 
 private:
+    void calculate_view_and_projection_matrix();
+    float _width, _height;
     glm::vec3 _position;     // 摄像机初始位置
     float _horizontal_angle; // 摄像机初始水平角度 x-z坐标系 z轴正方向为0度
     float _vertical_angle;   // 摄像机初始垂直角度 y-z坐标系 z轴正方向为0度
     float _speed;
     float _mouse_speed;
     float _initial_fov;
+    glm::vec3 _direction;
+    glm::vec3 _right;
+    glm::vec3 _up;
 };
 
 #endif

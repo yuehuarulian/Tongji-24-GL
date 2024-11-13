@@ -26,10 +26,11 @@ void RenderManager::initialize()
 {
     initialize_GLFW();
 
-    camera = std::make_shared<Camera>(window, 75 * D2R, glm::vec3(0.0f, -30.0f, 180.0f));
-
+    camera = std::make_shared<Camera>(window, 90 * D2R, glm::vec3(0.0f, -30.0f, 180.0f), glm::pi<float>(), 0.f, 30.0f, 1.0f);
     scene = std::make_unique<GL_TASK::ClassicScene>(shader_manager, light_manager);
+    skybox = std::make_unique<Skybox>(faces, "source/shader/skybox.vs", "source/shader/skybox.fs");
     glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LEQUAL);
 }
 
 void RenderManager::initialize_GLFW()
@@ -100,8 +101,8 @@ void RenderManager::start_rendering(bool offscreen)
 void RenderManager::update_camera()
 {
     auto camera_pos = camera->get_pos();
-    // camera->set_position(camera_pos + glm::vec3(0, 0, 1.0));
-    // camera->compute_matrices_from_inputs(window);
+    camera->set_position(camera_pos - glm::vec3(0, 0, 2.0));
+    camera->compute_matrices_from_inputs(window);
 }
 
 void RenderManager::render_frame(int frameNumber)
@@ -114,6 +115,7 @@ void RenderManager::render_frame(int frameNumber)
 
     auto camera_pos = camera->get_pos();
     scene->render(camera->projection, camera->view, camera_pos);
+    skybox->render(camera->view, camera->projection);
 
     if (offscreen)
     {
