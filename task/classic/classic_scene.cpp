@@ -19,7 +19,7 @@ namespace GL_TASK
         for (int i = 0; i < area_lights_position.size(); i++)
         {
             // printf("position: %f %f %f\n", area_lights_position[i].x, area_lights_position[i].y, area_lights_position[i].z);
-            light_manager.add_area_light(area_lights_position[i], area_lights_normal[i], 5.0f, 5.0f, glm::vec3(300.0f, 300.0f, 300.0f), 16);
+            light_manager.add_area_light(area_lights_position[i], glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(30000.0f, 30000.0f, 30000.0f), 5.0f, 5.0f, 16);
         }
 
         // 加载着色器
@@ -31,6 +31,7 @@ namespace GL_TASK
         auto shader = shader_manager.get_shader("room_shader");
         light_manager.apply_lights(shader);
         auto room_model = std::make_shared<Room>("source/model/room/overall.obj", shader, true);
+        // auto room_model = std::make_shared<Room>("E:/my_code/GL_bigwork/ToyEffects/ToyEffects/assets/SceneModels/tree1/trees9.obj", shader, true);
         room_model->set_model_matrix(room_model_matrix);
         models.push_back(room_model);
     }
@@ -42,7 +43,7 @@ namespace GL_TASK
             model->draw(projection, view, camera_pos);
         }
 
-        // 调试用
+        /// 调试用
         auto shader = shader_manager.get_shader("cubemap_shader");
         shader->use();
         shader->setMat4("projection", projection);
@@ -55,5 +56,6 @@ namespace GL_TASK
             shader->setMat4("model", model);
             render_sphere();
         }
+        ///
     }
 }

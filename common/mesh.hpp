@@ -63,7 +63,7 @@ public:
         glBindTexture(GL_TEXTURE_2D, textureID);
 
         // 创建一个 1x1 的白色像素数据
-        unsigned char whitePixel[3] = {255, 255, 255}; // 白色或其他中性色
+        unsigned char whitePixel[3] = {0, 0, 0};
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1, 1, 0, GL_RGB, GL_UNSIGNED_BYTE, whitePixel);
 
         // 设置纹理参数

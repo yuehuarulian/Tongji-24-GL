@@ -29,14 +29,14 @@ namespace GL_TASK
             glm::vec3(-34.19, 106.89, 135.34),  // bulb.011
         };
         std::vector<glm::vec3> area_lights_normal = {
-            glm::vec3(0., 0., 1.),
-            glm::vec3(0., 0., 1.),
-            glm::vec3(0., 0., 1.),
-            glm::vec3(-1., -0., -0.),
-            glm::vec3(-1., -0., -0.),
-            glm::vec3(-1., -0., -0.),
-            glm::vec3(-1., -0., -0.),
-            glm::vec3(-1., -0., -0.),
+            glm::vec3(0., -1., 0.),
+            glm::vec3(0., -1., 0.),
+            glm::vec3(0., -1., 0.),
+            glm::vec3(0., -1., 0.),
+            glm::vec3(0., -1., 0.),
+            glm::vec3(0., -1., 0.),
+            glm::vec3(0., -1., 0.),
+            glm::vec3(0., -1., 0.),
         };
         glm::mat4 room_model_matrix = glm::mat4(1.0f);
 

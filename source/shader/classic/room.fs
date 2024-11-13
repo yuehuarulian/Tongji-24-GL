@@ -6,7 +6,7 @@ in vec3 WorldPos;
 in vec3 Normal;
 
 const float PI = 3.14159265359;
-const int MAX_AREA_LIGHTS = 10;
+const int MAX_AREA_LIGHTS = 8;
 
 uniform vec3 camPos;
 
@@ -89,19 +89,60 @@ vec3 fresnelSchlick(float cosTheta, vec3 F0) {
     return F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
 }
 
-// 网面光源采样点生成
-vec3 sampleAreaLight(AreaLight light, float sampleX, float sampleY) {
-    vec3 right = normalize(cross(light.normal, vec3(0.0, 1.0, 0.0)));
-    vec3 up = normalize(cross(right, light.normal));
-    vec3 samplePos = light.position + (sampleX - 0.5) * light.width * right + (sampleY - 0.5) * light.height * up;
-    return samplePos;
+// area light
+vec3 calculateAreaLight(AreaLight light, vec3 N, vec3 V, vec3 F0, vec3 albedo, float metallic, float roughness) {
+    vec3 areaLightColor = vec3(0.0);
+
+    // 根据光源法线生成合适的切线和副切线方向
+    vec3 tangent = abs(dot(light.normal, vec3(0.0, 1.0, 0.0))) < 0.99 ? 
+                   normalize(cross(light.normal, vec3(0.0, 1.0, 0.0))) : 
+                   normalize(cross(light.normal, vec3(1.0, 0.0, 0.0)));
+    vec3 bitangent = normalize(cross(light.normal, tangent));
+
+    for (int i = 0; i < light.num_samples; i++) {
+        // 生成采样点的相对位置，以保证其均匀分布在光源平面上
+        float sampleX = fract(sin(float(i) * 43758.5453) * 2.0);
+        float sampleY = fract(sin(float(i) * 12345.6789) * 2.0);
+        vec3 samplePos = light.position + 
+                         (sampleX - 0.5) * light.width * tangent + 
+                         (sampleY - 0.5) * light.height * bitangent;
+
+        vec3 L = normalize(samplePos - WorldPos);
+        float distance = length(samplePos - WorldPos);
+        float attenuation = 1.0 / (distance * distance);
+        vec3 radiance = light.color * attenuation;
+
+        vec3 H = normalize(V + L);
+        float NDF = DistributionGGX(N, H, roughness);
+        float G = GeometrySmith(N, V, L, roughness);
+        vec3 F = fresnelSchlick(max(dot(H, V), 0.0), F0);
+
+        vec3 numerator = NDF * G * F;
+        float denominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 0.001;
+        vec3 specular = numerator / denominator;
+
+        vec3 kS = F;
+        vec3 kD = vec3(1.0) - kS;
+        kD *= 1.0 - metallic;
+
+        float NdotL = max(dot(N, L), 0.0);
+        areaLightColor += (kD * albedo / PI + specular) * radiance * NdotL;
+    }
+    
+    return areaLightColor / float(light.num_samples);  // 平均采样颜色
 }
 
 void main() {
     vec3 albedo     = pow(texture(texture_diffuse1, TexCoords).rgb, vec3(2.2));
     float metallic  = texture(texture_metallic1, TexCoords).r;
+    if (metallic < 1e-6)
+        metallic = 0.0;
     float roughness = texture(texture_roughness1, TexCoords).r;
+    if (roughness < 0.04)
+        roughness = 0.5;
     float ao        = texture(texture_ao1, TexCoords).r;
+    if (ao < 1e-6)
+        ao = 0.7;
 
     vec3 N = getNormalFromMap();
     vec3 V = normalize(camPos - WorldPos);
@@ -113,39 +154,10 @@ void main() {
 
     // 网面光源的计算
     for(int i = 0; i < num_area_lights; i++) {
-        AreaLight light = area_lights[i];
-        vec3 areaLightColor = vec3(0.0);
-
-        for(int j = 0; j < light.num_samples; j++) {
-            float sampleX = fract(sin(float(j) * 43758.5453) * 2.0);
-            float sampleY = fract(sin(float(j) * 12345.6789) * 2.0);
-            vec3 samplePos = sampleAreaLight(light, sampleX, sampleY);
-
-            vec3 L = normalize(samplePos - WorldPos);
-            vec3 H = normalize(V + L);
-            float distance = length(samplePos - WorldPos);
-            float attenuation = 1.0 / (distance * distance);
-            vec3 radiance = light.color * attenuation;
-
-            float NDF = DistributionGGX(N, H, roughness);
-            float G   = GeometrySmith(N, V, L, roughness);
-            vec3 F    = fresnelSchlick(max(dot(H, V), 0.0), F0);
-
-            vec3 numerator    = NDF * G * F;
-            float denominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 0.0001;
-            vec3 specular = numerator / denominator;
-
-            vec3 kS = F;
-            vec3 kD = vec3(1.0) - kS;
-            kD *= 1.0 - metallic;
-
-            float NdotL = max(dot(N, L), 0.0);
-            areaLightColor += (kD * albedo / PI + specular) * radiance * NdotL;
-        }
-        Lo += areaLightColor / float(light.num_samples);
+        Lo += calculateAreaLight(area_lights[i], N, V, F0, albedo, metallic, roughness);
     }
-    vec3 ambient = vec3(0.03) * albedo * ao;
-    vec3 color = ambient + Lo;
+    vec3 ambient = vec3(0.05) * albedo * ao;
+    vec3 color = ambient + Lo * 10;
 
     // 曝光映射
     color = color / (color + vec3(1.0));
