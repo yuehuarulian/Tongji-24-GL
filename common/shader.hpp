@@ -2,9 +2,13 @@
 #ifndef SHADER_HPP
 #define SHADER_HPP
 
+#include <string>
+#include <fstream>
+#include <sstream>
+#include <iostream>
+
 #include <glad/glad.h>
 #include <glm/glm.hpp>
-#include <string>
 
 class Shader
 {
@@ -12,8 +16,8 @@ public:
     unsigned int ID;
 
     // 构造函数，加载和编译着色器
-    Shader(const char *vertexPath, const char *fragmentPath);
-    Shader(const std::string &vertexPath, const std::string &fragmentPath);
+    Shader(const char *vertexPath, const char *fragmentPath, const char *geometrypath = nullptr);
+    Shader(const std::string &vertexPath, const std::string &fragmentPath, const std::string &geometry_path = "");
 
     // 使用着色器程序
     void use();
@@ -24,6 +28,7 @@ public:
     void setFloat(const std::string &name, float value) const;
     void setVec3(const std::string &name, float x, float y, float z) const;
     void setVec3(const std::string &name, const glm::vec3 &value) const;
+    void setMat3(const std::string &name, const glm::mat3 &mat) const;
     void setMat4(const std::string &name, const glm::mat4 &mat) const;
 
 private:

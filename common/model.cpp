@@ -46,7 +46,9 @@ unsigned int TextureFromFile(const char *path, const string &directory, bool gam
 
 Model::Model(string const &path, bool gamma) : gammaCorrection(gamma)
 {
+    printf("start load model: %s\n", path.c_str());
     loadModel(path);
+    printf("end load model: %s\n", path.c_str());
 }
 
 void Model::Draw(Shader &shader)
@@ -169,6 +171,19 @@ Mesh Model::processMesh(aiMesh *mesh, const aiScene *scene)
     // 4. height maps
     std::vector<Texture> heightMaps = loadMaterialTextures(material, aiTextureType_AMBIENT, "texture_height");
     textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
+
+    // PBR 相关贴图
+    // 5. metallic maps
+    std::vector<Texture> metallicMaps = loadMaterialTextures(material, aiTextureType_METALNESS, "texture_metallic");
+    textures.insert(textures.end(), metallicMaps.begin(), metallicMaps.end());
+
+    // 6. roughness maps
+    std::vector<Texture> roughnessMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE_ROUGHNESS, "texture_roughness");
+    textures.insert(textures.end(), roughnessMaps.begin(), roughnessMaps.end());
+
+    // 7. ao maps
+    std::vector<Texture> aoMaps = loadMaterialTextures(material, aiTextureType_AMBIENT_OCCLUSION, "texture_ao");
+    textures.insert(textures.end(), aoMaps.begin(), aoMaps.end());
 
     // return a mesh object created from the extracted mesh data
     return Mesh(vertices, indices, textures);

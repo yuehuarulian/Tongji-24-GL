@@ -1,6 +1,7 @@
 #include "render_manager.hpp"
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
+#include "config.hpp"
 #include <iostream>
 #include <vector>
 #include <sstream>
@@ -24,9 +25,12 @@ RenderManager::~RenderManager()
 void RenderManager::initialize()
 {
     initialize_GLFW();
-    camera = std::make_shared<Camera>(window, 45.0f, glm::vec3(0.0f, 0.0f, 20.0f)); // x y z
+
+    camera = std::make_shared<Camera>(window, 90 * D2R, glm::vec3(0.0f, -30.0f, 180.0f), glm::pi<float>(), 0.f, 30.0f, 1.0f);
     scene = std::make_unique<GL_TASK::ClassicScene>(shader_manager, light_manager);
+    skybox = std::make_unique<Skybox>(faces, "source/shader/skybox.vs", "source/shader/skybox.fs");
     glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LEQUAL);
 }
 
 void RenderManager::initialize_GLFW()
@@ -81,6 +85,8 @@ void RenderManager::start_rendering(bool offscreen)
 
     if (offscreen)
     {
+        glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+        glViewport(0, 0, window_width, window_height); // 确保视口匹配 FBO 尺寸
         std::filesystem::create_directories("./offline_rendering");
     }
 
@@ -94,6 +100,8 @@ void RenderManager::start_rendering(bool offscreen)
 
 void RenderManager::update_camera()
 {
+    auto camera_pos = camera->get_pos();
+    camera->set_position(camera_pos - glm::vec3(0, 0, 2.0));
     camera->compute_matrices_from_inputs(window);
 }
 
@@ -102,11 +110,12 @@ void RenderManager::render_frame(int frameNumber)
     if (offscreen)
         glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 
-    glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+    glClearColor(0.f, 0.f, 0.f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     auto camera_pos = camera->get_pos();
     scene->render(camera->projection, camera->view, camera_pos);
+    skybox->render(camera->view, camera->projection);
 
     if (offscreen)
     {

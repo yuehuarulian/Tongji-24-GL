@@ -13,28 +13,34 @@ class Camera
 public:
     Camera() = default;
 
-    Camera(GLFWwindow *window, float initialfov = 45.0f, glm::vec3 position = glm::vec3(0, 0, 20), float horizontal_angle = GLM_PI, float vertical_angle = 0.f,
+    Camera(GLFWwindow *window, float initialfov = GLM_PI / 4, glm::vec3 position = glm::vec3(0, 0, 20), float horizontal_angle = GLM_PI, float vertical_angle = 0.f,
            float speed = 5.0f, float mouse_speed = 1.0f);
 
     void compute_matrices_from_inputs(GLFWwindow *window, glm::vec3 center = glm::vec3(0, 0, 0));
 
     glm::vec3 get_pos();
 
+    glm::vec3 get_direction();
     void set_position(glm::vec3 position);
 
-    glm::vec3 get_direction();
+    void set_fov(float fov);
 
     // 投影和观察矩阵
     glm::mat4 projection;
     glm::mat4 view;
 
 private:
+    void calculate_view_and_projection_matrix();
+    float _width, _height;
     glm::vec3 _position;     // 摄像机初始位置
     float _horizontal_angle; // 摄像机初始水平角度 x-z坐标系 z轴正方向为0度
     float _vertical_angle;   // 摄像机初始垂直角度 y-z坐标系 z轴正方向为0度
     float _speed;
     float _mouse_speed;
     float _initial_fov;
+    glm::vec3 _direction;
+    glm::vec3 _right;
+    glm::vec3 _up;
 };
 
 #endif
