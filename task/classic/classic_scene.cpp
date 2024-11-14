@@ -19,7 +19,7 @@ namespace GL_TASK
         for (int i = 0; i < area_lights_position.size(); i++)
         {
             // printf("position: %f %f %f\n", area_lights_position[i].x, area_lights_position[i].y, area_lights_position[i].z);
-            light_manager.add_area_light(area_lights_position[i], glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(30000.0f, 30000.0f, 30000.0f), 5.0f, 5.0f, 16);
+            light_manager.add_area_light(area_lights_position[i], glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f) * 30000.0f, 4.0f, 4.0f, 16);
         }
 
         // 加载着色器

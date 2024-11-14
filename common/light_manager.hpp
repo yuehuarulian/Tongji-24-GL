@@ -78,6 +78,8 @@ public:
 
     void clear_lights();
 
+    void set_intensity(const float intensity, const std::shared_ptr<Shader> &shader);
+
 private:
     std::vector<PointLight> point_lights;
     std::vector<DirectionalLight> directional_lights;

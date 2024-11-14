@@ -1,7 +1,7 @@
 #include "gui_manager.hpp"
 
-GUIManager::GUIManager(GLFWwindow *window, Camera &camera, LightManager &lightManager)
-    : camera(camera), lightManager(lightManager), fov(90.0f), lightIntensity(1.0f)
+GUIManager::GUIManager(GLFWwindow *window, Camera &camera, LightManager &light_manager, ShaderManager &shader_manager)
+    : camera(camera), light_manager(light_manager), shader_manager(shader_manager), fov(90.0f), light_intensity(30000.0f)
 {
     // 初始化 ImGui 上下文
     IMGUI_CHECKVERSION();
@@ -40,9 +40,9 @@ void GUIManager::render()
     }
 
     // 光照强度滑动条控件
-    if (ImGui::SliderFloat("Light Intensity", &lightIntensity, 0.0f, 10.0f))
+    if (ImGui::SliderFloat("Light Intensity", &light_intensity, 1.0f, 100000.0f))
     {
-        // lightManager.setIntensity(lightIntensity);
+        light_manager.set_intensity(light_intensity, shader_manager.get_shader("room_shader"));
     }
 
     ImGui::End();

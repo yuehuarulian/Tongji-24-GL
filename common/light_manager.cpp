@@ -87,3 +87,16 @@ void LightManager::apply_lights(const std::shared_ptr<Shader> &shader)
     if (area_lights.size() > 0)
         shader->setInt("num_area_lights", area_lights.size());
 }
+
+void LightManager::set_intensity(const float intensity, const std::shared_ptr<Shader> &shader)
+{
+    for (auto &light : point_lights)
+        light.color *= intensity / light.color.r;
+    for (auto &light : directional_lights)
+        light.color *= intensity / light.color.r;
+    for (auto &light : spot_lights)
+        light.color *= intensity / light.color.r;
+    for (auto &light : area_lights)
+        light.color *= intensity / light.color.r;
+    apply_lights(shader);
+}

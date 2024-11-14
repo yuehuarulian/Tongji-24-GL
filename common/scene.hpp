@@ -10,7 +10,7 @@
 class Scene
 {
 public:
-    Scene(ShaderManager &shader_manager, LightManager light_manager) : shader_manager(shader_manager), light_manager(light_manager) {}
+    Scene(ShaderManager &shader_manager, LightManager &light_manager) : shader_manager(shader_manager), light_manager(light_manager) {}
 
     virtual ~Scene() = default;
 
@@ -20,7 +20,7 @@ protected:
     virtual void setup_scene() = 0;
 
     ShaderManager &shader_manager;
-    LightManager light_manager;
+    LightManager &light_manager;
     std::vector<std::shared_ptr<RenderableModel>> models;
 };
 

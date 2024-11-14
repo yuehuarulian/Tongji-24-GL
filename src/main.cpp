@@ -25,6 +25,9 @@ GLFWwindow *initialize_glfw_window()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
+    // 启用多重采样抗锯齿
+    glfwWindowHint(GLFW_SAMPLES, 4); // 4x MSAA
+
     GLFWwindow *window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "scene", NULL, NULL);
     glfwMakeContextCurrent(window);
 
@@ -49,10 +52,11 @@ int main()
 
     Skybox skybox(faces, "source/shader/skybox.vs", "source/shader/skybox.fs");
 
-    GUIManager gui_manager(window, camera, light_manager);
+    GUIManager gui_manager(window, camera, light_manager, shader_manager);
 
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
+    glEnable(GL_MULTISAMPLE);
 
     glfwSwapInterval(1);                                                                            // 垂直同步，参数：在 glfwSwapBuffers 交换缓冲区之前要等待的最小屏幕更新数
     while (glfwWindowShouldClose(window) == 0 && glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS) // 窗口没有关闭，esc键没有按下
