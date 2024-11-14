@@ -2,28 +2,48 @@
 #include <mesh.hpp>
 #include <model.hpp>
 
-bool Scene::AddMesh(const std::string &filePath)
+bool Scene::AddModel(const std::string &modelfilePath)
 {
-    std::cout << "Begin Load Mesh: " << filePath << std::endl;
     Model *model = new Model;
-    if (model->LoadFromFile(filePath))
+    if (model->LoadFromFile(modelfilePath))
     {
         for (auto mesh : model->getMeshes())
-            meshes.push_back(mesh);
+        {
+            this->meshes.push_back(mesh);
+            int mesh_id = meshes.size();
+            glm::mat4 transformMat(1.0f);
+            MeshInstance *instance = new MeshInstance(mesh_id, transformMat);
+            this->meshInstances.push_back(instance);
+        }
     }
     else
     {
-        std::cout << "ERROR::UNABLE TO LOAD MESH::" << filePath << std::endl;
+        std::cout << "ERROR::UNABLE TO LOAD MESH::" << modelfilePath << std::endl;
         delete model;
         return false;
     }
 
     delete model;
-    std::cout << "Mesh Load Success !" << std::endl;
     return true;
 }
 
 bool Scene::AddTexture(const std::string &filename)
 {
     return true;
+}
+
+void Scene::createBLAS()
+{
+#pragma omp parallel for
+    for (int i = 0; i < meshes.size(); i++)
+    {
+        printf("\n*****************\n");
+        printf("MESH #%d BVH INFO: \n", i);
+        meshes[i]->BuildBVH();
+        meshes[i]->bvh->PrintStatistics(std::cout);
+        printf("\n*****************\n");
+    }
+}
+void Scene::createTLAS()
+{
 }

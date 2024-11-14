@@ -42,7 +42,7 @@ namespace GL_TASK
 
         void setup_scene() override;
 
-        void InitModels();
+        void LoadModels();
     };
 }
 #endif

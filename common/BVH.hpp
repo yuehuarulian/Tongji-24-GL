@@ -14,27 +14,6 @@
 class BVH
 {
 public:
-    BVH(float traversal_cost, int num_bins = 64, bool usesah = true)
-        : m_root(nullptr),
-          m_num_bins(num_bins),
-          m_usesah(usesah),
-          m_height(0),
-          m_traversal_cost(traversal_cost) {}
-    ~BVH() = default;
-
-    AABB const &getBounds() const { return m_bounds; }
-    inline int getHeight() const { return m_height; }
-    virtual int const *getIndices() const { return &m_packed_indices[0]; }
-    virtual size_t getNumIndices() const { return m_packed_indices.size(); }
-
-    void Build(AABB const *bounds, int numbounds);
-
-    // 打印BVH树数据
-    virtual void PrintStatistics(std::ostream &os) const;
-
-protected:
-    virtual void BuildImpl(AABB const *bounds, int numbounds);
-
     enum NodeType
     {
         kInternal,
@@ -62,6 +41,30 @@ protected:
         };
     };
 
+public:
+    BVH(float traversal_cost, int num_bins = 64, bool usesah = true)
+        : m_root(nullptr),
+          m_num_bins(num_bins),
+          m_usesah(usesah),
+          m_height(0),
+          m_traversal_cost(traversal_cost) {}
+    ~BVH() = default;
+
+    AABB const &getBounds() const { return m_bounds; }
+    inline int getHeight() const { return m_height; }
+    inline int getNodeCnt() const { return m_nodecnt; }
+    Node *getRootNode() const { return m_root; }
+    virtual int const *getIndices() const { return &m_packed_indices[0]; }
+    virtual size_t getNumIndices() const { return m_packed_indices.size(); }
+
+    void Build(AABB const *bounds, int numbounds);
+
+    // 打印BVH树数据
+    virtual void PrintStatistics(std::ostream &os) const;
+
+protected:
+    virtual void BuildImpl(AABB const *bounds, int numbounds);
+
     virtual Node *AllocateNode();
     virtual void InitNodeAllocator(size_t maxnum);
     // 记录分割请求信息
@@ -87,16 +90,18 @@ protected:
     SahSplit FindSahSplit(SplitRequest const &req, AABB const *bounds, glm::vec3 const *centroids, int *primindices) const;
     void BuildNode(SplitRequest const &req, AABB const *bounds, glm::vec3 const *centroids, int *primindices);
 
-    std::vector<Node> m_nodes;  // BVH Nodes
-    std::vector<int> m_indices; // 索引
-    std::atomic<int> m_nodecnt; // Number of Nodes
-    std::vector<int> m_packed_indices;
     AABB m_bounds;
     Node *m_root;
     int m_height;  // 树的高度
     bool m_usesah; // 是否使用SAH（Surface Area Heuristic）算法进行分割
     float m_traversal_cost;
     int m_num_bins;
+
+public:
+    std::vector<Node> m_nodes;  // BVH树节点
+    std::vector<int> m_indices; // 索引
+    std::atomic<int> m_nodecnt; // BVH树节点的数量
+    std::vector<int> m_packed_indices;
 
 private:
     BVH(BVH const &) = delete;

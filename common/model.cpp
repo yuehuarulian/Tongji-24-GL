@@ -84,7 +84,8 @@ void Model::processNode(aiNode *node, const aiScene *scene)
     for (unsigned int i = 0; i < node->mNumMeshes; i++)
     {
         aiMesh *mesh = scene->mMeshes[node->mMeshes[i]];
-        meshes.push_back(processMesh(mesh, scene));
+        Mesh *m_mesh = processMesh(mesh, scene);
+        meshes.push_back(m_mesh);
     }
 
     for (unsigned int i = 0; i < node->mNumChildren; i++)
@@ -93,6 +94,7 @@ void Model::processNode(aiNode *node, const aiScene *scene)
     }
 }
 
+// 将Assimp的Mesh数据类型转换为自定义的Mesh数据类型
 Mesh *Model::processMesh(aiMesh *mesh, const aiScene *scene)
 {
     vector<Vertex> vertices;      // 顶点数据
@@ -153,30 +155,31 @@ Mesh *Model::processMesh(aiMesh *mesh, const aiScene *scene)
 
     // 获取材质
     aiMaterial *material = scene->mMaterials[mesh->mMaterialIndex];
+    {
+        // 1. 漫反射纹理
+        vector<Texture> diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE, "texture_diffuse");
+        textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
+        // 2. 镜面反射纹理
+        vector<Texture> specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR, "texture_specular");
+        textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
+        // 3. 法线贴图
+        std::vector<Texture> normalMaps = loadMaterialTextures(material, aiTextureType_HEIGHT, "texture_normal");
+        textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
+        // 4. 高度贴图
+        std::vector<Texture> heightMaps = loadMaterialTextures(material, aiTextureType_AMBIENT, "texture_height");
+        textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
 
-    // 1. 漫反射纹理
-    vector<Texture> diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE, "texture_diffuse");
-    textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
-    // 2. 镜面反射纹理
-    vector<Texture> specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR, "texture_specular");
-    textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
-    // 3. 法线贴图
-    std::vector<Texture> normalMaps = loadMaterialTextures(material, aiTextureType_HEIGHT, "texture_normal");
-    textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
-    // 4. 高度贴图
-    std::vector<Texture> heightMaps = loadMaterialTextures(material, aiTextureType_AMBIENT, "texture_height");
-    textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
-
-    // PBR 相关贴图
-    // 5. 金属度贴图
-    std::vector<Texture> metallicMaps = loadMaterialTextures(material, aiTextureType_METALNESS, "texture_metallic");
-    textures.insert(textures.end(), metallicMaps.begin(), metallicMaps.end());
-    // 6. 粗糙度贴图
-    std::vector<Texture> roughnessMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE_ROUGHNESS, "texture_roughness");
-    textures.insert(textures.end(), roughnessMaps.begin(), roughnessMaps.end());
-    // 7. 环境光遮蔽贴图
-    std::vector<Texture> aoMaps = loadMaterialTextures(material, aiTextureType_AMBIENT_OCCLUSION, "texture_ao");
-    textures.insert(textures.end(), aoMaps.begin(), aoMaps.end());
+        // PBR 相关贴图
+        // 5. 金属度贴图
+        std::vector<Texture> metallicMaps = loadMaterialTextures(material, aiTextureType_METALNESS, "texture_metallic");
+        textures.insert(textures.end(), metallicMaps.begin(), metallicMaps.end());
+        // 6. 粗糙度贴图
+        std::vector<Texture> roughnessMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE_ROUGHNESS, "texture_roughness");
+        textures.insert(textures.end(), roughnessMaps.begin(), roughnessMaps.end());
+        // 7. 环境光遮蔽贴图
+        std::vector<Texture> aoMaps = loadMaterialTextures(material, aiTextureType_AMBIENT_OCCLUSION, "texture_ao");
+        textures.insert(textures.end(), aoMaps.begin(), aoMaps.end());
+    }
 
     // 使用提取的数据创建并返回 Mesh 对象
     return new Mesh(vertices, indices, textures);

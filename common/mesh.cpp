@@ -4,10 +4,7 @@ Mesh::Mesh(vector<Vertex> vertices, vector<unsigned int> indices, vector<Texture
     : vertices(vertices), indices(indices), textures(textures)
 {
     setupMesh();
-    std::cout << "#00 Build BVHTree begin..." << std::endl;
     bvh = new BVH(2.0);
-    BuildBVH();
-    std::cout << "#-1 Build BVHTree Success!" << std::endl;
 }
 
 void Mesh::BuildBVH()
@@ -24,10 +21,7 @@ void Mesh::BuildBVH()
         bounds[i].grow(v2);
         bounds[i].grow(v3);
     }
-
-    std::cout << "#01 Build BVHTree..." << std::endl;
     bvh->Build(&bounds[0], numTris);
-    bvh->PrintStatistics(std::cout);
 }
 
 unsigned int Mesh::createDefaultTexture()

@@ -11,7 +11,6 @@ void BVH::Build(AABB const *bounds, int numbounds)
         m_bounds.grow(bounds[i]); // 计算边界框并扩展总边界框
 
     // 调用BuildImpl进行具体的BVH构建
-    std::cout << "#02 Build BVHTree..." << std::endl;
     BuildImpl(bounds, numbounds);
 }
 
@@ -345,7 +344,7 @@ BVH::SahSplit BVH::FindSahSplit(SplitRequest const &req, AABB const *bounds, glm
 
 void BVH::PrintStatistics(std::ostream &os) const
 {
-    os << "Class name: " << "BVH\n";
+    os << "BVH INFO: \n";
     os << "SAH: " << (m_usesah ? "enabled\n" : "disabled\n");
     os << "SAH bins: " << m_num_bins << "\n";
     os << "Number of triangles: " << m_indices.size() << "\n";

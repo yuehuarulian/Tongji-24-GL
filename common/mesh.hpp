@@ -65,4 +65,16 @@ private:
     void setupMesh();
 };
 
+class MeshInstance
+{
+public:
+    MeshInstance(int mesh_id, glm::mat4 xform) : meshID(mesh_id), transform(xform) {}
+    ~MeshInstance() {}
+
+    glm::mat4 transform; // 从局部坐标系转换到世界坐标系的转换矩阵
+
+    int meshID;
+    int materialID;
+};
+
 #endif
