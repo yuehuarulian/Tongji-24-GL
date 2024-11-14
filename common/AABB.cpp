@@ -1,87 +1,65 @@
 #include <AABB.hpp>
 
-const AABB AABB::InValid = AABB(glm::vec3(FLT_MAX), glm::vec3(-FLT_MAX), false);
-
-AABB::AABB()
+// Grow the bounding box by a point
+void AABB::grow(glm::vec3 const &p)
 {
-    *this = InValid;
+    minP = glm::min(minP, p);
+    maxP = glm::max(maxP, p);
+}
+// Grow the bounding box by a box
+void AABB::grow(AABB const &b)
+{
+    minP = glm::min(minP, b.getMinP());
+    maxP = glm::max(maxP, b.getMaxP());
 }
 
-AABB::AABB(const glm::vec3 &minP, const glm::vec3 &maxP, bool isValid)
-    : minP(minP), maxP(maxP), isValid(isValid) {}
-
-float AABB::GetSurfaceArea() const
+bool AABB::contains(glm::vec3 const &p) const
 {
-    glm::vec3 extent = maxP - minP;
-    return 2 * (extent.x * extent.y + extent.x * extent.z + extent.y * extent.z);
-}
-
-void AABB::Expand(const AABB &aabb)
-{
-    if (aabb.isValid)
-    {
-        if (isValid)
-        {
-            minP = min(minP, aabb.minP);
-            maxP = max(maxP, aabb.maxP);
-        }
-        else
-        {
-            minP = aabb.minP;
-            maxP = aabb.maxP;
-            isValid = true;
-        }
-    }
-}
-
-const AABB AABB::operator+(const AABB &aabb) const
-{
-    if (isValid)
-    {
-        if (aabb.isValid)
-        {
-            glm::vec3 minP = min(this->minP, aabb.minP);
-            glm::vec3 maxP = max(this->maxP, aabb.maxP);
-
-            return {minP, maxP};
-        }
-        else
-            return *this;
-    }
-    else
-    {
-        if (aabb.isValid)
-            return aabb;
-        else
-            return AABB::InValid;
-    }
-}
-
-AABB &AABB::operator+=(const AABB &aabb)
-{
-    Expand(aabb);
-
-    return *this;
-}
-
-bool AABB::intersect(const AABB &other) const
-{
-    return (maxP.x >= other.minP.x && minP.x <= other.maxP.x) &&
-           (maxP.y >= other.minP.y && minP.y <= other.maxP.y) &&
-           (maxP.z >= other.minP.z && minP.z <= other.maxP.z);
-}
-
-bool AABB::Contains(const glm::vec3 &point) const
-{
-    return point.x >= minP.x && point.x <= maxP.x &&
-           point.y >= minP.y && point.y <= maxP.y &&
-           point.z >= minP.z && point.z <= maxP.z;
+    glm::vec3 radius = getExtent() * 0.5f;
+    return std::fabs(getCenter().x - p.x) <= radius.x &&
+           std::fabs(getCenter().y - p.y) <= radius.y &&
+           std::fabs(getCenter().z - p.z) <= radius.z;
 }
 
 AABB getTriangleAABB(const glm::vec3 &v0, const glm::vec3 &v1, const glm::vec3 &v2)
 {
-    glm::vec3 minP = glm::min(v0, glm::min(v1, v2));
-    glm::vec3 maxP = glm::max(v0, glm::max(v1, v2));
+    AABB bbox;
+    bbox.grow(v0);
+    bbox.grow(v1);
+    bbox.grow(v2);
+    return bbox;
+}
 
+AABB bboxunion(AABB const &box1, AABB const &box2)
+{
+    glm::vec3 minP = glm::min(box1.getMinP(), box2.getMinP());
+    glm::vec3 maxP = glm::max(box1.getMaxP(), box2.getMaxP());
     return AABB(minP, maxP);
+}
+
+AABB intersection(AABB const &box1, AABB const &box2)
+{
+    glm::vec3 minP = glm::max(box1.getMinP(), box2.getMinP());
+    glm::vec3 maxP = glm::min(box1.getMaxP(), box2.getMaxP());
+    return AABB(minP, maxP);
+}
+
+// 判断两个包围盒是否相交（即是否有重叠）
+#define BBOX_INTERSECTION_EPS 0.f
+bool intersects(AABB const &box1, AABB const &box2)
+{
+    glm::vec3 b1c = box1.getCenter();
+    glm::vec3 b1r = box1.getExtent() * 0.5f;
+    glm::vec3 b2c = box2.getCenter();
+    glm::vec3 b2r = box2.getExtent() * 0.5f;
+
+    return (fabs(b2c.x - b1c.x) - (b1r.x + b2r.x)) <= BBOX_INTERSECTION_EPS &&
+           (fabs(b2c.y - b1c.y) - (b1r.y + b2r.y)) <= BBOX_INTERSECTION_EPS &&
+           (fabs(b2c.z - b1c.z) - (b1r.z + b2r.z)) <= BBOX_INTERSECTION_EPS;
+}
+
+// 判断一个包围盒（box1）是否完全包含另一个包围盒（box2）
+bool contains(AABB const &box1, AABB const &box2)
+{
+    return box1.contains(box2.getMinP()) && box1.contains(box2.getMaxP());
 }

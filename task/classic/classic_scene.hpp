@@ -41,6 +41,8 @@ namespace GL_TASK
         glm::mat4 room_model_matrix = glm::mat4(1.0f);
 
         void setup_scene() override;
+
+        void InitModels();
     };
 }
 #endif

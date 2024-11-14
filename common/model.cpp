@@ -81,16 +81,12 @@ bool Model::loadModel(string const &path)
 
 void Model::processNode(aiNode *node, const aiScene *scene)
 {
-    // 处理当前节点包含的每个网格
     for (unsigned int i = 0; i < node->mNumMeshes; i++)
     {
-        // 当前节点中的每个网格使用索引来指向实际数据
-        // 通过索引获取网格并进行处理
         aiMesh *mesh = scene->mMeshes[node->mMeshes[i]];
         meshes.push_back(processMesh(mesh, scene));
     }
 
-    // 递归处理当前节点的每个子节点
     for (unsigned int i = 0; i < node->mNumChildren; i++)
     {
         processNode(node->mChildren[i], scene);
@@ -99,30 +95,27 @@ void Model::processNode(aiNode *node, const aiScene *scene)
 
 Mesh *Model::processMesh(aiMesh *mesh, const aiScene *scene)
 {
-    // 创建数据容器，用于存储顶点、索引和纹理信息
-    vector<Vertex> vertices;
-    vector<unsigned int> indices;
-    vector<Texture> textures;
+    vector<Vertex> vertices;      // 顶点数据
+    vector<unsigned int> indices; // 索引数据
+    vector<Texture> textures;     // 纹理数据
 
-    // 1. 遍历网格的每个顶点
+    // 遍历所有的点 获取所有的顶点数据
     for (unsigned int i = 0; i < mesh->mNumVertices; i++)
     {
         Vertex vertex;
-        glm::vec3 vector; // we declare a placeholder vector since assimp uses its own vector class that doesn't directly convert to glm's vec3 class so we transfer the data to this placeholder glm::vec3 first.
+        glm::vec3 vector;
 
-        // 顶点坐标
         vector.x = mesh->mVertices[i].x;
         vector.y = mesh->mVertices[i].y;
         vector.z = mesh->mVertices[i].z;
-        vertex.Position = vector;
+        vertex.Position = vector; // 顶点坐标
 
-        // 法线坐标
         if (mesh->HasNormals())
         {
             vector.x = mesh->mNormals[i].x;
             vector.y = mesh->mNormals[i].y;
             vector.z = mesh->mNormals[i].z;
-            vertex.Normal = vector;
+            vertex.Normal = vector; // 法线坐标
         }
 
         // 纹理坐标
@@ -135,33 +128,30 @@ Mesh *Model::processMesh(aiMesh *mesh, const aiScene *scene)
             vec.y = mesh->mTextureCoords[0][i].y;
             vertex.TexCoords = vec;
 
-            // 切线和副切线
             vector.x = mesh->mTangents[i].x;
             vector.y = mesh->mTangents[i].y;
             vector.z = mesh->mTangents[i].z;
-            vertex.Tangent = vector;
+            vertex.Tangent = vector; // 切线
             vector.x = mesh->mBitangents[i].x;
             vector.y = mesh->mBitangents[i].y;
             vector.z = mesh->mBitangents[i].z;
-            vertex.Bitangent = vector;
+            vertex.Bitangent = vector; // 副切线
         }
         else
             vertex.TexCoords = glm::vec2(0.0f, 0.0f);
 
-        // 将顶点添加到顶点数组
-        vertices.push_back(vertex);
+        vertices.push_back(vertex); // 将顶点添加到顶点数组
     }
 
-    // 2. 遍历网格的每个面，并将索引存储到索引数组中
+    // 遍历所有的面 获取所有的索引数据
     for (unsigned int i = 0; i < mesh->mNumFaces; i++)
     {
         aiFace face = mesh->mFaces[i];
-        // 获取每个面的索引并存储
         for (unsigned int j = 0; j < face.mNumIndices; j++)
             indices.push_back(face.mIndices[j]);
     }
 
-    // 3. 处理材质，获取不同类型的纹理
+    // 获取材质
     aiMaterial *material = scene->mMaterials[mesh->mMaterialIndex];
 
     // 1. 漫反射纹理

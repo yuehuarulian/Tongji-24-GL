@@ -19,10 +19,10 @@ public:
 protected:
     virtual void setup_scene() = 0;
 
-    std::vector<Mesh *> meshes;
+    std::vector<Mesh *> meshes; // 存储所有的网格
 
-    ShaderManager &shader_manager;
-    LightManager light_manager;
+    ShaderManager &shader_manager; // 着色器管理者
+    LightManager light_manager;    // 灯光管理者
     std::vector<std::shared_ptr<RenderableModel>> models;
 
     bool AddMesh(const std::string &filePath);

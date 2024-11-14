@@ -40,9 +40,9 @@ public:
     std::vector<Mesh *> getMeshes() const { return meshes; }
 
 private:
-    bool loadModel(string const &path);
-    void processNode(aiNode *node, const aiScene *scene);
-    Mesh *processMesh(aiMesh *mesh, const aiScene *scene);
+    bool loadModel(string const &path);                    // 加载模型文件
+    void processNode(aiNode *node, const aiScene *scene);  // 递归处理 Scene 节点
+    Mesh *processMesh(aiMesh *mesh, const aiScene *scene); // 处理 Mesh
     vector<Texture> loadMaterialTextures(aiMaterial *mat, aiTextureType type, string typeName);
 };
 

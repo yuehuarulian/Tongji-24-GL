@@ -3,59 +3,104 @@
 
 #include <glm/glm.hpp>
 #include <vector>
+#include <atomic>
+#include <cmath>
+#include <numeric>
 #include <iostream>
 #include <AABB.hpp>
-#include <Primitive.hpp>
 
 #define MAX_BONE_INFLUENCE 4
 
-struct Vertex
-{
-    // position
-    glm::vec3 Position;
-    // normal
-    glm::vec3 Normal;
-    // texCoords
-    glm::vec2 TexCoords;
-    // tangent
-    glm::vec3 Tangent;
-    // bitangent
-    glm::vec3 Bitangent;
-    // bone indexes which will influence this vertex
-    int m_BoneIDs[MAX_BONE_INFLUENCE];
-    // weights from each bone
-    float m_Weights[MAX_BONE_INFLUENCE];
-};
-
-class BVHNode
+class BVH
 {
 public:
-    AABB bbox;                                 // 当前节点的包围盒
-    BVHNode *left = nullptr;                   // 左孩子节点
-    BVHNode *right = nullptr;                  // 右孩子节点
-    bool isLeaf;                               // 是否为叶子节点
-    int start, end;                            // 叶子节点的 primitive 范围
-    std::vector<unsigned int> triangleIndices; // 存储三角形的索引
+    BVH(float traversal_cost, int num_bins = 64, bool usesah = true)
+        : m_root(nullptr),
+          m_num_bins(num_bins),
+          m_usesah(usesah),
+          m_height(0),
+          m_traversal_cost(traversal_cost) {}
+    ~BVH() = default;
 
-    BVHNode(const AABB &bbox, const std::vector<unsigned int> &indices); // 构造叶子节点
-    BVHNode(const AABB &bbox, BVHNode *left, BVHNode *right);            // 构造内部节点
-};
+    AABB const &getBounds() const { return m_bounds; }
+    inline int getHeight() const { return m_height; }
+    virtual int const *getIndices() const { return &m_packed_indices[0]; }
+    virtual size_t getNumIndices() const { return m_packed_indices.size(); }
 
-BVHNode *buildBVHTree(const std::vector<unsigned int> &indices, const std::vector<Vertex> &vertices, int BVHDepth);
+    void Build(AABB const *bounds, int numbounds);
 
-class BVHManager
-{
-public:
-private:
-    int nBuckets;                        // 分割桶数
-    int maxPrimsInNode;                  // 每个节点最多的 Primitive 数
-    std::vector<Primitive *> primitives; // 存储 Primitive 的数组
-    struct Bucket
+    // 打印BVH树数据
+    virtual void PrintStatistics(std::ostream &os) const;
+
+protected:
+    virtual void BuildImpl(AABB const *bounds, int numbounds);
+
+    enum NodeType
     {
-        int count;
-        AABB bbox;
+        kInternal,
+        kLeaf
     };
-    std::vector<Bucket> buckets; // 存储桶数据
+    struct Node
+    {
+        AABB bounds;
+        NodeType type;
+        int index;
+        union
+        {
+            // internal nodes
+            struct
+            {
+                Node *leftChild;
+                Node *rightChild;
+            };
+            // leaf nodes
+            struct
+            {
+                int startidx;
+                int numprims;
+            };
+        };
+    };
+
+    virtual Node *AllocateNode();
+    virtual void InitNodeAllocator(size_t maxnum);
+    // 记录分割请求信息
+    struct SplitRequest
+    {
+        int startidx;         // 当前分割请求的起始索引
+        int numprims;         // 当前分割请求中包含的物体数量
+        Node **ptr;           // 当前分割请求的根节点指针，用于存储分割后的左右子树节点
+        AABB bounds;          // 当前分割请求的边界框，包含该请求处理的所有物体的边界
+        AABB centroid_bounds; // 当前分割请求中物体的质心边界框
+        int level;            // 当前分割请求的深度级别
+        int index;            // 当前分割请求中节点的索引
+    };
+    // 描述使用 SAH（Surface Area Heuristic）算法计算的分割信息
+    struct SahSplit
+    {
+        int dim;       // 分割的维度
+        float split;   // 分割位置
+        float sah;     // SAH值，表示该分割方案的质量，值越小越好，表示分割后左右子树的代价最小
+        float overlap; // 重叠度，表示分割后左右子树的重叠程度。重叠度较低通常表示分割质量较好
+    };
+
+    SahSplit FindSahSplit(SplitRequest const &req, AABB const *bounds, glm::vec3 const *centroids, int *primindices) const;
+    void BuildNode(SplitRequest const &req, AABB const *bounds, glm::vec3 const *centroids, int *primindices);
+
+    std::vector<Node> m_nodes;  // BVH Nodes
+    std::vector<int> m_indices; // 索引
+    std::atomic<int> m_nodecnt; // Number of Nodes
+    std::vector<int> m_packed_indices;
+    AABB m_bounds;
+    Node *m_root;
+    int m_height;  // 树的高度
+    bool m_usesah; // 是否使用SAH（Surface Area Heuristic）算法进行分割
+    float m_traversal_cost;
+    int m_num_bins;
+
+private:
+    BVH(BVH const &) = delete;
+    BVH &operator=(BVH const &) = delete;
 };
 
 #endif

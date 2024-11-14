@@ -32,8 +32,13 @@ namespace GL_TASK
         // 加载着色器
         shader_manager.load_shader("room_shader", "source/shader/classic/room.vs", "source/shader/classic/room.fs");
 
-        AddMesh("source/model/room/overall.obj");
-        AddMesh("source/model/shark.obj");
+        this->InitModels();
+    }
+
+    void ClassicScene::InitModels()
+    {
+        AddMesh("./source/model/shark.obj");
+        AddMesh("./source/model/overall.obj");
     }
 
     void ClassicScene::render(const glm::mat4 &projection, const glm::mat4 &view, glm::vec3 &camera_pos)
