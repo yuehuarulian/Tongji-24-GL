@@ -82,7 +82,7 @@ public:
         unsigned int textureUnit = 0;
 
         for (const auto &type : {"texture_diffuse", "texture_specular", "texture_normal",
-                                 "texture_height", "texture_metallic", "texture_roughness", "texture_ao"})
+                                 "texture_height", "texture_metallic", "texture_roughness", "texture_ao","texture_opacity"})
         {
             bool textureFound = false;
 

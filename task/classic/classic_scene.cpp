@@ -15,6 +15,10 @@ namespace GL_TASK
         room_model_matrix = glm::rotate(room_model_matrix, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
         room_model_matrix = glm::scale(room_model_matrix, glm::vec3(1.f, 1.f, 1.f) * 1.f);
 
+        butterfly_model_matrix = glm::rotate(butterfly_model_matrix, glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+        butterfly_model_matrix = glm::rotate(butterfly_model_matrix, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+        butterfly_model_matrix = glm::scale(butterfly_model_matrix, glm::vec3(1.f, 1.f, 1.f) * 1.f);
+
         // 添加光源
         for (int i = 0; i < area_lights_position.size(); i++)
         {
@@ -25,6 +29,7 @@ namespace GL_TASK
         // 加载着色器
         shader_manager.load_shader("room_shader", "source/shader/classic/room.vs", "source/shader/classic/room.fs");
         shader_manager.load_shader("cubemap_shader", "source/shader/cubemap.vs", "source/shader/cubemap.fs");
+        shader_manager.load_shader("butterfly_shader", "source/shader/classic/butterfly.vs", "source/shader/classic/butterfly.fs");
 
         // 创建模型并为每个模型分配着色器
         // room
@@ -34,6 +39,11 @@ namespace GL_TASK
         // auto room_model = std::make_shared<Room>("E:/my_code/GL_bigwork/ToyEffects/ToyEffects/assets/SceneModels/tree1/trees9.obj", shader, true);
         room_model->set_model_matrix(room_model_matrix);
         models.push_back(room_model);
+
+        auto b_shader = shader_manager.get_shader("butterfly_shader");
+        light_manager.apply_lights(b_shader);
+        auto butterfly_model = std::make_shared<Butterfly>("source/model/butterfly/butterfly1.dae", b_shader, true);butterfly_model->set_model_matrix(butterfly_model_matrix);
+        models.push_back(butterfly_model);
     }
 
     void ClassicScene::render(const glm::mat4 &projection, const glm::mat4 &view, glm::vec3 &camera_pos)

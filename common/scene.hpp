@@ -3,6 +3,7 @@
 #include <vector>
 #include <memory>
 #include "room.hpp"
+#include "butterfly.hpp"//
 #include "shader_manager.hpp"
 #include "renderable_model.hpp"
 #include "light_manager.hpp"
