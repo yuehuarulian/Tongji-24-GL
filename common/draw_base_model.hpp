@@ -10,6 +10,7 @@
 // render_cube 函数：渲染一个大小为 2x2x2 的立方体
 // 参数：无
 // ------------------------------------------------------------
+inline void render_cube()
 {
     // 顶点对象的静态变量，用于保存立方体顶点数据，只需初始化一次
     static unsigned int cube_vao = 0;
@@ -94,6 +95,7 @@
 // render_sphere 函数：渲染一个大小为1的球体
 // 参数：无
 // ------------------------------------------------------------
+inline void render_sphere()
 {
     static unsigned int sphere_vao = 0;
     static unsigned int index_count;
