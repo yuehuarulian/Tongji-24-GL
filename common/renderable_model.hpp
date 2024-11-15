@@ -16,7 +16,6 @@ public:
 
 protected:
     std::shared_ptr<Shader> shader;
-    Model model;
 };
 
 #endif // RENDERABLE_MODEL_H

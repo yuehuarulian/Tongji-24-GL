@@ -6,7 +6,7 @@
 
 #ifdef _WIN32
 #ifndef NOMINMAX
-#   define NOMINMAX  // 避免 Windows 下的 min/max 宏定义干扰
+#   define NOMINMAX  // ���� Windows �µ� min/max �궨�����
 #endif
 #   include <Windows.h>  // ���� Windows ƽ̨��ؿ�
 #endif
@@ -25,8 +25,8 @@
 #include <fluid/renderer/rendering.h>  // ��Ⱦ��غ���
 #include <fluid/renderer/bidirectional_path_tracer.h>  // ˫��·��׷����
 
-#include "test_scenes.h"  // ���Գ���ͷ�ļ�
-#include "load_model.h"  // ���Գ���ͷ�ļ�
+#include "fluid/test/test_scenes.h"  // ���Գ���ͷ�ļ�
+#include "fluid/load_model.h"  // ���Գ���ͷ�ļ�
 
 using fluid::vec2d;  // ʹ�� fluid �����ռ��еĶ�ά��������
 using fluid::vec2s;  // ʹ�� fluid �����ռ��еĶ�ά������������
@@ -42,7 +42,7 @@ sim_reset = true,   // ����ģ���Ƿ�����
 sim_advance = false;  // ����ģ���Ƿ񵥲�ǰ��
 
 // ���ط���ģ��
-fluid::LoadModel roomModel("./source/model/room/overall.obj", 0.1, vec3d(0.0, 0.0, 0.0));
+fluid::LoadModel roomModel("source/model/room/overall.obj", 0.2, vec3d(0.0, 0.0, 0.0));
 
 // ���������ģ����ر���
 vec3d sim_grid_offset(roomModel.get_offset() - vec3d(1.0, 1.0, 1.0));  // ����ƫ����
@@ -113,7 +113,8 @@ void simulation_thread() {
 	sim.simulation_method = fluid::simulation::method::apic;  // ����ģ�ⷽ��Ϊ APIC��Affine Particle-In-Cell��
 	/*sim.blending_factor = 0.99;*/
 	sim.blending_factor = 1.0;  // ���û������
-	sim.gravity = vec3d(0.0, -981.0, 0.0);  // ������������
+	//sim.gravity = vec3d(0.0, -981.0, 0.0);  // ������������
+	sim.gravity = vec3d(-981.0, 0.0, 0.0);
 
 	// ��ÿ��ʱ�䲽֮ǰ�Ļص��������������ʱ�䲽��Ϣ
 	sim.pre_time_step_callback = [](double dt) {
@@ -228,16 +229,16 @@ void simulation_thread() {
 			case 5:
 				//����ڲ�����
 				std::cout << "Start filling interior area..." << std::endl;
-				/*sim.seed_area(sim_grid_offset, vec3d(sim_grid_size),
+				sim.seed_area(sim_grid_offset, vec3d(sim_grid_size),
 					[&](vec3d pos) {
 						return
-							pos.y < -double(sim_grid_size.x) / 6 + (pos.x + pos.z) / 5 &&
-							(pos.x - sim_grid_center.x) * (pos.x - sim_grid_center.x) + (pos.z - sim_grid_center.z) * (pos.z - sim_grid_center.z) >= sim_grid_size.z * sim_grid_size.z / 16 &&
+							pos.x < -double(sim_grid_size.x) / 6 + (pos.y + pos.z) / 5 &&
+							(pos.y - sim_grid_center.y) * (pos.y - sim_grid_center.y) + (pos.z - sim_grid_center.z) * (pos.z - sim_grid_center.z) >= sim_grid_size.z * sim_grid_size.z / 16 &&
 							roomObstacle.is_cell_inside(pos);
 					},
-					vec3d(100.0, 0.0, 0.0)
-				);*/
-				sim.seed_area(sim_grid_offset, vec3d(sim_grid_size),
+					vec3d(0.0, 0.0, 0.0)
+				);
+				/*sim.seed_area(sim_grid_offset, vec3d(sim_grid_size),
 					[&](vec3d pos) {
 						return
 							pos.y < -double(sim_grid_size.x) / 6 &&
@@ -264,22 +265,21 @@ void simulation_thread() {
 							roomObstacle.is_cell_inside(pos);
 					},
 					vec3d(400.0, 0.0, 0.0)
-				);
+				);*/
 				std::cout << "Starting seting liquid source..." << std::endl;
 				// ����һ������Դ�������ٶȺ�λ��
-				/*auto source = std::make_unique<fluid::source>();
-				for (std::size_t x = 1; x < 5; ++x) {
-					for (std::size_t y = sim_grid_size.y / 2 - sim_grid_size.y / 20; y < sim_grid_size.y / 2 + sim_grid_size.y / 20; ++y) {
-						for (std::size_t z = sim_grid_size.z / 2 - sim_grid_size.y / 20; z < sim_grid_size.z / 2 + sim_grid_size.y / 20; ++z) {
+				auto source = std::make_unique<fluid::source>();
+				for (std::size_t y = 1; y < 5; ++y) {
+					for (std::size_t x = sim_grid_size.x / 2 - sim_grid_size.x / 20; x < sim_grid_size.x / 2 + sim_grid_size.x / 20; ++x) {
+						for (std::size_t z = sim_grid_size.z / 2 - sim_grid_size.x / 20; z < sim_grid_size.z / 2 + sim_grid_size.x / 20; ++z) {
 							if (roomObstacle.is_cell_inside(vec3s(x, y, z)))
 								source->cells.emplace_back(x, y, z);  // ��������Դ�ĵ�Ԫλ��
 						}
 					}
 				}
-				source->velocity = vec3d(400.0, 0.0, 0.0);  // ����Դ���ٶ�
+				source->velocity = vec3d(200.0, 0.0, 0.0);  // ����Դ���ٶ�
 				source->coerce_velocity = true;  // ǿ������Դ���ٶ�
 				sim.sources.emplace_back(std::move(source));  // ��Դ���ӵ�ģ����
-				*/
 				break;
 			}
 			std::cout << "Finish initializing liquid state." << std::endl;
@@ -389,6 +389,7 @@ mesh_visualize_mode mesh_vis = mesh_visualize_mode::none;  // ������
 double camera_distance = -double(sim_grid_size.z) * 2;  // ������볡���ľ���
 GLuint render_preview_texture = 0;  // ��ȾԤ������
 
+namespace fluidTest {
 // �����¼��ص����������ڴ����û�����
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
 	if (action == GLFW_PRESS) {
@@ -626,6 +627,7 @@ void resize_callback(GLFWwindow *window, int width, int height) {
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset) {
 	camera_distance += yoffset;  // ���ݹ�������������������
 }
+}
 
 // obj��Ⱦ����
 void render_obj_mesh(const scene::mesh_t& mesh) {
@@ -663,11 +665,11 @@ int main() {
 		return -1;
 	}
 	// ���ø��ֻص��������������̡���ꡢ���ڴ�С���¼�
-	glfwSetKeyCallback(window, key_callback);
-	glfwSetMouseButtonCallback(window, mouse_button_callback);
-	glfwSetCursorPosCallback(window, cursor_position_callback);
-	glfwSetWindowSizeCallback(window, resize_callback);
-	glfwSetScrollCallback(window, scroll_callback);
+	glfwSetKeyCallback(window, fluidTest::key_callback);
+	glfwSetMouseButtonCallback(window, fluidTest::mouse_button_callback);
+	glfwSetCursorPosCallback(window, fluidTest::cursor_position_callback);
+	glfwSetWindowSizeCallback(window, fluidTest::resize_callback);
+	glfwSetScrollCallback(window, fluidTest::scroll_callback);
 
 	glfwMakeContextCurrent(window);  // ���õ�ǰ����Ϊ OpenGL ������
 
@@ -679,7 +681,7 @@ int main() {
 	// ��ʼ���ӿں�ͶӰ����
 	int width, height;
 	glfwGetWindowSize(window, &width, &height);
-	resize_callback(window, width, height);
+	fluidTest::resize_callback(window, width, height);
 
 	// ����ģ������������߳�
 	std::thread sim_thread(simulation_thread);

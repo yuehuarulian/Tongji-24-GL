@@ -1,10 +1,4 @@
-<<<<<<< Updated upstream
-// 与pbr_texture.fs相同
 #version 330 core
-=======
-#version 330 core
-// 与pbr_texture.fs相同
->>>>>>> Stashed changes
 out vec4 FragColor;
 in vec2 TexCoords;
 in vec3 WorldPos;

@@ -21,7 +21,6 @@ protected:
 
     ShaderManager &shader_manager;
     LightManager &light_manager;
-    std::vector<std::shared_ptr<RenderableModel>> models;
 };
 
 #endif // SCENE_HPP

@@ -1,4 +1,4 @@
-#include "test_scenes.h"
+#include "fluid/test/test_scenes.h"
 
 #include <fluid/math/constants.h>
 #include <fluid/renderer/camera.h>

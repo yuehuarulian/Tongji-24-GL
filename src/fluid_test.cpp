@@ -8,10 +8,12 @@
 #include "GLFW/glfw3.h"
 
 #include "camera_control.hpp"
-#include "classic_scene.hpp"
+#include "fluid_scene.hpp"
 #include "gui_manager.hpp"
 #include "config.hpp"
 #include "skybox.hpp"
+#include "fluid/fluid_simulator.h"
+
 
 void printOpenGLInfo() {
     const GLubyte* version = glGetString(GL_VERSION);
@@ -53,9 +55,15 @@ int main()
     GLFWwindow *window = initialize_glfw_window();
     printOpenGLInfo();
     
+    float precision = 0.2; //建议0.05-0.5之间，默认精度为0.2
+    fluid::FluidSimulator fluid_sim(precision);
+
     ShaderManager shader_manager;
     LightManager light_manager;
-    GL_TASK::ClassicScene classic_scene(shader_manager, light_manager);
+    GL_TASK::FluidScene fluid_scene(shader_manager, light_manager, precision);
+    std::cout << "Mesh num:" << fluid_scene.models[1]->model.meshes.size() << std::endl;
+    std::cout << "Mesh address:" << &(fluid_scene.models[1]->model.meshes[0]) << std::endl;
+    fluid_sim.BindMesh(&(fluid_scene.models[1]->model.meshes[0]));
 
     Camera camera(window, 75 * D2R, glm::vec3(0.0f, -30.0f, 180.0f), glm::pi<float>(), 0.f, 30.0f, 1.0f);
 
@@ -76,7 +84,7 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         auto camera_pos = camera.get_pos();
-        classic_scene.render(camera.projection, camera.view, camera_pos);
+        fluid_scene.render(camera.projection, camera.view, camera_pos);
 
         skybox.render(camera.view, camera.projection);
         gui_manager.render();

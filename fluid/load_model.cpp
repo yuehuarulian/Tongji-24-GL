@@ -1,4 +1,4 @@
-#include "load_model.h"
+#include "fluid/load_model.h"
 
 #include <fluid/math/constants.h>
 #include <fluid/renderer/camera.h>
@@ -70,8 +70,8 @@ bool LoadModel::load() {
         // 加载并应用缩放和偏移到顶点，同时计算最值
         for (unsigned int j = 0; j < aiMesh->mNumVertices; ++j) {
             vec3d vertex(
-                aiMesh->mVertices[j].y * scale_ + offset_.x,
-                aiMesh->mVertices[j].x * scale_ + offset_.y,
+                aiMesh->mVertices[j].x * scale_ + offset_.x,
+                aiMesh->mVertices[j].y * scale_ + offset_.y,
                 aiMesh->mVertices[j].z * scale_ + offset_.z
             );
             mesh_.positions.push_back(vertex);
