@@ -12,6 +12,7 @@
 #include "gui_manager.hpp"
 #include "config.hpp"
 #include "skybox.hpp"
+#include "point_cloud.hpp"
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height)
 {
@@ -54,9 +55,16 @@ int main()
 
     GUIManager gui_manager(window, camera, light_manager, shader_manager);
 
+    shader_manager.load_shader("cload", "source/shader/point_cloud.vs", "source/shader/point_cloud.fs");
+    auto cload_shader = shader_manager.get_shader("cload");
+    PointCloud point_cloud("source/model/point_cloud/Cloud_01.vdb");
+
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
     glEnable(GL_MULTISAMPLE);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glBlendEquation(GL_FUNC_ADD); // 增加混合的控制
 
     glfwSwapInterval(1);                                                                            // 垂直同步，参数：在 glfwSwapBuffers 交换缓冲区之前要等待的最小屏幕更新数
     while (glfwWindowShouldClose(window) == 0 && glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS) // 窗口没有关闭，esc键没有按下
@@ -70,6 +78,11 @@ int main()
         classic_scene.render(camera.projection, camera.view, camera_pos);
 
         skybox.render(camera.view, camera.projection);
+        // 在渲染点云之前禁用深度写入
+        glDepthMask(GL_FALSE); // 禁止深度写入
+        point_cloud.render(camera.view, camera.projection, camera_pos, cload_shader, glm::vec3(0.9f, 0.9f, 0.9f), 0.9f);
+        glDepthMask(GL_TRUE); // 重新启用深度写入
+
         gui_manager.render();
 
         glfwSwapBuffers(window);
