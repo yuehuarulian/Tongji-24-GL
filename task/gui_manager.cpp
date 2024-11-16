@@ -34,7 +34,7 @@ void GUIManager::render()
     ImGui::Begin("Camera and Light Controls");
 
     // FOV 滑动条控件
-    if (ImGui::SliderFloat("FOV", &fov, 30.0f, 120.0f))
+    if (ImGui::SliderFloat("FOV", &fov, 60.0f, 200.0f))
     {
         camera.set_fov(fov / 180.0f * glm::pi<float>());
     }
@@ -44,6 +44,15 @@ void GUIManager::render()
     {
         light_manager.set_intensity(light_intensity, shader_manager.get_shader("room_shader"));
     }
+
+    // 显示位置
+    ImGui::Text("Camera Position: (%.2f, %.2f, %.2f)", camera.get_pos().x, camera.get_pos().y, camera.get_pos().z);
+
+    // 显示方向
+    ImGui::Text("Camera Front: (%.2f, %.2f, %.2f)", camera.get_direction().x, camera.get_direction().y, camera.get_direction().z);
+
+    // 显示帧率
+    ImGui::Text("Frame Rate: %.1f FPS", ImGui::GetIO().Framerate);
 
     ImGui::End();
 

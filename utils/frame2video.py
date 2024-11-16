@@ -7,7 +7,7 @@ output_video = 'output_video.mp4'
 
 # 视频参数
 fps = 30  # 每秒帧数
-frame_size = (720 * 2, 1080 * 2)  # 设置视频分辨率 (宽, 高)，需与图片大小一致
+frame_size = (1080 * 2, 720 * 2, )  # 设置视频分辨率 (宽, 高)，需与图片大小一致
 
 # 获取图片文件列表并排序
 images = [img for img in os.listdir(image_folder) if img.endswith(".png")]

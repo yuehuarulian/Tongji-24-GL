@@ -12,7 +12,7 @@ void main()
     // 基本光散射
     float distance = length(FragPos - viewPos);
     float alpha = exp(-pow(distance * fogDensity, 2.0));
-    alpha = clamp(alpha, 0.01, 0.8);
+    alpha = clamp(alpha, 0.01, 0.9);
     
     vec3 color = mix(fogColor, vec3(0.9, 0.9, 1.0), alpha);
 

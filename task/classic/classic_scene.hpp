@@ -5,6 +5,7 @@
 #include "shader_manager.hpp"
 #include "light_manager.hpp"
 #include "renderable_model.hpp"
+#include "point_cloud.hpp"
 #include <memory>
 
 namespace GL_TASK
@@ -18,6 +19,7 @@ namespace GL_TASK
         void render(const glm::mat4 &projection, const glm::mat4 &view, glm::vec3 &camera_pos) override;
 
     private:
+        std::vector<std::shared_ptr<PointCloud>> point_clouds;
         std::vector<glm::vec3> area_lights_position = {
             glm::vec3(33.90, 107.25, -82.75),   // bulb.001  xyz
             glm::vec3(36.63, 107.25, -10.66),   // bulb.002

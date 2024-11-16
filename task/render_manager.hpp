@@ -32,7 +32,8 @@ private:
     std::unique_ptr<Scene> scene;
     std::unique_ptr<Skybox> skybox;
 
-    unsigned int fbo, texture_color_buffer, rbo;
+    unsigned int msaa_fbo, msaa_texture, msaa_rbo;
+    unsigned int resolve_fbo, resolve_texture;
     int window_width, window_height, frames;
     bool offscreen;
 };

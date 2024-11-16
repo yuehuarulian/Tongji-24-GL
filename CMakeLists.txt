@@ -41,8 +41,8 @@ add_subdirectory(include/imgui)
 add_executable(main src/main.cpp src/glad.c  ${TASK_LIST} ${CLASSIC_LIST} ${COMMON_LIST} ${IMGUI_LIST})
 target_link_libraries(main glfw3 libassimpd imgui openvdb tbb12 zlib1 blosc)
 
-# add_executable(offline_rendering src/main_offline.cpp src/glad.c ${TASK_LIST} ${CLASSIC_LIST} ${COMMON_LIST} ${IMGUI_LIST})
-# target_link_libraries(offline_rendering glfw3 libassimpd imgui)
+add_executable(offline_rendering src/main_offline.cpp src/glad.c ${TASK_LIST} ${CLASSIC_LIST} ${COMMON_LIST} ${IMGUI_LIST})
+target_link_libraries(offline_rendering glfw3 libassimpd imgui openvdb tbb12 zlib1 blosc)
 
 # add_executable(imgui_test src/imgui_test.cpp src/glad.c ${COMMON_LIST} ${IMGUI_LIST})
 # target_link_libraries(imgui_test glfw3 libassimpd imgui)
@@ -50,8 +50,5 @@ target_link_libraries(main glfw3 libassimpd imgui openvdb tbb12 zlib1 blosc)
 # add_executable(openvdb_test src/openvdb_test.cpp)
 # target_link_libraries(openvdb_test openvdb tbb12 zlib1 blosc)
 
-# add_executable(cloud src/cloud.cpp)
-# target_link_libraries(cloud openvdb tbb12 zlib1 blosc)
-
-add_executable(test src/test.cpp src/glad.c ${TASK_LIST} ${CLASSIC_LIST} ${COMMON_LIST} ${IMGUI_LIST})
-target_link_libraries(test glfw3 libassimpd imgui openvdb tbb12 zlib1 blosc)
+# add_executable(test src/test.cpp src/glad.c ${TASK_LIST} ${CLASSIC_LIST} ${COMMON_LIST} ${IMGUI_LIST})
+# target_link_libraries(test glfw3 libassimpd imgui openvdb tbb12 zlib1 blosc)

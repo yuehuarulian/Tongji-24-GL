@@ -25,8 +25,8 @@ namespace GL_TASK
         // 加载着色器
         shader_manager.load_shader("room_shader", "source/shader/classic/room.vs", "source/shader/classic/room.fs");
         shader_manager.load_shader("cubemap_shader", "source/shader/cubemap.vs", "source/shader/cubemap.fs");
+        shader_manager.load_shader("cloud", "source/shader/point_cloud.vs", "source/shader/point_cloud.fs");
 
-        // 创建模型并为每个模型分配着色器
         // room
         auto shader = shader_manager.get_shader("room_shader");
         light_manager.apply_lights(shader);
@@ -34,6 +34,23 @@ namespace GL_TASK
         // auto room_model = std::make_shared<Room>("E:/my_code/GL_bigwork/ToyEffects/ToyEffects/assets/SceneModels/tree1/trees9.obj", shader, true);
         room_model->set_model_matrix(room_model_matrix);
         models.push_back(room_model);
+
+        // 点云
+        auto cloud_shader1 = shader_manager.get_shader("cloud");
+        auto point_cloud1 = std::make_shared<PointCloud>("source/model/point_cloud/Cloud_01.vdb", cloud_shader1);
+        glm::mat4 model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(0.0f, 30.0f, -30.0f));
+        model = glm::scale(model, glm::vec3(0.3f));
+        point_cloud1->set_model_matrix(model);
+        point_clouds.push_back(point_cloud1);
+
+        auto cloud_shader2 = shader_manager.get_shader("cloud");
+        auto point_cloud2 = std::make_shared<PointCloud>("source/model/point_cloud/Cloud_03.vdb", cloud_shader2);
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(-80.0f, 40.0f, -110.0f));
+        model = glm::scale(model, glm::vec3(0.4f));
+        point_cloud2->set_model_matrix(model);
+        point_clouds.push_back(point_cloud2);
     }
 
     void ClassicScene::render(const glm::mat4 &projection, const glm::mat4 &view, glm::vec3 &camera_pos)
@@ -43,19 +60,25 @@ namespace GL_TASK
             model->draw(projection, view, camera_pos);
         }
 
-        /// 调试用
-        auto shader = shader_manager.get_shader("cubemap_shader");
-        shader->use();
-        shader->setMat4("projection", projection);
-        shader->setMat4("view", view);
-        render_sphere();
-        for (auto &po : area_lights_position)
+        glDepthMask(GL_FALSE); // 禁止深度写入
+        for (const auto &point_cloud : point_clouds)
         {
-            glm::mat4 model = glm::mat4(1.0f);
-            model = glm::translate(model, po);
-            shader->setMat4("model", model);
-            render_sphere();
+            point_cloud->draw(projection, view, camera_pos, glm::vec3(0.9f, 0.9f, 0.9f), 0.9f, false); // 在线框模式下不要深度排序
         }
-        ///
+        glDepthMask(GL_TRUE); // 重新启用深度写入
+
+        // /// 调试用
+        // auto shader = shader_manager.get_shader("cubemap_shader");
+        // shader->use();
+        // shader->setMat4("projection", projection);
+        // shader->setMat4("view", view);
+        // render_sphere();
+        // for (auto &po : area_lights_position)
+        // {
+        //     glm::mat4 model = glm::mat4(1.0f);
+        //     model = glm::translate(model, po);
+        //     shader->setMat4("model", model);
+        //     render_sphere();
+        // }
     }
 }
