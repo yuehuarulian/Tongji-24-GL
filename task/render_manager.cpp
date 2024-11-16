@@ -27,8 +27,9 @@ void RenderManager::initialize()
     initialize_GLFW();
 
     camera = std::make_shared<Camera>(window, 90 * D2R, glm::vec3(0.0f, -30.0f, 180.0f), glm::pi<float>(), 0.f, 30.0f, 1.0f);
-    scene = std::make_unique<GL_TASK::ClassicScene>(shader_manager, light_manager);
+    scene = std::make_unique<GL_TASK::FluidScene>(shader_manager, light_manager);
     skybox = std::make_unique<Skybox>(faces, "source/shader/skybox.vs", "source/shader/skybox.fs");
+    fluid_sim.BindMesh(&(scene->models[1]->model.meshes[0]));
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LEQUAL);
 }
@@ -92,6 +93,7 @@ void RenderManager::start_rendering(bool offscreen)
 
     for (int i = 0; i < frames; ++i)
     {
+        fluid_sim.wait_until_next_frame();
         update_camera();
         render_frame(i);
         glfwPollEvents();
@@ -101,7 +103,7 @@ void RenderManager::start_rendering(bool offscreen)
 void RenderManager::update_camera()
 {
     auto camera_pos = camera->get_pos();
-    camera->set_position(camera_pos - glm::vec3(0, 0, 2.0));
+    camera->set_position(camera_pos - glm::vec3(0, 0, 0.4));
     camera->compute_matrices_from_inputs(window);
 }
 

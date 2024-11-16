@@ -1,12 +1,11 @@
-#ifndef FLUID_SIMULATOR_H
-#define FLUID_SIMULATOR_H
+#pragma once
 
 #include <mutex>
 #include <atomic>
 #include <vector>
 #include <thread>
 #include <string>
-#include <fluid/mesher.h>
+#include <fluid/mesher.h>  // ��������
 #include <fluid/simulation.h>  // ����ģ����ص�ͷ�ļ�
 #include <fluid/data_structures/grid.h>  // �������ݽṹ
 #include <fluid/data_structures/obstacle.h>  // ��̬�ϰ�����
@@ -19,27 +18,30 @@ namespace fluid {
     public:
         FluidSimulator(double scale = 0.2);
         // ��mesh
-        void BindMesh(Mesh *const pMesh);
+        void BindMesh(Mesh* const pMesh);
         // ��������ͣ
         void reset();
         void pause();
         void advance();
         // ���ز���
-        vec3d get_sim_grid_offset() const;
-        vec3s get_sim_grid_size() const;
-        vec3d get_sim_grid_center() const;
-        double get_sim_cell_size() const;
+        vec3d get_grid_offset() const;
+        vec3s get_grid_size() const;
+        vec3d get_grid_center() const;
+        double get_cell_size() const;
         vec3d get_min_corner() const;
         vec3d get_max_corner() const;
         // ��������
+        std::vector<simulation::particle> get_particles();
+        mesher::mesh_t get_mesh_t();
+        grid3<std::size_t> get_grid_occupation();
+        grid3<vec3d> get_grid_velocities();
         mesher::mesh_t get_room_mesh_t() const;
-        mesher::mesh_t get_sim_mesh_t();
+        // ��������
         void save_mesh_to_obj(std::string const& path = "mesh.obj");
         void save_points_to_txt(const std::string& filepath = "points.txt");
+        // ͬ������
+        void wait_until_next_frame();
 
-        //const std::vector<simulation::particle>& getParticles();
-        //const grid3<std::size_t>& getGridOccupation();
-        //const grid3<vec3d>& getGridVelocities();
     private:
         // ����ģ��
         LoadModel roomModel;
@@ -58,6 +60,7 @@ namespace fluid {
         obstacle roomObstacle;
 
         // ģ������������߳�
+        bool FinSignal{ false }; // �߳�����ź�
         std::thread sim_thread;
         std::thread mesh_thread;
 
@@ -72,8 +75,8 @@ namespace fluid {
         mesher::mesh_t sim_mesh;  // ��������
         grid3<std::size_t> sim_grid_occupation;  // ����ռ�����
         grid3<vec3d> sim_grid_velocities;  // �����ٶ�����
-        semaphore sim_mesher_sema;  // ���ڿ����������ɵ��ź���
         bool sim_mesh_valid = false;  // ������Ч�Ա�־
+        semaphore sim_mesher_sema;  // ���ڿ����������ɵ��ź���
 
         // ����һЩԭ�ӱ��������ڿ���ģ��״̬
         std::atomic_bool
@@ -85,8 +88,6 @@ namespace fluid {
         void reset_simulation(simulation& sim);
         void simulation_thread();
         void mesher_thread();
-        void updateBoundMesh();
+        int updateBoundMesh();
     };
 }
-
-#endif

@@ -1,5 +1,5 @@
-#ifndef CLASSIC_SCENE_HPP
-#define CLASSIC_SCENE_HPP
+#ifndef FLUID_SCENE_HPP
+#define FLUID_SCENE_HPP
 
 #include "scene.hpp"
 #include "shader_manager.hpp"
@@ -12,7 +12,7 @@ namespace GL_TASK
     class FluidScene : public Scene
     {
     public:
-        FluidScene(ShaderManager &shader_manager, LightManager &light_manager, float precision);
+        FluidScene(ShaderManager &shader_manager, LightManager &light_manager, float precision = 0.2);
         ~FluidScene() = default;
 
         void render(const glm::mat4 &projection, const glm::mat4 &view, glm::vec3 &camera_pos) override;

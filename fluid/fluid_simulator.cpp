@@ -35,8 +35,7 @@ FluidSimulator::FluidSimulator(double scale) :
 	// ���߳���Ϊ����ģʽ
 	sim_thread.detach();
 	mesh_thread.detach();
-	std::cout << "fluid simulator start successfuly." << std::endl;
-}
+};
 
 // ����ģ��״̬�ĺ���
 void FluidSimulator::update_simulation(const fluid::simulation& sim) {
@@ -121,28 +120,28 @@ void FluidSimulator::reset_simulation(fluid::simulation& sim) {
 	//����ڲ�����
 	std::cout << "Start filling interior area..." << std::endl;
 	sim.seed_area(sim_grid_offset, vec3d(sim_grid_size),
-				[&](vec3d pos) {
-					return
-						pos.x < -double(sim_grid_size.x) / 4 + (pos.y + pos.z) / 5 &&
-						(pos.y - sim_grid_center.y) * (pos.y - sim_grid_center.y) + (pos.z - sim_grid_center.z) * (pos.z - sim_grid_center.z) >= sim_grid_size.z * sim_grid_size.z / 16 &&
-						roomObstacle.is_cell_inside(pos);
-				},
-				vec3d(0.0, 0.0, 0.0)
+		[&](vec3d pos) {
+			return
+				pos.x < -double(sim_grid_size.x) / 4 &&
+				(pos.y - sim_grid_center.y) * (pos.y - sim_grid_center.y) + (pos.z - sim_grid_center.z) * (pos.z - sim_grid_center.z) >= sim_grid_size.z * sim_grid_size.z / 16 &&
+				roomObstacle.is_cell_inside(pos);
+		},
+		vec3d(0.0, 0.0, 0.0)
 	);
 	std::cout << "Starting seting liquid source..." << std::endl;
-	// 创建一个流体源并设置速度和位置
+	// ����һ������Դ�������ٶȺ�λ��
 	auto source = std::make_unique<fluid::source>();
 	for (std::size_t y = 1; y < 5; ++y) {
-				for (std::size_t x = sim_grid_size.x / 2 - sim_grid_size.x / 20; x < sim_grid_size.x / 2 + sim_grid_size.x / 20; ++x) {
-					for (std::size_t z = sim_grid_size.z / 2 - sim_grid_size.x / 20; z < sim_grid_size.z / 2 + sim_grid_size.x / 20; ++z) {
-						if (roomObstacle.is_cell_inside(vec3s(x, y, z)))
-							source->cells.emplace_back(x, y, z);  // 添加流体源的单元位置
-					}
-				}
+		for (std::size_t x = sim_grid_size.x / 2 - sim_grid_size.x / 20; x < sim_grid_size.x / 2 + sim_grid_size.x / 20; ++x) {
+			for (std::size_t z = sim_grid_size.z / 2 - sim_grid_size.x / 20; z < sim_grid_size.z / 2 + sim_grid_size.x / 20; ++z) {
+				if (roomObstacle.is_cell_inside(vec3s(x, y, z)))
+					source->cells.emplace_back(x, y, z);  // ��������Դ�ĵ�Ԫλ��
+			}
+		}
 	}
-	source->velocity = vec3d(0.0, 200.0, 0.0);  // 设置源的速度
-	source->coerce_velocity = true;  // 强制流体源的速度
-	sim.sources.emplace_back(std::move(source));  // 将源添加到模拟中
+	source->velocity = vec3d(0.0, 200.0, 0.0);  // ����Դ���ٶ�
+	source->coerce_velocity = true;  // ǿ������Դ���ٶ�
+	sim.sources.emplace_back(std::move(source));  // ��Դ���ӵ�ģ����
 	std::cout << "Finish initializing liquid state." << std::endl;
 	std::cout << std::endl;
 
@@ -198,8 +197,7 @@ void FluidSimulator::simulation_thread() {
 
 		if (!sim_paused) {  // ���δ��ͣ
 			std::cout << "update\n";
-			//sim.update(1.0 / 60.0);  // ����һ��ʱ�䲽����ģ�����
-			sim.update(sim_dt);
+			sim.update(sim_dt);  // ����һ��ʱ�䲽����ģ�����
 			update_simulation(sim);  // ����ģ��״̬
 		}
 		else if (sim_advance) {  // �������Ϊ����ǰ��
@@ -230,11 +228,9 @@ void FluidSimulator::mesher_thread() {
 		fluid::mesher mesher;
 		mesher.particle_extent = 2.0;  // ��������Ӱ�췶Χ // TODO values close or smaller than 1 causes holes to appear in meshes
 		mesher.cell_radius = 3;  // ��������Ԫ�뾶
-		//mesher.grid_offset = vec3d(-1.0, -1.0, -1.0);  // ��������ƫ��
-		mesher.grid_offset = sim_grid_offset;
+		mesher.grid_offset = sim_grid_offset;  // ��������ƫ��
 		mesher.cell_size = 0.5;  // ��������Ԫ��С
-		//mesher.resize(vec3s(104, 104, 104));  // ��������ߴ�
-		mesher.resize(sim_grid_size * 2);
+		mesher.resize(sim_grid_size * 2);  // ��������ߴ�
 		fluid::mesher::mesh_t mesh = mesher.generate_mesh(particles, 0.5);  // ��������
 		mesh.generate_normals();  // ���ɷ��ߣ����ڹ�����Ⱦ
 
@@ -243,17 +239,19 @@ void FluidSimulator::mesher_thread() {
 			sim_mesh = std::move(mesh);  // ������������
 
 			// ���°�mesh��ʵ��
-			updateBoundMesh();
+			if (!updateBoundMesh())
+				FinSignal = true;
 		}
 	}
 }
 
-void FluidSimulator::updateBoundMesh() {
+int FluidSimulator::updateBoundMesh() {
 	// δ��������
 	if (!isMeshBound || !pMesh) {
 		std::cout << "FluidSimulator:: unbound mesh" << endl;
-		return;
+		return -1;
 	}
+
 	std::cout << "FluidSimulator:: update mesh." << endl;
 	std::cout << "	Before: " << pMesh->vertices.size() << " vertices and " << pMesh->indices.size() << " indices." << endl;
 	// ��վɵĶ������������
@@ -314,6 +312,7 @@ void FluidSimulator::updateBoundMesh() {
 	pMesh->updateMesh();
 	std::cout << "	After: " << pMesh->vertices.size() << " vertices and " << pMesh->indices.size() << " indices." << endl;
 	std::cout << "FluidSimulator:: update mesh." << endl;
+	return 0;
 }
 
 //=====================================================================================
@@ -321,7 +320,7 @@ void FluidSimulator::pause() { sim_paused = !sim_paused; std::cout << (sim_pause
 void FluidSimulator::reset() { sim_reset = true; std::cout << "Reset fluid simulation!" << std::endl;}
 void FluidSimulator::advance() { sim_advance = true; std::cout << "Excute fluid simulation one step!" << std::endl;}
 
-void FluidSimulator::BindMesh(Mesh *const pm) {
+void FluidSimulator::BindMesh(Mesh* const pm) {
 	if (pm) {
 		isMeshBound = true;
 		pMesh = pm;
@@ -332,16 +331,16 @@ void FluidSimulator::BindMesh(Mesh *const pm) {
 	return;
 }
 
-vec3d FluidSimulator::get_sim_grid_offset() const {
+vec3d FluidSimulator::get_grid_offset() const {
 	return sim_grid_offset;
 }
-vec3s FluidSimulator::get_sim_grid_size() const {
+vec3s FluidSimulator::get_grid_size() const {
 	return sim_grid_size;
 }
-vec3d FluidSimulator::get_sim_grid_center() const {
+vec3d FluidSimulator::get_grid_center() const {
 	return sim_grid_center;
 }
-double FluidSimulator::get_sim_cell_size() const {
+double FluidSimulator::get_cell_size() const {
 	return sim_cell_size;
 }
 vec3d FluidSimulator::get_min_corner() const {
@@ -351,12 +350,24 @@ vec3d FluidSimulator::get_max_corner() const {
 	return sim_grid_offset + vec3d(sim_grid_size) * sim_cell_size;
 }
 
+std::vector<simulation::particle> FluidSimulator::get_particles() {
+	std::lock_guard<std::mutex> guard(sim_particles_lock);
+	return sim_particles;
+}
+mesher::mesh_t FluidSimulator::get_mesh_t() {
+	std::lock_guard<std::mutex> guard(sim_mesh_lock);
+	return sim_mesh;
+}
+grid3<std::size_t> FluidSimulator::get_grid_occupation() {
+	std::lock_guard<std::mutex> guard(sim_particles_lock);
+	return sim_grid_occupation;
+}
+grid3<vec3d> FluidSimulator::get_grid_velocities() {
+	std::lock_guard<std::mutex> guard(sim_particles_lock);
+	return sim_grid_velocities;
+}
 mesher::mesh_t FluidSimulator::get_room_mesh_t() const {
 	return roomModel.get_mesh();
-}
-mesher::mesh_t FluidSimulator::get_sim_mesh_t() {
-	std::lock_guard<std::mutex> guard(sim_mesh_lock);  // �����Ա�����������
-	return sim_mesh;  // ������ǰ����������
 }
 
 void FluidSimulator::save_mesh_to_obj(const std::string& filepath) {
@@ -377,4 +388,13 @@ void FluidSimulator::save_points_to_txt(const std::string& filepath) {
 	std::ofstream fout(filepath);
 	fluid::point_cloud::save_to_naive(fout, points.begin(), points.end());  // ��������λ��
 	std::cout << "Have exported points data to points.txt" << std::endl;
+}
+
+// ͬ������
+void FluidSimulator::wait_until_next_frame() {
+	while (!FinSignal) {
+		continue;
+	}
+	FinSignal = false;
+	std::cout << "FluidSimulator:: a new frame come." << std::endl;
 }

@@ -10,6 +10,9 @@
 #include <GLFW/glfw3.h>
 #include "skybox.hpp"
 
+#include "fluid_scene.hpp"
+#include "fluid/fluid_simulator.h"
+
 class RenderManager
 {
 public:
@@ -35,6 +38,8 @@ private:
     unsigned int fbo, texture_color_buffer, rbo;
     int window_width, window_height, frames;
     bool offscreen;
+
+    fluid::FluidSimulator fluid_sim;
 };
 
 #endif // RENDER_MANAGER_H
