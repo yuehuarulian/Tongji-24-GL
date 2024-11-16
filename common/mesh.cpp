@@ -24,6 +24,18 @@ void Mesh::BuildBVH()
     bvh->Build(&bounds[0], numTris);
 }
 
+void Mesh::ProcessVertices(std::vector<glm::vec4> &verticesUVX, std::vector<glm::vec4> &normalsUVY)
+{
+    for (const auto &vertex : vertices)
+    {
+        // 组合位置和纹理坐标 u/s，存入 verticesUVX
+        verticesUVX.emplace_back(vertex.Position.x, vertex.Position.y, vertex.Position.z, vertex.TexCoords.x);
+
+        // 组合法线和纹理坐标 v/t，存入 normalsUVY
+        normalsUVY.emplace_back(vertex.Normal.x, vertex.Normal.y, vertex.Normal.z, vertex.TexCoords.y);
+    }
+}
+
 unsigned int Mesh::createDefaultTexture()
 {
     unsigned int textureID;

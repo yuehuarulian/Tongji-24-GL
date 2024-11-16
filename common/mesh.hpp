@@ -52,6 +52,7 @@ public:
     Mesh(vector<Vertex> vertices, vector<unsigned int> indices, vector<Texture> textures);
 
     void BuildBVH();
+    void ProcessVertices(std::vector<glm::vec4>& verticesUVX, std::vector<glm::vec4>& normalsUVY);
 
     unsigned int createDefaultTexture();
 

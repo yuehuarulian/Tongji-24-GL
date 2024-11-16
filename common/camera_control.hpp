@@ -19,10 +19,11 @@ public:
     void compute_matrices_from_inputs(GLFWwindow *window, glm::vec3 center = glm::vec3(0, 0, 0));
 
     glm::vec3 get_pos();
-
     glm::vec3 get_direction();
+    float get_fov();
+    float get_horizontal_angle() { return _horizontal_angle; };
+    float get_vertical_angle() { return _vertical_angle; };
     void set_position(glm::vec3 position);
-
     void set_fov(float fov);
 
     // 投影和观察矩阵

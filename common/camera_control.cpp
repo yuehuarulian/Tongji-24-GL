@@ -108,6 +108,11 @@ glm::vec3 Camera::get_direction()
         cos(_vertical_angle) * cos(_horizontal_angle));
 }
 
+float Camera::get_fov()
+{
+    return _initial_fov;
+}
+
 void Camera::set_fov(float fov)
 {
     _initial_fov = fov;

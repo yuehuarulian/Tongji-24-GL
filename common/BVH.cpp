@@ -4,16 +4,6 @@
 
 static int constexpr kMaxPrimitivesPerLeaf = 1;
 
-void BVH::Build(AABB const *bounds, int numbounds)
-{
-    // 构建BVH树，遍历每个边界框并更新总的边界框（m_bounds）
-    for (int i = 0; i < numbounds; ++i)
-        m_bounds.grow(bounds[i]); // 计算边界框并扩展总边界框
-
-    // 调用BuildImpl进行具体的BVH构建
-    BuildImpl(bounds, numbounds);
-}
-
 void BVH::InitNodeAllocator(size_t maxnum)
 {
     m_nodecnt = 0;          // 初始化节点分配器
@@ -24,6 +14,16 @@ BVH::Node *BVH::AllocateNode()
 {
     // 分配一个新的节点
     return &m_nodes[m_nodecnt++]; // 返回当前节点并增加节点计数
+}
+
+void BVH::Build(AABB const *bounds, int numbounds)
+{
+    // 构建BVH树，遍历每个边界框并更新总的边界框（m_bounds）
+    for (int i = 0; i < numbounds; ++i)
+        m_bounds.grow(bounds[i]); // 计算边界框并扩展总边界框
+
+    // 调用BuildImpl进行具体的BVH构建
+    BuildImpl(bounds, numbounds);
 }
 
 void BVH::BuildImpl(AABB const *bounds, int numbounds)
@@ -77,7 +77,8 @@ void BVH::BuildNode(SplitRequest const &req, AABB const *bounds, glm::vec3 const
     }
     else
     {
-        node->type = kInternal; // 设置节点类型为内部节点
+        // 设置节点类型为内部节点
+        node->type = kInternal;
 
         // 选择最大方向进行分割
         int axis = req.centroid_bounds.maxdim();              // 选择最大方向的轴
@@ -110,125 +111,122 @@ void BVH::BuildNode(SplitRequest const &req, AABB const *bounds, glm::vec3 const
                         *req.ptr = node; // 设置父节点指针
                     return;              // 返回
                 }
-
-                // 设置为内部节点，开始进行物体的分割
-                node->type = kInternal;
-
-                // 初始化左右子树的边界框
-                AABB leftbounds, rightbounds, leftcentroid_bounds, rightcentroid_bounds;
-                int splitidx = req.startidx; // 初始化分割索引
-
-                bool near2far = (req.numprims + req.startidx) & 0x1; // 用于决定分割的方向
-
-                // 如果最大轴方向的边界框宽度大于 0，则进行分割
-                if (req.centroid_bounds.getExtent()[axis] > 0.0f)
-                {
-                    auto first = req.startidx;
-                    auto last = req.startidx + req.numprims;
-
-                    // 根据分割方向进行物体的分割
-                    if (near2far)
-                    {
-                        while (true)
-                        {
-                            while ((first != last) && centroids[primindices[first]][axis] < border)
-                            {
-                                leftbounds.grow(bounds[primindices[first]]);
-                                leftcentroid_bounds.grow(centroids[primindices[first]]);
-                                ++first;
-                            }
-
-                            if (first == last--)
-                                break;
-
-                            rightbounds.grow(bounds[primindices[first]]);
-                            rightcentroid_bounds.grow(centroids[primindices[first]]);
-
-                            while ((first != last) && centroids[primindices[last]][axis] >= border)
-                            {
-                                rightbounds.grow(bounds[primindices[last]]);
-                                rightcentroid_bounds.grow(centroids[primindices[last]]);
-                                --last;
-                            }
-
-                            if (first == last)
-                                break;
-
-                            leftbounds.grow(bounds[primindices[last]]);
-                            leftcentroid_bounds.grow(centroids[primindices[last]]);
-
-                            std::swap(primindices[first++], primindices[last]);
-                        }
-                    }
-                    else
-                    {
-                        while (true)
-                        {
-                            while ((first != last) && centroids[primindices[first]][axis] >= border)
-                            {
-                                leftbounds.grow(bounds[primindices[first]]);
-                                leftcentroid_bounds.grow(centroids[primindices[first]]);
-                                ++first;
-                            }
-
-                            if (first == last--)
-                                break;
-
-                            rightbounds.grow(bounds[primindices[first]]);
-                            rightcentroid_bounds.grow(centroids[primindices[first]]);
-
-                            while ((first != last) && centroids[primindices[last]][axis] < border)
-                            {
-                                rightbounds.grow(bounds[primindices[last]]);
-                                rightcentroid_bounds.grow(centroids[primindices[last]]);
-                                --last;
-                            }
-
-                            if (first == last)
-                                break;
-
-                            leftbounds.grow(bounds[primindices[last]]);
-                            leftcentroid_bounds.grow(centroids[primindices[last]]);
-
-                            std::swap(primindices[first++], primindices[last]);
-                        }
-                    }
-
-                    splitidx = first; // 更新分割索引
-                }
-
-                // 如果分割索引没有变化，则使用简单的中位数分割
-                if (splitidx == req.startidx || splitidx == req.startidx + req.numprims)
-                {
-                    splitidx = req.startidx + (req.numprims >> 1);
-
-                    for (int i = req.startidx; i < splitidx; ++i)
-                    {
-                        leftbounds.grow(bounds[primindices[i]]);
-                        leftcentroid_bounds.grow(centroids[primindices[i]]);
-                    }
-
-                    for (int i = splitidx; i < req.startidx + req.numprims; ++i)
-                    {
-                        rightbounds.grow(bounds[primindices[i]]);
-                        rightcentroid_bounds.grow(centroids[primindices[i]]);
-                    }
-                }
-
-                // 构建左右子树的请求
-                SplitRequest leftrequest = {req.startidx, splitidx - req.startidx, &node->leftChild, leftbounds, leftcentroid_bounds, req.level + 1, (req.index << 1)};
-                SplitRequest rightrequest = {splitidx, req.numprims - (splitidx - req.startidx), &node->rightChild, rightbounds, rightcentroid_bounds, req.level + 1, (req.index << 1) + 1};
-
-                // 递归构建左右子树
-                BuildNode(leftrequest, bounds, centroids, primindices);
-                BuildNode(rightrequest, bounds, centroids, primindices);
             }
         }
 
-        // 设置父节点指针
-        if (req.ptr)
-            *req.ptr = node;
+        // 初始化左右子树的边界框
+        AABB leftbounds, rightbounds, leftcentroid_bounds, rightcentroid_bounds;
+        int splitidx = req.startidx; // 初始化分割索引
+
+        bool near2far = (req.numprims + req.startidx) & 0x1; // 用于决定分割的方向
+
+        // 如果最大轴方向的边界框宽度大于 0，则进行分割
+        if (req.centroid_bounds.getExtent()[axis] > 0.0f)
+        {
+            auto first = req.startidx;
+            auto last = req.startidx + req.numprims;
+
+            // 根据分割方向进行物体的分割
+            if (near2far)
+            {
+                while (true)
+                {
+                    while ((first != last) && centroids[primindices[first]][axis] < border)
+                    {
+                        leftbounds.grow(bounds[primindices[first]]);
+                        leftcentroid_bounds.grow(centroids[primindices[first]]);
+                        ++first;
+                    }
+
+                    if (first == last--)
+                        break;
+
+                    rightbounds.grow(bounds[primindices[first]]);
+                    rightcentroid_bounds.grow(centroids[primindices[first]]);
+
+                    while ((first != last) && centroids[primindices[last]][axis] >= border)
+                    {
+                        rightbounds.grow(bounds[primindices[last]]);
+                        rightcentroid_bounds.grow(centroids[primindices[last]]);
+                        --last;
+                    }
+
+                    if (first == last)
+                        break;
+
+                    leftbounds.grow(bounds[primindices[last]]);
+                    leftcentroid_bounds.grow(centroids[primindices[last]]);
+
+                    std::swap(primindices[first++], primindices[last]);
+                }
+            }
+            else
+            {
+                while (true)
+                {
+                    while ((first != last) && centroids[primindices[first]][axis] >= border)
+                    {
+                        leftbounds.grow(bounds[primindices[first]]);
+                        leftcentroid_bounds.grow(centroids[primindices[first]]);
+                        ++first;
+                    }
+
+                    if (first == last--)
+                        break;
+
+                    rightbounds.grow(bounds[primindices[first]]);
+                    rightcentroid_bounds.grow(centroids[primindices[first]]);
+
+                    while ((first != last) && centroids[primindices[last]][axis] < border)
+                    {
+                        rightbounds.grow(bounds[primindices[last]]);
+                        rightcentroid_bounds.grow(centroids[primindices[last]]);
+                        --last;
+                    }
+
+                    if (first == last)
+                        break;
+
+                    leftbounds.grow(bounds[primindices[last]]);
+                    leftcentroid_bounds.grow(centroids[primindices[last]]);
+
+                    std::swap(primindices[first++], primindices[last]);
+                }
+            }
+
+            splitidx = first; // 更新分割索引
+        }
+
+        // 如果分割索引没有变化，则使用简单的中位数分割
+        if (splitidx == req.startidx || splitidx == req.startidx + req.numprims)
+        {
+            splitidx = req.startidx + (req.numprims >> 1);
+
+            for (int i = req.startidx; i < splitidx; ++i)
+            {
+                leftbounds.grow(bounds[primindices[i]]);
+                leftcentroid_bounds.grow(centroids[primindices[i]]);
+            }
+
+            for (int i = splitidx; i < req.startidx + req.numprims; ++i)
+            {
+                rightbounds.grow(bounds[primindices[i]]);
+                rightcentroid_bounds.grow(centroids[primindices[i]]);
+            }
+        }
+
+        // 构建左右子树的请求
+        SplitRequest leftrequest = {req.startidx, splitidx - req.startidx, &node->leftChild, leftbounds, leftcentroid_bounds, req.level + 1, (req.index << 1)};
+        SplitRequest rightrequest = {splitidx, req.numprims - (splitidx - req.startidx), &node->rightChild, rightbounds, rightcentroid_bounds, req.level + 1, (req.index << 1) + 1};
+
+        // 递归构建左右子树
+        BuildNode(leftrequest, bounds, centroids, primindices);
+        BuildNode(rightrequest, bounds, centroids, primindices);
     }
+
+    // 设置父节点指针
+    if (req.ptr)
+        *req.ptr = node;
 }
 
 // 通过使用 Surface Area Heuristic (SAH) 算法来寻找最优的分割方式

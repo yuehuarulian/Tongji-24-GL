@@ -1,4 +1,3 @@
-
 #include "classic_scene.hpp"
 #include "draw_base_model.hpp"
 
@@ -7,6 +6,8 @@ namespace GL_TASK
     ClassicScene::ClassicScene(ShaderManager &shader_manager, LightManager &light_manager) : Scene(shader_manager, light_manager)
     {
         setup_scene();
+        InitGPUData(); // 将相关数据绑定到纹理中以便传递到GPU中
+        InitShaders(); // 将相关数据传递到Shader中
     }
 
     // 对场景进行设置
@@ -15,6 +16,50 @@ namespace GL_TASK
         room_model_matrix = glm::rotate(room_model_matrix, glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
         room_model_matrix = glm::rotate(room_model_matrix, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
         room_model_matrix = glm::scale(room_model_matrix, glm::vec3(1.f, 1.f, 1.f) * 1.f);
+
+        LoadLights(); // 加载光源数据
+        LoadModels(); // 加载模型数据
+    }
+
+    // 初始化模型 -- 加载所有的模型
+    void ClassicScene::LoadModels()
+    {
+        std::vector<std::string> modelPaths = {
+            "./source/model/shark.obj",
+            // "./source/model/room/overall.obj"
+            };
+        // 先加载所有的模型文件 存储在meshes中
+        for (auto path : modelPaths)
+            AddModel(path);
+
+        this->createBLAS(); // 建立低层次的BVH加速结构
+        this->createTLAS(); // 建立高层次的BVH加速结构
+
+        this->copyMeshData();
+    }
+    // 初始化光源 -- 加载所有的光源
+    void ClassicScene::LoadLights()
+    {
+        std::vector<glm::vec3> area_lights_position = {
+            glm::vec3(107.25, 33.9, -82.75),     // bulb.001
+            glm::vec3(107.25, 36.63, -10.666),   // bulb.002
+            glm::vec3(107.31, 33.845, 61.95),    // bulb.003
+            glm::vec3(107.18, 34.346, 136.48),   // bulb.004
+            glm::vec3(107.25, -33.755, -84.019), // bulb.008
+            glm::vec3(107.32, -34.331, -14.349), // bulb.009
+            glm::vec3(106.93, -37.012, 60.997),  // bulb.010
+            glm::vec3(106.89, -34.19, 135.34),   // bulb.011
+        };
+        std::vector<glm::vec3> area_lights_normal = {
+            glm::vec3(0., 0., 1.),
+            glm::vec3(-1., -0., -0.),
+            glm::vec3(-1., -0., -0.),
+            glm::vec3(-1., -0., -0.),
+            glm::vec3(-1., -0., -0.),
+            glm::vec3(-1., -0., -0.),
+            glm::vec3(-1., -0., -0.),
+            glm::vec3(-1., -0., -0.),
+        };
 
         // 添加光源
         for (int i = 0; i < area_lights_position.size(); i++)
@@ -28,29 +73,53 @@ namespace GL_TASK
 
             light_manager.add_area_light(area_lights_position[i], area_lights_normal[i], 5.0f, 5.0f, glm::vec3(300.0f, 300.0f, 300.0f), 16);
         }
-
-        // 加载着色器
-        shader_manager.load_shader("room_shader", "source/shader/classic/room.vs", "source/shader/classic/room.fs");
-
-        this->LoadModels(); // 加载模型
-        this->createBLAS(); // 建立低层次的BVH加速结构
-        this->createTLAS(); // 建立高层次的BVH加速结构
     }
 
-    // 初始化模型 -- 加载所有的模型
-    void ClassicScene::LoadModels()
+    void ClassicScene::InitShaders()
     {
-        std::vector<std::string> modelPaths = {
-            "./source/model/shark.obj",
-            "./source/model/room/overall.obj"};
-        // 先加载所有的模型文件 存储在meshes中
-        for (auto path : modelPaths)
-        {
-            AddModel(path);
-        }
+        // 加载着色器
+        shader_manager.load_shader("room_shader", "source/shader/classic/room.vs", "source/shader/classic/room.fs");
+        shader_manager.load_shader("tile_shader", "source/shader/common_vertex_shader.vs", "source/shader/tile_fragment_shader.fs");
+
+        Shader *shaderObject = shader_manager.get_shader("tile_shader").get();
+        shaderObject->use();
+        // 传递数据到Shader中
+        shaderObject->setInt("topBVHIndex", bvhConverter.topLevelIndex);
+        shaderObject->setInt("BVH", 1);
+        shaderObject->setInt("vertexIndicesTex", 2);
+        shaderObject->setInt("verticesTex", 3);
+        shaderObject->setInt("normalsTex", 4);
+        shaderObject->setInt("transformsTex", 5);
+        shaderObject->stopUsing();
+    }
+
+    void ClassicScene::setCamera(Camera *camera)
+    {
+        float _horizontal_angle = camera->get_horizontal_angle();
+        float _vertical_angle = camera->get_vertical_angle();
+        glm::vec3 forward(
+            cos(_vertical_angle) * sin(_horizontal_angle),
+            sin(_vertical_angle),
+            cos(_vertical_angle) * cos(_horizontal_angle));
+        glm::vec3 right(
+            sin(_horizontal_angle - glm::pi<float>() / 2.0f),
+            0.0f,
+            cos(_horizontal_angle - glm::pi<float>() / 2.0f));
+        glm::vec3 up = glm::cross(right, forward);
+
+        Shader *shaderObject = shader_manager.get_shader("tile_shader").get();
+        shaderObject->use();
+        shaderObject->setVec3("camera.position", camera->get_pos());
+        shaderObject->setVec3("camera.right", right);
+        shaderObject->setVec3("camera.up", up);
+        shaderObject->setVec3("camera.forward", forward);
+        shaderObject->setFloat("camera.fov", camera->get_fov());
+        shaderObject->stopUsing();
     }
 
     void ClassicScene::render(const glm::mat4 &projection, const glm::mat4 &view, glm::vec3 &camera_pos)
     {
+        std::shared_ptr<Shader> shaderObject = shader_manager.get_shader("tile_shader");
+        quad->Draw(shaderObject.get());
     }
 }

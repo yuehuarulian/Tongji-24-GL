@@ -17,7 +17,7 @@ public:
     void Process(const BVH *topLevelBvh, const std::vector<Mesh *> &sceneMeshes, const std::vector<MeshInstance> &sceneInstances);
     void ProcessBLAS();
     void ProcessTLAS();
-    int topLevelIndex = 0;
+    int topLevelIndex = 0;   // 顶层开始节点
     std::vector<Node> nodes; // 前面储存的是底层 后面存储的是顶层
 
 private:

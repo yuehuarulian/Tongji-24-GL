@@ -21,6 +21,7 @@ public:
 
     // 使用着色器程序
     void use();
+    void stopUsing();
 
     // uniform 工具函数
     void setBool(const std::string &name, bool value) const;
