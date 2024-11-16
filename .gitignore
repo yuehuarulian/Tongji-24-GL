@@ -1,6 +1,7 @@
 build/
 .vscode/
 bin/
+openvdb_bin/
 lib/
 offline_rendering/
 source/model/
