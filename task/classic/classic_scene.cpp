@@ -4,7 +4,7 @@
 
 namespace GL_TASK
 {
-    ClassicScene::ClassicScene(ShaderManager &shader_manager, LightManager &light_manager) : Scene(shader_manager, light_manager)
+    ClassicScene::ClassicScene(ShaderManager &shader_manager, LightManager &light_manager, float precision) : Scene(shader_manager, light_manager), precision(precision)
     {
         setup_scene();
     }
@@ -19,13 +19,14 @@ namespace GL_TASK
         for (int i = 0; i < area_lights_position.size(); i++)
         {
             // printf("position: %f %f %f\n", area_lights_position[i].x, area_lights_position[i].y, area_lights_position[i].z);
-            light_manager.add_area_light(area_lights_position[i], glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f) * 30000.0f, 4.0f, 4.0f, 16);
+            light_manager.add_area_light(area_lights_position[i], glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f) * 30000.0f, 4.0f, 4.0f, 4);
         }
 
         // 加载着色器
         shader_manager.load_shader("room_shader", "source/shader/classic/room.vs", "source/shader/classic/room.fs");
         shader_manager.load_shader("cubemap_shader", "source/shader/cubemap.vs", "source/shader/cubemap.fs");
         shader_manager.load_shader("cloud", "source/shader/point_cloud.vs", "source/shader/point_cloud.fs");
+        shader_manager.load_shader("liquid_shader", "source/shader/classic/liquid.vs", "source/shader/classic/liquid.fs");
 
         // room
         auto shader = shader_manager.get_shader("room_shader");
@@ -34,6 +35,14 @@ namespace GL_TASK
         // auto room_model = std::make_shared<Room>("E:/my_code/GL_bigwork/ToyEffects/ToyEffects/assets/SceneModels/tree1/trees9.obj", shader, true);
         room_model->set_model_matrix(room_model_matrix);
         models.push_back(room_model);
+
+        // Liquid model
+        auto liquid_shader = shader_manager.get_shader("liquid_shader");
+        light_manager.apply_lights(liquid_shader);
+        glm::mat4 liquid_model_matrix = glm::scale(room_model_matrix, glm::vec3(1.f, 1.f, 1.f) * (1.f / precision)); // Adjust scale
+        auto liquid_model = std::make_shared<Room>("source/model/fluid/mesh.obj", liquid_shader, true);
+        liquid_model->set_model_matrix(liquid_model_matrix);
+        models.push_back(liquid_model);
 
         // 点云
         auto cloud_shader1 = shader_manager.get_shader("cloud");

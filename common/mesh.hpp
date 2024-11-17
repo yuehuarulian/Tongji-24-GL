@@ -10,6 +10,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <mutex>
 
 using namespace std;
 
@@ -56,6 +57,11 @@ public:
         setupMesh();
     }
 
+    void updateMesh()
+    {
+        needsUpdate = true;
+    }
+
     unsigned int createDefaultTexture()
     {
         unsigned int textureID;
@@ -77,6 +83,13 @@ public:
     // render the mesh
     void Draw(Shader &shader)
     {
+        // 如果需要更新，先更新网格
+        if (needsUpdate)
+        {
+            update();
+            needsUpdate = false;
+        }
+
         // 确保所有 PBR 纹理都绑定到固定的纹理单元位置
         unsigned int defaultTextureID = createDefaultTexture(); // 初始化时调用一次
         unsigned int textureUnit = 0;
@@ -124,6 +137,7 @@ public:
 private:
     // render data
     unsigned int VBO, EBO;
+    bool needsUpdate; // 标志变量，指示是否需要更新
 
     // initializes all the buffer objects/arrays
     void setupMesh()
@@ -166,6 +180,45 @@ private:
         glEnableVertexAttribArray(6); // 骨骼权重
         glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, m_Weights));
 
+        glBindVertexArray(0);
+    }
+
+    void update()
+    {
+        // 绑定VAO
+        glBindVertexArray(VAO);
+
+        // 更新顶点缓冲数据
+        glBindBuffer(GL_ARRAY_BUFFER, VBO);
+        glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), &vertices[0], GL_STATIC_DRAW);
+
+        // 更新索引缓冲数据
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), &indices[0], GL_STATIC_DRAW);
+
+        // 更新顶点属性指针设置
+        glEnableVertexAttribArray(0); // 位置
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)0);
+
+        glEnableVertexAttribArray(1); // 法线
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, Normal));
+
+        glEnableVertexAttribArray(2); // 纹理坐标
+        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, TexCoords));
+
+        glEnableVertexAttribArray(3); // 切线
+        glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, Tangent));
+
+        glEnableVertexAttribArray(4); // 副切线
+        glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, Bitangent));
+
+        glEnableVertexAttribArray(5); // 骨骼ID
+        glVertexAttribIPointer(5, 4, GL_INT, sizeof(Vertex), (void *)offsetof(Vertex, m_BoneIDs));
+
+        glEnableVertexAttribArray(6); // 骨骼权重
+        glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, m_Weights));
+
+        // 解绑VAO
         glBindVertexArray(0);
     }
 };

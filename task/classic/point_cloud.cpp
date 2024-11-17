@@ -18,11 +18,12 @@ void PointCloud::draw(const glm::mat4 &projection, const glm::mat4 &view,
 {
     // 在渲染之前进行深度排序
     if (sort_points)
+    {
         sort_points_by_depth(viewPos);
-
-    // 重新更新点云数据到 GPU
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, points.size() * sizeof(glm::vec3), points.data(), GL_STATIC_DRAW);
+        // 重新更新点云数据到 GPU
+        glBindBuffer(GL_ARRAY_BUFFER, VBO);
+        glBufferData(GL_ARRAY_BUFFER, points.size() * sizeof(glm::vec3), points.data(), GL_STATIC_DRAW);
+    }
 
     shader->use();
     shader->setMat4("model", model);

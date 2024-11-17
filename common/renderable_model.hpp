@@ -14,9 +14,10 @@ public:
 
     virtual void draw(const glm::mat4 &projection, const glm::mat4 &view, const glm::vec3 &cameraPos) = 0;
 
+    Model model;
+
 protected:
     std::shared_ptr<Shader> shader;
-    Model model;
 };
 
 #endif // RENDERABLE_MODEL_H

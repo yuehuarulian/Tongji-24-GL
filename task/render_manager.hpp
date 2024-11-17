@@ -10,6 +10,9 @@
 #include <GLFW/glfw3.h>
 #include "skybox.hpp"
 
+#include "fluid_scene.hpp"
+#include "fluid/fluid_simulator.h"
+
 class RenderManager
 {
 public:
@@ -31,6 +34,7 @@ private:
     LightManager light_manager;
     std::unique_ptr<Scene> scene;
     std::unique_ptr<Skybox> skybox;
+    fluid::FluidSimulator fluid_sim;
 
     unsigned int msaa_fbo, msaa_texture, msaa_rbo;
     unsigned int resolve_fbo, resolve_texture;

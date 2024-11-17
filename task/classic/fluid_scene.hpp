@@ -1,26 +1,25 @@
-#ifndef CLASSIC_SCENE_HPP
-#define CLASSIC_SCENE_HPP
+#ifndef FLUID_SCENE_HPP
+#define FLUID_SCENE_HPP
 
 #include "scene.hpp"
 #include "shader_manager.hpp"
 #include "light_manager.hpp"
 #include "renderable_model.hpp"
-#include "point_cloud.hpp"
 #include <memory>
 
 namespace GL_TASK
 {
-    class ClassicScene : public Scene
+    class FluidScene : public Scene
     {
     public:
-        ClassicScene(ShaderManager &shader_manager, LightManager &light_manager, float precision = 0.2);
-        ~ClassicScene() = default;
+        FluidScene(ShaderManager &shader_manager, LightManager &light_manager, float precision = 0.2);
+        ~FluidScene() = default;
 
         void render(const glm::mat4 &projection, const glm::mat4 &view, glm::vec3 &camera_pos) override;
 
     private:
         float precision;
-        std::vector<std::shared_ptr<PointCloud>> point_clouds;
+
         std::vector<glm::vec3> area_lights_position = {
             glm::vec3(33.90, 107.25, -82.75),   // bulb.001  xyz
             glm::vec3(36.63, 107.25, -10.66),   // bulb.002
