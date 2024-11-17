@@ -29,10 +29,10 @@ add_custom_target(copy_assimp_dll ALL
     COMMENT "Copying libassimp-5d.dll to build directory"
 )
 
-# 添加目标：复制 source 文件夹
+# 添加目标：复制 source 文件夹到 build 文件夹
 add_custom_target(copy_source_folder ALL
     COMMAND ${CMAKE_COMMAND} -E copy_directory
-    "${PROJECT_SOURCE_DIR}/source"
-    "${PROJECT_SOURCE_DIR}/build"
-    COMMENT "Copying source folder (shaders, models, etc.) to build directory"
+    "${PROJECT_SOURCE_DIR}/source"  # 源文件夹
+    "${PROJECT_BINARY_DIR}/source" # 目标文件夹
+    COMMENT "Copying entire source folder (shaders, models, etc.) to build directory"
 )

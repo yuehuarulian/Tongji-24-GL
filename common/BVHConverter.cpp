@@ -1,7 +1,7 @@
 #include <BVHConverter.hpp>
 
 /// 处理 BLAS 和 TLAS 数据，生成完整的索引数据。
-void BVHConverter::Process(const BVH *topLevelBvh, const std::vector<Mesh *> &sceneMeshes, const std::vector<MeshInstance> &sceneInstances)
+void BVHConverter::Process(const BVH *topLevelBvh, const std::vector<Mesh *> &sceneMeshes, const std::vector<MeshInstance* > &sceneInstances)
 {
     this->topLevelBvh = topLevelBvh; // 顶层的BVH树
     meshes = sceneMeshes;            // 所有的网格数据
@@ -115,8 +115,8 @@ int BVHConverter::ProcessTLASNodes(const BVH::Node *node)
         int instanceIndex = topLevelBvh->m_packed_indices[node->startidx];
 
         // 获取网格索引和材质ID
-        int meshIndex = meshInstances[instanceIndex].meshID;
-        int materialID = meshInstances[instanceIndex].materialID;
+        int meshIndex = meshInstances[instanceIndex]->meshID;
+        int materialID = meshInstances[instanceIndex]->materialID;
 
         // 将网格的根节点开始索引存入 LRLeaf.x
         nodes[curNode].LRLeaf.x = bvhRootStartIndices[meshIndex];

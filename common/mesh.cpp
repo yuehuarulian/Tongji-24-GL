@@ -3,19 +3,22 @@
 Mesh::Mesh(vector<Vertex> vertices, vector<unsigned int> indices, vector<Texture> textures)
     : vertices(vertices), indices(indices), textures(textures)
 {
-    setupMesh();
+    // setupMesh();
     bvh = new BVH(2.0);
 }
 
 void Mesh::BuildBVH()
 {
     int numTris = indices.size() / 3;
+    printf("Triangle Nums: #%d\n", numTris);
     std::vector<AABB> bounds(numTris);
+
+    // 遍历所有的三角形 -- 为其创建包围盒
     for (int i = 0; i < numTris; i++)
     {
-        const glm::vec3 v1 = vertices[i * 3 + 0].Position;
-        const glm::vec3 v2 = vertices[i * 3 + 1].Position;
-        const glm::vec3 v3 = vertices[i * 3 + 2].Position;
+        const glm::vec3 v1 = vertices[indices[i * 3 + 0]].Position;
+        const glm::vec3 v2 = vertices[indices[i * 3 + 1]].Position;
+        const glm::vec3 v3 = vertices[indices[i * 3 + 2]].Position;
 
         bounds[i].grow(v1);
         bounds[i].grow(v2);

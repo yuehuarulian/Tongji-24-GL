@@ -88,6 +88,9 @@ void Scene::createTLAS()
 
 void Scene::copyMeshData()
 {
+    // GPU Node
+    bvhConverter.Process(sceneBVH ,meshes, meshInstances);
+
     // Copy顶点等数据
     int verticesCnt = 0;
     for (const auto &mesh : meshes)
@@ -173,7 +176,5 @@ void Scene::InitGPUData()
     glActiveTexture(GL_TEXTURE4);
     glBindTexture(GL_TEXTURE_BUFFER, normalsTex);
     glActiveTexture(GL_TEXTURE5);
-    glBindTexture(GL_TEXTURE_BUFFER, transformsTex);
-
-    
+    glBindTexture(GL_TEXTURE_2D, transformsTex);
 }

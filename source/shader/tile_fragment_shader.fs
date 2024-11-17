@@ -75,24 +75,26 @@ uniform isamplerBuffer vertexIndicesTex;
 uniform sampler2D transformsTex; 
 
 uniform vec2 resolution;
-Camera camera;
+uniform Camera camera;
 
 void main()
 {
-    // 从屏幕坐标生成光线
-    vec2 d = TexCoords * 2.0 - 1.0; // 将坐标范围映射到 [-1, 1]
-    float scale = tan(camera.fov * 0.5);
-    d.y *= resolution.y / resolution.x * scale; // 调整纵横比
-    d.x *= scale; // 按照视角缩放
+   // 屏幕坐标直接映射生成光线
+    vec2 d = (TexCoords * 2.0 - 1.0) * 500; // 将坐标范围映射到 [-1, 1]
 
-    // 计算光线方向
-    vec3 rayDir = normalize(d.x * camera.right + d.y * camera.up + camera.forward);
-
-    // 创建光线
-    Ray ray = Ray(camera.position, rayDir);
+    // 生成光线方向
+    // vec3 rayDir = normalize(vec3(0.0f, 1.0f, 0.0f)); 
+    // Ray ray = Ray(vec3(d.x, -500.0f, d.y), rayDir);
+    float x = (TexCoords.x * 2.0 - 1.0) * (resolution.x / 2);
+    float y = (TexCoords.y * 2.0 - 1.0) * (resolution.y / 2);
+    vec3 sceneP = vec3(x, y, -250.f);
+    // vec3 cameraP = vec3(0.f, 0.f, -500.f);
+    vec3 cameraP = camera.position;
+    vec3 rayDir = normalize(sceneP - cameraP);
+    Ray ray = Ray(cameraP, rayDir);
 
     vec4 pixelColor = PathTrace(ray);
-    FragColor = pixelColor;
+    FragColor = vec4(pixelColor);
 }
 
 /********************************/
@@ -102,8 +104,8 @@ vec4 PathTrace(Ray r)
 {
     vec3 radiance = vec3(0.0);   // 最终的辐射贡献 -- 颜色
     vec3 throughput = vec3(1.0); // 路径传播因子 -- 跟踪光线的强度
-    State state;                 // 光线与物体交互的状态
-    LightSampleRec lightSample;       // 光源采样记录
+    State state;                   // 光线与物体交互的状态
+    LightSampleRec lightSample;          // 光源采样记录
     // ScatterSampleRec scatterSample;   // 散射采样记录
 
     float alpha = 1.0;  // 透明度 -- 用于材质的遮挡和半透明效果
@@ -120,39 +122,41 @@ vec4 PathTrace(Ray r)
         // 计算光线与场景的最近交点，如果没有击中任何物体，说明光线射到了背景或者环境光
         bool hit = ClosestHit(r, state, lightSample);
 
-        if(!hit) 
+        if(hit)
+        {
+            // 获取交点物体的材质信息
+            // GetMaterial(state, r);
+
+            // 计算来自发光物体的辐射
+            // radiance += state.mat.emission * throughput;
+            radiance += vec3(0.1f, 0.0f, 0.0f) * throughput; // 先使用红色代替
+
+            // 如果命中的物体时发光体/光源，则计算该发光体的辐射贡献并终止路径追踪
+            if(state.isEmitter)
+            {
+                float misWeight = 1.0;
+
+                radiance += misWeight * lightSample.emission * throughput;
+                break;
+            }
+
+            // 俄罗斯轮盘赌(Russian Roulette)优化
+            if (state.depth >= RRMaxDepth)
+            {
+                // 计算当前传播因子的最大分量，用于决定是否继续追踪
+                float q = min(max(throughput.x, max(throughput.y, throughput.z)) + 0.001, 0.95);
+                if (rand() > q)
+                    break;
+                throughput /= q;  // 根据概率衰减传播因子
+            }
+        }
+        else 
         {
             // 没有命中物体，意味着光线穿过了场景并到达了背景
             // 不考虑环境贴图 直接返回一个设置一个背景颜色
-            vec3 backgroundColor = vec3(0.5, 0.7, 1.0);
-            radiance = backgroundColor;
+            vec3 backgroundColor = vec3(0.0941, 0.8078, 0.0667);
+            radiance += backgroundColor;
             break;
-        }
-
-        // 获取交点物体的材质信息
-        // GetMaterial(state, r);
-
-        // 计算来自发光物体的辐射
-        // radiance += state.mat.emission * throughput;
-        radiance += vec3(1.0f, 0.5f, 0.5f) * throughput; // 先使用红色代替
-
-        // 如果命中的物体时发光体/光源，则计算该发光体的辐射贡献并终止路径追踪
-        if(state.isEmitter)
-        {
-            float misWeight = 1.0;
-
-            radiance += misWeight * lightSample.emission * throughput;
-            break;
-        }
-
-        // 俄罗斯轮盘赌(Russian Roulette)优化
-        if (state.depth >= RRMaxDepth)
-        {
-            // 计算当前传播因子的最大分量，用于决定是否继续追踪
-            float q = min(max(throughput.x, max(throughput.y, throughput.z)) + 0.001, 0.95);
-            if (rand() > q)
-                break;
-            throughput /= q;  // 根据概率衰减传播因子
         }
     }
 

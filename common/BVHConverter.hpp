@@ -14,7 +14,7 @@ public:
         glm::vec3 LRLeaf;
     };
 
-    void Process(const BVH *topLevelBvh, const std::vector<Mesh *> &sceneMeshes, const std::vector<MeshInstance> &sceneInstances);
+    void Process(const BVH *topLevelBvh, const std::vector<Mesh *> &sceneMeshes, const std::vector<MeshInstance* > &sceneInstances);
     void ProcessBLAS();
     void ProcessTLAS();
     int topLevelIndex = 0;   // 顶层开始节点
@@ -27,7 +27,7 @@ private:
     int curNode = 0;
     int curTriIndex = 0;
     std::vector<int> bvhRootStartIndices;
-    std::vector<MeshInstance> meshInstances;
+    std::vector<MeshInstance* > meshInstances;
     std::vector<Mesh *> meshes;
     const BVH *topLevelBvh;
 };

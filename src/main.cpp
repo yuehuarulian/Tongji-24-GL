@@ -47,7 +47,7 @@ int main()
     LightManager light_manager;
     GL_TASK::ClassicScene classic_scene(shader_manager, light_manager);
 
-    Camera camera(window, 75 * D2R, glm::vec3(0.0f, 0.0f, -180.0f), glm::pi<float>(), 0.f, 30.0f, 1.0f);
+    Camera camera(window, 75 * D2R, glm::vec3(0.0f, 0.0f, -750.0f), glm::pi<float>(), 0.f, 30.0f, 1.0f);
     // 天空盒
     Skybox skybox(faces, "source/shader/skybox.vs", "source/shader/skybox.fs");
     // IMGUI
@@ -65,7 +65,7 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         auto camera_pos = camera.get_pos();
-        printf("Camera Position:(%d, %d, %d)\n", camera.get_pos().x, camera.get_pos().y, camera.get_pos().z);
+        printf("camera position:#(%f, %f, %f)\n", camera_pos.x, camera_pos.y, camera_pos.z);
         classic_scene.setCamera(&camera);
         classic_scene.render(camera.projection, camera.view, camera_pos);
 

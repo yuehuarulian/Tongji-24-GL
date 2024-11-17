@@ -8,14 +8,13 @@ Quad::Quad()
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
 
     // Vertex data
-    float vertices[] =
-        {
-            -1.0f, 1.0f, 0.0f, 1.0f,
-            -1.0f, -1.0f, 0.0f, 0.0f,
-            1.0f, -1.0f, 1.0f, 0.0f,
-            -1.0f, 1.0f, 0.0f, 1.0f,
-            1.0f, -1.0f, 1.0f, 0.0f,
-            1.0f, 1.0f, 1.0f, 1.0f};
+    float vertices[] ={
+        -1.0f, 1.0f, 0.0f, 1.0f,
+        -1.0f, -1.0f, 0.0f, 0.0f,
+        1.0f, -1.0f, 1.0f, 0.0f,
+        -1.0f, 1.0f, 0.0f, 1.0f,
+        1.0f, -1.0f, 1.0f, 0.0f,
+        1.0f, 1.0f, 1.0f, 1.0f};
 
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), &vertices, GL_STATIC_DRAW);
 

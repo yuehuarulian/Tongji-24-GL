@@ -25,8 +25,8 @@ namespace GL_TASK
     void ClassicScene::LoadModels()
     {
         std::vector<std::string> modelPaths = {
-            "./source/model/shark.obj",
-            // "./source/model/room/overall.obj"
+            // "./source/model/shark.obj",
+            "./source/model/room/overall.obj"
             };
         // 先加载所有的模型文件 存储在meshes中
         for (auto path : modelPaths)
@@ -34,8 +34,7 @@ namespace GL_TASK
 
         this->createBLAS(); // 建立低层次的BVH加速结构
         this->createTLAS(); // 建立高层次的BVH加速结构
-
-        this->copyMeshData();
+        this->copyMeshData(); // 复制相关数据 以便于数据传输
     }
     // 初始化光源 -- 加载所有的光源
     void ClassicScene::LoadLights()
@@ -90,30 +89,16 @@ namespace GL_TASK
         shaderObject->setInt("verticesTex", 3);
         shaderObject->setInt("normalsTex", 4);
         shaderObject->setInt("transformsTex", 5);
+        shaderObject->setVec2("resolution", 1080, 720);
         shaderObject->stopUsing();
     }
 
     void ClassicScene::setCamera(Camera *camera)
     {
-        float _horizontal_angle = camera->get_horizontal_angle();
-        float _vertical_angle = camera->get_vertical_angle();
-        glm::vec3 forward(
-            cos(_vertical_angle) * sin(_horizontal_angle),
-            sin(_vertical_angle),
-            cos(_vertical_angle) * cos(_horizontal_angle));
-        glm::vec3 right(
-            sin(_horizontal_angle - glm::pi<float>() / 2.0f),
-            0.0f,
-            cos(_horizontal_angle - glm::pi<float>() / 2.0f));
-        glm::vec3 up = glm::cross(right, forward);
-
-        Shader *shaderObject = shader_manager.get_shader("tile_shader").get();
+        glm::vec3 cameraPos = camera->get_pos();
+        auto shaderObject = shader_manager.get_shader("tile_shader");
         shaderObject->use();
-        shaderObject->setVec3("camera.position", camera->get_pos());
-        shaderObject->setVec3("camera.right", right);
-        shaderObject->setVec3("camera.up", up);
-        shaderObject->setVec3("camera.forward", forward);
-        shaderObject->setFloat("camera.fov", camera->get_fov());
+        shaderObject->setVec3("camera.position", cameraPos.x, cameraPos.y, cameraPos.z);
         shaderObject->stopUsing();
     }
 
