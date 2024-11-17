@@ -32,10 +32,10 @@ namespace GL_TASK
         auto shader = shader_manager.get_shader("room_shader");
         light_manager.apply_lights(shader);
         auto room_model = std::make_shared<Room>("source/model/room/overall.obj", shader, true);
-        // auto room_model = std::make_shared<Room>("E:/my_code/GL_bigwork/ToyEffects/ToyEffects/assets/SceneModels/tree1/trees9.obj", shader, true);
         room_model->set_model_matrix(room_model_matrix);
         models.push_back(room_model);
 
+        // 调试在线渲染请注释掉水模型，否则会非常卡
         // Liquid model
         auto liquid_shader = shader_manager.get_shader("liquid_shader");
         light_manager.apply_lights(liquid_shader);
