@@ -11,6 +11,9 @@
 
 #include "mesh.hpp"
 #include "shader.hpp"
+#include "animdata.h"
+// #include "animation.h"
+#include "assimp_glm_helpers.h"
 
 #include <string>
 #include <fstream>
@@ -35,6 +38,10 @@ public:
     string directory;
     bool gammaCorrection;
 
+    // void updateAnimation(float deltaTime);
+    auto &GetBoneInfoMap() { return m_BoneInfoMap; }
+    int &GetBoneCount() { return m_BoneCounter; }
+
 private:
     // loads a model with supported ASSIMP extensions from file and stores the resulting meshes in the meshes vector.
     void loadModel(string const &path);
@@ -47,6 +54,16 @@ private:
     // checks all material textures of a given type and loads the textures if they're not loaded yet.
     // the required info is returned as a Texture struct.
     vector<Texture> loadMaterialTextures(aiMaterial *mat, aiTextureType type, string typeName);
+
+    /*处理动画数据*/
+    std::map<string, BoneInfo> m_BoneInfoMap;
+    int m_BoneCounter = 0;
+    void SetVertexBoneDataToDefault(Vertex &vertex);
+    void SetVertexBoneData(Vertex &vertex, int boneID, float weight);
+    void ExtractBoneWeightForVertices(std::vector<Vertex> &vertices, aiMesh *mesh, const aiScene *scene);
+    // std::vector<aiAnimation *> animations;
+
+    // Animation animation;
 };
 
 #endif

@@ -3,6 +3,8 @@
 
 #include "shader.hpp"
 #include "renderable_model.hpp"
+#include "animator.hpp"
+#include "animation.h"
 #define GLM_ENABLE_EXPERIMENTAL
 #include "glm/glm.hpp"
 
@@ -18,7 +20,12 @@ namespace GL_TASK
         void set_model_matrix(const glm::mat4 &model) { model_matrix = model; }
 
     private:
+        Animation danceAnimation;
+        Animator animator;
         glm::mat4 model_matrix = glm::mat4(1.0f);
+        float deltaTime = 0.0f;
+        float lastFrame = 0.0f;
+        int differ=rand();
     };
 }
 

@@ -52,6 +52,7 @@ int main()
     GUIManager gui_manager(window, camera, light_manager);
 
     glEnable(GL_DEPTH_TEST);
+    glDisable(GL_CULL_FACE);
     glDepthFunc(GL_LESS);
     glEnable(GL_BLEND);
 
