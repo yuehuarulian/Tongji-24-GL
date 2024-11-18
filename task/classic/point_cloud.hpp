@@ -16,7 +16,7 @@
 #include <memory>
 #include "shader.hpp"
 
-const float MIN_DENSITY = 0.05f;
+const float MIN_DENSITY = 0.02f;
 const float RANDOM_OFFSET = 0.0f;
 
 class PointCloud
