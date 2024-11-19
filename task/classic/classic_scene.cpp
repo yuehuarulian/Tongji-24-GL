@@ -5,7 +5,7 @@ namespace GL_TASK
 {
     ClassicScene::ClassicScene(ShaderManager &shader_manager, LightManager &light_manager) : Scene(shader_manager, light_manager)
     {
-        setup_scene();
+        setup_scene(); // 配置场景
         InitGPUData(); // 将相关数据绑定到纹理中以便传递到GPU中
         InitShaders(); // 将相关数据传递到Shader中
     }
@@ -13,10 +13,6 @@ namespace GL_TASK
     // 对场景进行设置
     void ClassicScene::setup_scene()
     {
-        room_model_matrix = glm::rotate(room_model_matrix, glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-        room_model_matrix = glm::rotate(room_model_matrix, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-        room_model_matrix = glm::scale(room_model_matrix, glm::vec3(1.f, 1.f, 1.f) * 1.f);
-
         LoadLights(); // 加载光源数据
         LoadModels(); // 加载模型数据
     }
@@ -24,17 +20,18 @@ namespace GL_TASK
     // 初始化模型 -- 加载所有的模型
     void ClassicScene::LoadModels()
     {
+        // 模型文件路径
         std::vector<std::string> modelPaths = {
-            // "./source/model/shark.obj",
-            "./source/model/room/overall.obj"
-            };
+            "./source/model/shark.obj",
+            // "./source/model/room/overall.obj"
+        };
         // 先加载所有的模型文件 存储在meshes中
         for (auto path : modelPaths)
             AddModel(path);
 
-        this->createBLAS(); // 建立低层次的BVH加速结构
-        this->createTLAS(); // 建立高层次的BVH加速结构
-        this->copyMeshData(); // 复制相关数据 以便于数据传输
+        this->createBLAS();  // 建立低层次的BVH加速结构
+        this->createTLAS();  // 建立高层次的BVH加速结构
+        this->ProcessData(); // 处理数据 将其转换成可供Shader使用的形式
     }
     // 初始化光源 -- 加载所有的光源
     void ClassicScene::LoadLights()
@@ -93,16 +90,20 @@ namespace GL_TASK
         shaderObject->stopUsing();
     }
 
-    void ClassicScene::setCamera(Camera *camera)
+    void ClassicScene::updateCameraInfo(Camera *camera)
     {
         glm::vec3 cameraPos = camera->get_pos();
         auto shaderObject = shader_manager.get_shader("tile_shader");
         shaderObject->use();
         shaderObject->setVec3("camera.position", cameraPos.x, cameraPos.y, cameraPos.z);
+        shaderObject->setVec3("camera.up", camera->get_up());
+        shaderObject->setVec3("camera.right", camera->get_right());
+        shaderObject->setVec3("camera.forward", -camera->get_direction());
+        shaderObject->setFloat("camera.fov", camera->get_fov());
         shaderObject->stopUsing();
     }
 
-    void ClassicScene::render(const glm::mat4 &projection, const glm::mat4 &view, glm::vec3 &camera_pos)
+    void ClassicScene::render()
     {
         std::shared_ptr<Shader> shaderObject = shader_manager.get_shader("tile_shader");
         quad->Draw(shaderObject.get());

@@ -43,34 +43,28 @@ int main()
     // 创建窗口
     GLFWwindow *window = initialize_glfw_window();
 
-    ShaderManager shader_manager;
-    LightManager light_manager;
-    GL_TASK::ClassicScene classic_scene(shader_manager, light_manager);
+    ShaderManager shader_manager;                                       // 着色器管理者
+    LightManager light_manager;                                         // 光源管理者
+    GL_TASK::ClassicScene classic_scene(shader_manager, light_manager); // 场景类 -- Important!! -- 配置场景
 
-    Camera camera(window, 75 * D2R, glm::vec3(0.0f, 0.0f, -750.0f), glm::pi<float>(), 0.f, 30.0f, 1.0f);
-    // 天空盒
-    Skybox skybox(faces, "source/shader/skybox.vs", "source/shader/skybox.fs");
-    // IMGUI
-    GUIManager gui_manager(window, camera, light_manager);
+    Camera camera(window, 75 * D2R, glm::vec3(0.0f, 0.0f, -750.0f), glm::pi<float>(), 0.f, 30.0f, 1.0f); // 摄像机
+    Skybox skybox(faces, "source/shader/skybox.vs", "source/shader/skybox.fs");                          // 天空盒
+    GUIManager gui_manager(window, camera, light_manager);                                               // IMGUI
 
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
 
-    glfwSwapInterval(1);                                                                            // 垂直同步，参数：在 glfwSwapBuffers 交换缓冲区之前要等待的最小屏幕更新数
-    while (glfwWindowShouldClose(window) == 0 && glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS) // 窗口没有关闭，esc键没有按下
+    glfwSwapInterval(1); // 垂直同步，参数：在 glfwSwapBuffers 交换缓冲区之前要等待的最小屏幕更新数
+    while (glfwWindowShouldClose(window) == 0 && glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS)
     {
         camera.compute_matrices_from_inputs(window);
 
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        auto camera_pos = camera.get_pos();
-        printf("camera position:#(%f, %f, %f)\n", camera_pos.x, camera_pos.y, camera_pos.z);
-        classic_scene.setCamera(&camera);
-        classic_scene.render(camera.projection, camera.view, camera_pos);
-
-        skybox.render(camera.view, camera.projection);
-        gui_manager.render();
+        classic_scene.updateCameraInfo(&camera); // 更新场景摄像机数据
+        classic_scene.render();                  // 场景渲染
+        gui_manager.render();                    // imgUI渲染
 
         glfwSwapBuffers(window);
         glfwPollEvents();

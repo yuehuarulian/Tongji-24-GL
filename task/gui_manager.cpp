@@ -31,12 +31,32 @@ void GUIManager::render()
     ImGui::NewFrame();
 
     // 创建一个窗口，用于设置参数
-    ImGui::Begin("Camera and Light Controls");
+    ImGui::Begin("Debug");
 
-    // FOV 滑动条控件
-    if (ImGui::SliderFloat("FOV", &fov, 30.0f, 120.0f))
+    if (ImGui::CollapsingHeader("Camera Controls", ImGuiTreeNodeFlags_DefaultOpen))
     {
-        camera.set_fov(fov / 180.0f * glm::pi<float>());
+        // FOV 滑动条控件
+        if (ImGui::SliderFloat("FOV", &fov, 30.0f, 120.0f))
+        {
+            camera.set_fov(fov / 180.0f * glm::pi<float>()); // 更新摄像机的视场角
+        }
+        // 摄像机位置滑动条控件
+        static glm::vec3 cameraPosition = camera.get_pos(); // 获取摄像机初始位置
+        // x 坐标滑动条
+        if (ImGui::SliderFloat("Camera Position X", &cameraPosition.x, -1000.0f, 1000.0f))
+        {
+            camera.set_position(cameraPosition); // 更新摄像机的位置
+        }
+        // y 坐标滑动条
+        if (ImGui::SliderFloat("Camera Position Y", &cameraPosition.y, -1000.0f, 1000.0f))
+        {
+            camera.set_position(cameraPosition); // 更新摄像机的位置
+        }
+        // z 坐标滑动条
+        if (ImGui::SliderFloat("Camera Position Z", &cameraPosition.z, -1000.0f, 1000.0f))
+        {
+            camera.set_position(cameraPosition); // 更新摄像机的位置
+        }
     }
 
     // 光照强度滑动条控件

@@ -1,14 +1,18 @@
 #include <mesh.hpp>
 
-Mesh::Mesh(vector<Vertex> vertices, vector<unsigned int> indices, vector<Texture> textures)
-    : vertices(vertices), indices(indices), textures(textures)
+Mesh::Mesh(vector<Vertex> vertices, vector<unsigned int> indices, const Material &material)
+    : vertices(vertices),
+      indices(indices),
+      material(material)
 {
-    // setupMesh();
     bvh = new BVH(2.0);
 }
 
 void Mesh::BuildBVH()
 {
+    //
+    // 对一个Mesh节点构建BVH节点
+    //
     int numTris = indices.size() / 3;
     printf("Triangle Nums: #%d\n", numTris);
     std::vector<AABB> bounds(numTris);
@@ -29,6 +33,9 @@ void Mesh::BuildBVH()
 
 void Mesh::ProcessVertices(std::vector<glm::vec4> &verticesUVX, std::vector<glm::vec4> &normalsUVY)
 {
+    //
+    // 将节点数据转换成可以传送给Shader的类型
+    //
     for (const auto &vertex : vertices)
     {
         // 组合位置和纹理坐标 u/s，存入 verticesUVX
@@ -56,77 +63,4 @@ unsigned int Mesh::createDefaultTexture()
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
     return textureID;
-}
-
-void Mesh::Draw(Shader &shader)
-{
-    // 确保所有 PBR 纹理都绑定到固定的纹理单元位置
-    unsigned int defaultTextureID = createDefaultTexture();
-    unsigned int textureUnit = 0;
-
-    for (const auto &type : {"texture_diffuse", "texture_specular", "texture_normal",
-                             "texture_height", "texture_metallic", "texture_roughness", "texture_ao"})
-    {
-        bool textureFound = false;
-
-        for (unsigned int i = 0; i < textures.size(); i++)
-        {
-            if (textures[i].type == type)
-            {
-                // 激活指定的纹理单元并绑定
-                glActiveTexture(GL_TEXTURE0 + textureUnit);
-                glBindTexture(GL_TEXTURE_2D, textures[i].id);
-
-                // 将对应 uniform 设置为这个纹理单元
-                glUniform1i(glGetUniformLocation(shader.ID, (std::string(type) + "1").c_str()), textureUnit);
-                // printf("name: %s, number: %d\n", (std::string(type) + "1").c_str(), textureUnit);
-
-                textureFound = true;
-                break; // 该类型找到就可以跳出循环
-            }
-        }
-
-        if (!textureFound)
-        {
-            glActiveTexture(GL_TEXTURE0 + textureUnit);
-            glBindTexture(GL_TEXTURE_2D, defaultTextureID); // 使用默认的白色纹理
-        }
-
-        textureUnit++;
-    }
-
-    glBindVertexArray(VAO);
-    glDrawElements(GL_TRIANGLES, static_cast<unsigned int>(indices.size()), GL_UNSIGNED_INT, 0);
-    glBindVertexArray(0);
-    glActiveTexture(GL_TEXTURE0);
-}
-
-void Mesh::setupMesh()
-{
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-    glGenBuffers(1, &EBO);
-
-    glBindVertexArray(VAO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), &vertices[0], GL_STATIC_DRAW);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), &indices[0], GL_STATIC_DRAW);
-
-    glEnableVertexAttribArray(0); // 位置
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)0);
-    glEnableVertexAttribArray(1); // 法线
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, Normal));
-    glEnableVertexAttribArray(2); // 纹理坐标
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, TexCoords));
-    glEnableVertexAttribArray(3); // 切线
-    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, Tangent));
-    glEnableVertexAttribArray(4); // 副切线
-    glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, Bitangent));
-    glEnableVertexAttribArray(5); // 骨骼ID
-    glVertexAttribIPointer(5, 4, GL_INT, sizeof(Vertex), (void *)offsetof(Vertex, m_BoneIDs));
-    glEnableVertexAttribArray(6); // 骨骼权重
-    glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, m_Weights));
-
-    glBindVertexArray(0);
 }

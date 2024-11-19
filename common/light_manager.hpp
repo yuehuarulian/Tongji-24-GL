@@ -8,6 +8,24 @@
 #include <glm/glm.hpp>
 // 光源结构体定义
 
+enum LightType
+{
+    RectLight,
+    SphereLight,
+    DistantLight
+};
+
+struct Light
+{
+    glm::vec3 position;
+    glm::vec3 emission;
+    glm::vec3 u;
+    glm::vec3 v;
+    float radius;
+    float area;
+    float type;
+};
+
 struct PointLight // 点光源
 {
     glm::vec3 position; // 位置

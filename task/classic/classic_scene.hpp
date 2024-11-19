@@ -16,13 +16,11 @@ namespace GL_TASK
         ClassicScene(ShaderManager &shader_manager, LightManager &light_manager);
         ~ClassicScene() = default;
 
-        void setCamera(Camera* camera);
-        void render(const glm::mat4 &projection, const glm::mat4 &view, glm::vec3 &camera_pos) override;
+        void updateCameraInfo(Camera *camera);
+        void render() override; // 渲染函数
 
     private:
-        glm::mat4 room_model_matrix = glm::mat4(1.0f);
-
-        void setup_scene() override;
+        void setup_scene() override; // 配置场景
         void InitShaders() override;
 
         void LoadModels();

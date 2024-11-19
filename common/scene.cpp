@@ -1,17 +1,33 @@
 #include <scene.hpp>
 #include <mesh.hpp>
 #include <model.hpp>
+#include "stb_image_resize.h"
+#include "stb_image.h"
 
 bool Scene::AddModel(const std::string &modelfilePath, glm::mat4 transformMat)
 {
-    Model *model = new Model;
+    Model *model = new Model();
     if (model->LoadFromFile(modelfilePath))
     {
+        // 1. 将model中的纹理数据导入scene中
+        int textureStartId = this->textures.size();
+        for (auto texture : model->getTextures())
+            this->textures.push_back(texture);
+
+        // 2. 将model中的网格数据导入scene中
         for (auto mesh : model->getMeshes())
         {
             int mesh_id = meshes.size();
+            int materialStartId = this->materials.size();
+
+            // 3. 将mesh中的材质信息导入scene中
+            //    同时更新纹理索引
+            mesh->material.updateTexId(textureStartId);
+            this->materials.push_back(mesh->material);
+            // 4. 根据网格id和材质id创建一个meshInstance
+            MeshInstance *instance = new MeshInstance(mesh_id, materialStartId, transformMat);
+
             this->meshes.push_back(mesh);
-            MeshInstance *instance = new MeshInstance(mesh_id, transformMat);
             this->meshInstances.push_back(instance);
         }
     }
@@ -26,9 +42,43 @@ bool Scene::AddModel(const std::string &modelfilePath, glm::mat4 transformMat)
     return true;
 }
 
-bool Scene::AddTexture(const std::string &filename)
+int Scene::AddMaterial(const Material &material)
 {
-    return true;
+    int id = materials.size();
+    materials.push_back(material);
+    return id;
+}
+
+int Scene::AddTexture(const std::string &filename)
+{
+    //
+    // 根据纹理路径的名称 返回其在纹理数组中的索引位置
+    //
+    int id = -1;
+    for (int i = 0; i < textures.size(); i++)
+    {
+        if (textures[i]->texName == filename)
+        {
+            return i;
+        }
+    }
+
+    id = textures.size();
+    Texture *texture = new Texture();
+
+    printf("Loading Texture %s\n", filename.c_str());
+    if (texture->LoadTexture(filename))
+    {
+        textures.push_back(texture);
+    }
+    else
+    {
+        printf("Unable to load texture %s\n", filename.c_str());
+        delete texture;
+        id = -1;
+    }
+
+    return id;
 }
 
 // 创建底层加速结构 -- 以每个Mesh中的三角形作为基本单元
@@ -86,14 +136,15 @@ void Scene::createTLAS()
     sceneBounds = sceneBVH->getBounds();
 }
 
-void Scene::copyMeshData()
+void Scene::ProcessData()
 {
-    // GPU Node
-    bvhConverter.Process(sceneBVH ,meshes, meshInstances);
+    // 将BVH的顶层节点和底层节点转换为适合传递给GPU的节点
+    // bvhConverter.nodes即我们所需要的数据
+    bvhConverter.Process(sceneBVH, meshes, meshInstances);
 
-    // Copy顶点等数据
+    // 随后将顶点数据、法线数据、UV纹理坐标数据转换为适合传递给GPU的数据
     int verticesCnt = 0;
-    for (const auto &mesh : meshes)
+    for (const auto &mesh : meshes) // 遍历所有的网格
     {
         // 获取 BVH 的索引数量和索引数据
         int numIndices = mesh->bvh->getNumIndices();     // 索引的数量
@@ -122,51 +173,112 @@ void Scene::copyMeshData()
         verticesCnt += mesh->vertices.size();
     }
 
-    // Copy变换矩阵
+    // 变换矩阵
     transforms.resize(meshInstances.size());
     for (int i = 0; i < meshInstances.size(); i++)
         transforms[i] = meshInstances[i]->transform;
+
+    // 纹理数据
+    if (!textures.empty())
+        printf("Copying and resizing textures\n");
+
+    const int texBytes = texArrayHeight * texArrayWidth * 4;
+    textureMapsArray.resize(texBytes * textures.size());
+
+#pragma omp parallel for
+    for (int i = 0; i < textures.size(); i++)
+    {
+        int texWidth = textures[i]->width;
+        int texHeight = textures[i]->height;
+        if (texWidth != texArrayWidth || texHeight != texArrayHeight)
+        {
+            unsigned char *resizedTex = new unsigned char[texBytes];
+            stbir_resize_uint8(&textures[i]->texData[0], texWidth, texHeight, 0, resizedTex, texArrayHeight, texArrayWidth, 0, 4);
+            std::copy(resizedTex, resizedTex + texBytes, &textureMapsArray[i * texBytes]);
+            delete[] resizedTex;
+        }
+        else
+            std::copy(textures[i]->texData.begin(), textures[i]->texData.end(), &textureMapsArray[i * texBytes]);
+    }
 }
 
 void Scene::InitGPUData()
 {
     glPixelStorei(GL_PACK_ALIGNMENT, 1);
-
+    // ---------- BVH树节点数据 ---------- //
+    // 注释:
+    // struct Node
+    // {
+    //     glm::vec3 bboxmin;
+    //     glm::vec3 bboxmax;
+    //     glm::vec3 LRLeaf;
+    // };
+    // 节点分为两部分 - 顶层的BVH节点和底层的BVH节点
+    // 前面的部分是底层的BVH节点 后面的部分是顶层的BVH节点
+    // 无论是底层的还是顶层的BVH节点都包含包围盒的最小点和最大点
+    // 其中LRLeaf.z表示节点的类型 ( ==0表示Internal节点 >0表示底层Leaf节点 <0表示顶层Leaf节点)
+    // 对于Internal节点来说 LRLeaf.x表示左孩子节点 LRLeaf.y表示右孩子节点
+    // 对于底层Leaf节点(Mesh)来说 LRLeaf.x表示该mesh起点 LRLeaf.y表示包含的三角形数量
+    // 对于顶层Leaf节点(MeshInstance)来说 LRLeaf.x表示所代表mesh起点 LRLeaf.y表示材质ID
     glGenBuffers(1, &BVHBuffer);
     glBindBuffer(GL_TEXTURE_BUFFER, BVHBuffer);
     glBufferData(GL_TEXTURE_BUFFER, sizeof(BVHConverter::Node) * bvhConverter.nodes.size(), &bvhConverter.nodes[0], GL_STATIC_DRAW);
     glGenTextures(1, &BVHTex);
     glBindTexture(GL_TEXTURE_BUFFER, BVHTex);
     glTexBuffer(GL_TEXTURE_BUFFER, GL_RGB32F, BVHBuffer);
-
+    // ---------- 顶点索引数据 ---------- //
+    // 注释:
     glGenBuffers(1, &vertexIndicesBuffer);
     glBindBuffer(GL_TEXTURE_BUFFER, vertexIndicesBuffer);
     glBufferData(GL_TEXTURE_BUFFER, sizeof(Indices) * vertIndices.size(), &vertIndices[0], GL_STATIC_DRAW);
     glGenTextures(1, &vertexIndicesTex);
     glBindTexture(GL_TEXTURE_BUFFER, vertexIndicesTex);
     glTexBuffer(GL_TEXTURE_BUFFER, GL_RGB32I, vertexIndicesBuffer);
-
+    // ---------- 顶点/UV数据 ---------- //
+    // 注释:
     glGenBuffers(1, &verticesBuffer);
     glBindBuffer(GL_TEXTURE_BUFFER, verticesBuffer);
     glBufferData(GL_TEXTURE_BUFFER, sizeof(glm::vec4) * verticesUVX.size(), &verticesUVX[0], GL_STATIC_DRAW);
     glGenTextures(1, &verticesTex);
     glBindTexture(GL_TEXTURE_BUFFER, verticesTex);
     glTexBuffer(GL_TEXTURE_BUFFER, GL_RGBA32F, verticesBuffer);
-
+    // ---------- 法线/UV数据 ---------- //
+    // 注释:
     glGenBuffers(1, &normalsBuffer);
     glBindBuffer(GL_TEXTURE_BUFFER, normalsBuffer);
     glBufferData(GL_TEXTURE_BUFFER, sizeof(glm::vec4) * normalsUVY.size(), &normalsUVY[0], GL_STATIC_DRAW);
     glGenTextures(1, &normalsTex);
     glBindTexture(GL_TEXTURE_BUFFER, normalsTex);
     glTexBuffer(GL_TEXTURE_BUFFER, GL_RGBA32F, normalsBuffer);
-
+    // ---------- 转换矩阵数据 ---------- //
+    // 注释:
     glGenTextures(1, &transformsTex);
     glBindTexture(GL_TEXTURE_2D, transformsTex);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, (sizeof(glm::mat4) / sizeof(glm::vec4)) * transforms.size(), 1, 0, GL_RGBA, GL_FLOAT, &transforms[0]);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glBindTexture(GL_TEXTURE_2D, 0);
+    // ---------- 材质数据 ---------- //
+    // 注释：
+    glGenTextures(1, &materialsTex);
+    glBindTexture(GL_TEXTURE_2D, materialsTex);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, (sizeof(Material) / sizeof(glm::vec4)) * materials.size(), 1, 0, GL_RGBA, GL_FLOAT, &materials[0]);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    // ---------- 纹理数据 ---------- //
+    // 注释：
+    if (!textures.empty())
+    {
+        glGenTextures(1, &textureMapsArrayTex);
+        glBindTexture(GL_TEXTURE_2D_ARRAY, textureMapsArrayTex);
+        glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA8, texArrayWidth, texArrayHeight, textures.size(), 0, GL_RGBA, GL_UNSIGNED_BYTE, &textureMapsArray[0]);
+        glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
+    }
 
+    // 绑定纹理数据
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_BUFFER, BVHTex);
     glActiveTexture(GL_TEXTURE2);
@@ -177,4 +289,8 @@ void Scene::InitGPUData()
     glBindTexture(GL_TEXTURE_BUFFER, normalsTex);
     glActiveTexture(GL_TEXTURE5);
     glBindTexture(GL_TEXTURE_2D, transformsTex);
+    glActiveTexture(GL_TEXTURE6);
+    glBindTexture(GL_TEXTURE_2D, materialsTex);
+    glActiveTexture(GL_TEXTURE7);
+    glBindTexture(GL_TEXTURE_2D_ARRAY, textureMapsArrayTex);
 }

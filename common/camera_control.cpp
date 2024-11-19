@@ -16,9 +16,30 @@ Camera::Camera(GLFWwindow *window, float initialfov, glm::vec3 position, float h
     // 设置鼠标到窗口中心
     int width, height;
     glfwGetWindowSize(window, &width, &height);
+    _width = width;
+    _height = height;
     glfwSetCursorPos(window, width / 2, height / 2);
-
     glfwSetScrollCallback(window, scroll_callback);
+    calculate_view_and_projection_matrix();
+}
+
+void Camera::calculate_view_and_projection_matrix()
+{
+    // 计算方向、右向量和上向量
+    _direction = glm::vec3(
+        cos(_vertical_angle) * sin(_horizontal_angle),
+        sin(_vertical_angle),
+        cos(_vertical_angle) * cos(_horizontal_angle));
+    _right = glm::vec3(
+        sin(_horizontal_angle - GLM_PI / 2.0f),
+        0,
+        cos(_horizontal_angle - GLM_PI / 2.0f));
+    _up = glm::cross(_right, _direction);
+
+    // 更新投影和观察矩阵
+    // ProjectionMatrix = glm::ortho(-10.0f * float(width) / height, 10.0f * float(width) / height, -10.0f, 10.0f, 0.0f, 100.0f);
+    projection = glm::perspective(_initial_fov, float(_width) / _height, 0.5f, 1000.0f);
+    view = glm::lookAt(_position, _position + _direction, _up);
 }
 
 void Camera::compute_matrices_from_inputs(GLFWwindow *window, glm::vec3 center)
@@ -88,32 +109,6 @@ void Camera::compute_matrices_from_inputs(GLFWwindow *window, glm::vec3 center)
 
     projection = glm::perspective(_initial_fov, float(width) / height, 0.5f, 1000.0f);
     view = glm::lookAt(_position, _position + direction, up);
-}
 
-glm::vec3 Camera::get_pos()
-{
-    return _position;
-}
-
-void Camera::set_position(glm::vec3 position)
-{
-    _position = position;
-}
-
-glm::vec3 Camera::get_direction()
-{
-    return glm::vec3(
-        cos(_vertical_angle) * sin(_horizontal_angle),
-        sin(_vertical_angle),
-        cos(_vertical_angle) * cos(_horizontal_angle));
-}
-
-float Camera::get_fov()
-{
-    return _initial_fov;
-}
-
-void Camera::set_fov(float fov)
-{
-    _initial_fov = fov;
+    calculate_view_and_projection_matrix();
 }
