@@ -1,4 +1,4 @@
-
+#include "room.hpp"
 #include "fluid_scene.hpp"
 #include "draw_base_model.hpp"
 
