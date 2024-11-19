@@ -17,8 +17,14 @@ namespace GL_TASK
 
         void set_model_matrix(const glm::mat4 &model) { model_matrix = model; }
 
+        void getBoundingBox(glm::vec3 &min, glm::vec3 &max);
+
     private:
         glm::mat4 model_matrix = glm::mat4(1.0f);
+        glm::vec3 min_bound;
+        glm::vec3 max_bound;
+
+        void calculateBoundingBox();
     };
 }
 

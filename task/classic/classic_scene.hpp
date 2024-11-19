@@ -21,6 +21,7 @@ namespace GL_TASK
         void render(const glm::mat4 &projection, const glm::mat4 &view, glm::vec3 &camera_pos) override;
 
     private:
+        glm::vec3 room_min, room_max;
         std::vector<std::shared_ptr<PointCloud>> point_clouds;
         std::vector<glm::vec3> area_lights_position = {
             glm::vec3(33.90, 107.25, -82.75),   // bulb.001  xyz
@@ -44,20 +45,9 @@ namespace GL_TASK
         };
 
         float precision;
-        float water_level = 0.0f;     // 水面高度
-        float buoyancy_force = 10.0f; // 浮力强度
-        float linear_damping = 0.2f;  // 线性阻尼
-        float angular_damping = 0.3f; // 角速度阻尼
 
         btDiscreteDynamicsWorld *dynamicsWorld;
         std::shared_ptr<Boat> boatInstance;
-
-        // 新增可调参数
-        float waterDensity = 1000.0f;
-        float dragCoefficient = 0.5f;
-
-        // 允许动态调整水面高度
-        float waterLevel = 0.0f;
 
         void setup_scene() override;
     };

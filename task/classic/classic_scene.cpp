@@ -35,15 +35,14 @@ namespace GL_TASK
         auto shader = shader_manager.get_shader("room_shader");
         light_manager.apply_lights(shader);
         auto room_model = std::make_shared<Room>("source/model/room/overall.obj", shader, true);
-        // 设置房间模型
         glm::mat4 room_model_matrix = glm::mat4(1.0f);
         room_model_matrix = glm::rotate(room_model_matrix, glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
         room_model_matrix = glm::rotate(room_model_matrix, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
         room_model_matrix = glm::scale(room_model_matrix, glm::vec3(1.f, 1.f, 1.f) * 1.f);
         room_model->set_model_matrix(room_model_matrix);
+        room_model->getBoundingBox(room_min, room_max);
         models.push_back(room_model);
 
-        // 调试在线渲染请注释掉水模型，否则会非常卡
         // Liquid model
         auto liquid_shader = shader_manager.get_shader("liquid_shader");
         light_manager.apply_lights(liquid_shader);
@@ -62,7 +61,8 @@ namespace GL_TASK
         models.push_back(boatInstance);
 
         // 初始化 Bullet 物理引擎
-        dynamicsWorld = initBullet(boatInstance.get());
+        dynamicsWorld = initBullet(boatInstance.get(), room_min, room_max, glm::vec3(0.0f, 0.0f, 0.0f));
+        printf("room_min: %f %f %f\n", room_min.x, room_min.y, room_min.z);
     }
 
     void ClassicScene::render(const glm::mat4 &projection, const glm::mat4 &view, glm::vec3 &camera_pos)
@@ -89,6 +89,14 @@ namespace GL_TASK
         boat_model_matrix = boatInstance->get_model_matrix() * boat_model_matrix;
         boatInstance->set_model_matrix(boat_model_matrix);
         printf("boat position: %f %f %f\n", boat_model_matrix[3][0], boat_model_matrix[3][1], boat_model_matrix[3][2]);
+
+        // // 获取房间边界信息并限制船的位置在房间内部
+        // glm::vec3 roomMin, roomMax;
+        // roomInstance->getBoundingBox(roomMin, roomMax);
+        // glm::vec3 boatPosition = glm::vec3(boat_model_matrix[3]);
+        // boatPosition = glm::clamp(boatPosition, roomMin, roomMax);
+        // boat_model_matrix[3] = glm::vec4(boatPosition, 1.0f);
+        // boatInstance->set_model_matrix(boat_model_matrix);
 
         // 渲染模型
         for (const auto &model : models)

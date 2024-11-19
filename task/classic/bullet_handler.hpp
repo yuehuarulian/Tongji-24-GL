@@ -24,7 +24,7 @@
 //     return boatRigidBody;
 // }
 
-btDiscreteDynamicsWorld *initBullet(GL_TASK::Boat *boatInstance)
+btDiscreteDynamicsWorld *initBullet(GL_TASK::Boat *boatInstance, const glm::vec3 &room_min, const glm::vec3 &room_max, const glm::vec3 &boat_start_position)
 {
     // Bullet initialization
     btBroadphaseInterface *broadphase = new btDbvtBroadphase();
@@ -33,23 +33,25 @@ btDiscreteDynamicsWorld *initBullet(GL_TASK::Boat *boatInstance)
     btSequentialImpulseConstraintSolver *solver = new btSequentialImpulseConstraintSolver;
 
     btDiscreteDynamicsWorld *dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher, broadphase, solver, collisionConfiguration);
-    dynamicsWorld->setGravity(btVector3(0, -9.81f, 0));
+    dynamicsWorld->setGravity(btVector3(0, -9.81f, 0)); // 设置重力方向为向下
 
-    // Create ground
-    btCollisionShape *groundShape = new btStaticPlaneShape(btVector3(0, 1, 0), 0);
-    btDefaultMotionState *groundMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, 0, 0)));
-    btRigidBody::btRigidBodyConstructionInfo groundRigidBodyCI(0, groundMotionState, groundShape, btVector3(0, 0, 0));
-    btRigidBody *groundRigidBody = new btRigidBody(groundRigidBodyCI);
-    dynamicsWorld->addRigidBody(groundRigidBody);
+    // **移除地面创建的代码部分** - 这里不需要地面
 
     // Create boat
     btCollisionShape *boatShape = new btBoxShape(btVector3(0.5f, 0.5f, 0.5f));
-    btDefaultMotionState *boatMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, 5, 0)));
+
+    // 确保船的初始位置在房间内
+    glm::vec3 boatStartPosition = glm::clamp(boat_start_position, room_min, room_max); // 将初始位置限制在房间范围内
+
+    // 创建船体的运动状态和刚体
+    btDefaultMotionState *boatMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(boatStartPosition.x, boatStartPosition.y, boatStartPosition.z)));
     btScalar mass = 1.0f;
     btVector3 boatInertia(0, 0, 0);
     boatShape->calculateLocalInertia(mass, boatInertia);
     btRigidBody::btRigidBodyConstructionInfo boatRigidBodyCI(mass, boatMotionState, boatShape, boatInertia);
     btRigidBody *boatRigidBody = new btRigidBody(boatRigidBodyCI);
+
+    // 将船体添加到物理世界
     dynamicsWorld->addRigidBody(boatRigidBody);
 
     // Set the boat instance rigid body
