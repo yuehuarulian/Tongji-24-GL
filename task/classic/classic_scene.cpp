@@ -29,6 +29,7 @@ namespace GL_TASK
         shader_manager.load_shader("cubemap_shader", "source/shader/cubemap.vs", "source/shader/cubemap.fs");
         shader_manager.load_shader("cloud", "source/shader/point_cloud.vs", "source/shader/point_cloud.fs");
         shader_manager.load_shader("liquid_shader", "source/shader/classic/liquid.vs", "source/shader/classic/liquid.fs");
+        shader_manager.load_shader("boat_shader", "source/shader/classic/boat.vs", "source/shader/classic/boat.fs");
 
         // room
         auto shader = shader_manager.get_shader("room_shader");
@@ -69,10 +70,25 @@ namespace GL_TASK
         auto fluidInstance = std::dynamic_pointer_cast<Fluid>(models[1]);
         if (!fluidInstance)
             throw std::runtime_error("models[1] is not a Fluid instance.");
+
+        fluidInstance->wait_until_next_frame();
+
+        // 在物理更新之前应用浮力和阻力
         applyFluidForces(boatInstance->getRigidBody(), fluidInstance);
 
-        // glm::mat4 boatTransform = computeBoatTransformFromPhysics();
-        // boatModel->set_model_matrix(boatTransform);
+        float deltaTime = calculateRenderTime(); // 计算渲染时间（单位：秒）
+        printf("deltaTime: %f\n", deltaTime);
+        dynamicsWorld->stepSimulation(deltaTime, 10); // 更新物理状态
+
+        dynamicsWorld->stepSimulation(1.0f / 60.0f, 10); // 更新物理引擎状态
+        // 获取船的刚体状态并更新模型矩阵
+        btTransform boatTransform;
+        boatInstance->getRigidBody()->getMotionState()->getWorldTransform(boatTransform);
+        glm::mat4 boat_model_matrix = glm::mat4(1.0f);
+        boatTransform.getOpenGLMatrix(glm::value_ptr(boat_model_matrix));
+        boat_model_matrix = boatInstance->get_model_matrix() * boat_model_matrix;
+        boatInstance->set_model_matrix(boat_model_matrix);
+        printf("boat position: %f %f %f\n", boat_model_matrix[3][0], boat_model_matrix[3][1], boat_model_matrix[3][2]);
 
         // 渲染模型
         for (const auto &model : models)

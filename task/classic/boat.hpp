@@ -51,6 +51,11 @@ namespace GL_TASK
             model_matrix = model;
         }
 
+        glm::mat4 get_model_matrix() const
+        {
+            return model_matrix;
+        }
+
     private:
         btRigidBody *rigidBody;
         glm::mat4 model_matrix = glm::mat4(1.0f);

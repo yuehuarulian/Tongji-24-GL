@@ -50,7 +50,7 @@ int main()
 
     // fluid::FluidSimulator fluid_sim(precision);
 
-    GL_TASK::ClassicScene classic_scene(shader_manager, light_manager); // 调试在线渲染请注释掉水模型，否则会非常卡
+    GL_TASK::ClassicScene classic_scene(shader_manager, light_manager, 0.2); // 调试在线渲染请注释掉水模型，否则会非常卡
 
     // fluid_sim.BindMesh(&(classic_scene.models[1]->model.meshes[0])); // 绑定的1号模型的第0个mesh（水是一号）
 

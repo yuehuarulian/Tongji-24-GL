@@ -20,10 +20,6 @@ namespace GL_TASK
 
         void render(const glm::mat4 &projection, const glm::mat4 &view, glm::vec3 &camera_pos) override;
 
-        // void wait_until_next_frame()
-        // {
-        // }
-
     private:
         std::vector<std::shared_ptr<PointCloud>> point_clouds;
         std::vector<glm::vec3> area_lights_position = {

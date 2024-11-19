@@ -117,7 +117,10 @@ void applyFluidForces(btRigidBody *boatBody, std::shared_ptr<GL_TASK::Fluid> flu
     {
         // 计算粒子压力 (假设 fluid 提供 calculate_pressure 方法)
         // float pressure = fluid->fluid_sim.calculate_pressure(particle.position);
-        float pressure = 1.0f;
+        float fluid_density = 1000.0f;             // 水的密度 (kg/m^3)
+        float gravity = 9.8f;                      // 重力加速度 (m/s^2)
+        float depth = -70.f - particle.position.y; // 计算深度
+        float pressure = std::max(fluid_density * gravity * depth, 0.0f);
 
         // 计算浮力
         float submergedDepth = std::max(0.0f, float(position.getY() - particle.position.y));
@@ -129,7 +132,7 @@ void applyFluidForces(btRigidBody *boatBody, std::shared_ptr<GL_TASK::Fluid> flu
         // 计算阻力 (根据相对速度)
         btVector3 relativeVelocity = boatBody->getLinearVelocity() - particleVelocity;
         // btVector3 dragForce = -fluid->dragCoefficient * relativeVelocity.length() * relativeVelocity;
-        btVector3 dragForce = -0.1 * relativeVelocity.length() * relativeVelocity;
+        btVector3 dragForce = -0.4 * relativeVelocity.length() * relativeVelocity;
 
         // 累积力
         totalForce += buoyancyForce + dragForce;
@@ -144,10 +147,20 @@ void applyFluidForces(btRigidBody *boatBody, std::shared_ptr<GL_TASK::Fluid> flu
     // 应用力和扭矩到船体
     boatBody->applyCentralForce(totalForce);
     boatBody->applyTorque(totalTorque);
+    printf("totalForce: %f %f %f\n", totalForce.getX(), totalForce.getY(), totalForce.getZ());
 }
 
 void cleanup_physics(btDiscreteDynamicsWorld *dynamicsWorld)
 {
     delete dynamicsWorld;
     dynamicsWorld = nullptr;
+}
+
+float calculateRenderTime()
+{
+    static auto lastTime = std::chrono::high_resolution_clock::now();
+    auto currentTime = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<float> deltaTime = currentTime - lastTime;
+    lastTime = currentTime;
+    return deltaTime.count();
 }
