@@ -161,11 +161,14 @@ uniform isamplerBuffer vertexIndicesTex;
 uniform sampler2D transformsTex;
 uniform sampler2D materialsTex;
 uniform sampler2D lightsTex;
+uniform sampler2DArray textureMapsArrayTex;
 
 uniform int numOfLights;
 
 uniform vec2 resolution;
 uniform Camera camera;
+
+
 
 void main()
 {
@@ -186,7 +189,7 @@ void main()
 /********************************/
 vec4 PathTrace(Ray r)
 {
-    vec3 radiance = vec3(0.0);   // 最终的辐射贡献 -- 颜色
+    vec3 radiance = vec3(0.0, 0.0, 0.0);   // 最终的辐射贡献 -- 颜色
     vec3 throughput = vec3(1.0); // 路径的通量权重（每次交互更新光的贡献）
     State state;                   // 保存当前光线状态（碰撞信息、深度等）
     LightSampleRec lightSample;          // 光源采样记录
@@ -200,7 +203,7 @@ vec4 PathTrace(Ray r)
     
     int maxDepth = 10;
     int RRMaxDepth = 5;
-    
+        
     // 路径追踪循环
     for(state.depth = 0; state.depth < maxDepth; state.depth++)
     {
@@ -211,6 +214,8 @@ vec4 PathTrace(Ray r)
         {
             // 获取交点物体的材质信息
             GetMaterial(state, r);
+
+            return vec4(state.mat.baseColor, 1.0);
             
             // 计算来自发光物体的辐射
             radiance += state.mat.emission * throughput;
@@ -268,9 +273,10 @@ vec4 PathTrace(Ray r)
                 // 表示发生了表面散射
                 surfaceScatter = true;
 
+                return vec4(DirectLight(r, state, true), 1.0);
                 radiance += DirectLight(r, state, true) * throughput;
-                // radiance += vec3(0.0) * throughput;
-                // radiance = vec3(0.0706, 0.8588, 0.3725);
+
+
                 scatterSample.f = DisneySample(state, -r.direction, state.ffnormal, scatterSample.L, scatterSample.pdf); // 散射方向采样
                 if (scatterSample.pdf > 0.0)
                     throughput *= scatterSample.f / scatterSample.pdf;
@@ -297,7 +303,7 @@ vec4 PathTrace(Ray r)
             // TODO:环境贴图 -- 暂时使用纯色背景代替
 
 
-            vec3 backgroundColor = vec3(0.0941, 0.8078, 0.0667);
+            vec3 backgroundColor = vec3(1.0, 1.0, 1.0);
             radiance += backgroundColor;
             break;
         }
@@ -691,10 +697,25 @@ float rand()
 /********************************/
 void GetMaterial(inout State state, in Ray r)
 {
+    // 获取材质信息
+    // 并通过光线计算光照颜色
+    int index = state.matID * 3;
     Material mat;
 
-    mat.baseColor = vec3(0.7098, 0.0392, 0.5647);
-    mat.emission = vec3(0.0, 0.0, 0.0);
+    vec4 param1 = texelFetch(materialsTex, ivec2(index + 0, 0), 0);
+    vec4 param2 = texelFetch(materialsTex, ivec2(index + 1, 0), 0);
+    vec4 param3 = texelFetch(materialsTex, ivec2(index + 2, 0), 0); 
+
+    // mat.baseColor = param1.rgb;
+    mat.baseColor = vec3(0.0, 0.0, 0.0);
+    ivec4 texIDs_1  = ivec4(param2);
+    ivec4 texIDs_2  = ivec4(param3);
+
+    if(texIDs_1.x >= 0)
+    {
+        vec4 col = texture(textureMapsArrayTex, vec3(state.texCoord, texIDs_1.x));
+        mat.baseColor.rgb = col.rgb;
+    }
 
     state.mat = mat;
 }
@@ -710,6 +731,41 @@ vec3 DirectLight(in Ray r, in State state, bool isSurface)
     vec3 scatterPos = state.fhp + state.normal * EPS;  // 散射位置（略微偏移表面以避免光照计算时的自交）
 
     ScatterSampleRec scatterSample;  // 存储散射样本数据
+
+    // 自定义光源
+    vec3 position = vec3(0, 0, 120);
+    vec3 emission = vec3(100, 100, 100);
+    vec3 u = vec3(0.0, 1.0, 0.0);
+    vec3 v = vec3(1.0, 0.0, 0.0);
+    float radius = 0.0;
+    float area = 25.0;
+    float type = 0;
+    LightSampleRec lightSample;
+    Light light = Light(position, emission, u, v, radius, area, type); 
+    SampleOneLight(light, scatterPos, lightSample);  // 对光源进行采样
+    Li = lightSample.emission;  // 获取光源的辐射强度
+
+    // 检查光源方向是否朝向表面（必要时处理双面发射的矩形光源）
+    if (dot(lightSample.direction, lightSample.normal) < 0.0)  // 如果光源发射方向与表面法线方向相反
+    {
+        Ray shadowRay = Ray(scatterPos, lightSample.direction);  // 从散射点发射阴影射线
+
+        // 如果场景中没有介质，则使用简单的相交测试
+        bool inShadow = AnyHit(shadowRay, lightSample.dist - EPS);  // 检查光源是否被遮挡
+
+        if (!inShadow)
+        {
+            scatterSample.f = DisneyEval(state, -r.direction, state.ffnormal, lightSample.direction, scatterSample.pdf);  // 表面上的散射
+
+            // 计算MIS权重
+            float misWeight = 1.0;
+            if(light.area > 0.0)  // 对于远距离光源，没有使用MIS
+                misWeight = PowerHeuristic(lightSample.pdf, scatterSample.pdf);
+
+            if (scatterSample.pdf > 0.0)
+                Ld += misWeight * Li * scatterSample.f / lightSample.pdf;  // 累加光照贡献
+        }
+    }
 
     // 解析光源（如点光源、方向光源、矩形光源等）
     if(numOfLights > 0)

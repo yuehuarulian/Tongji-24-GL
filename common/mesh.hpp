@@ -81,7 +81,8 @@ class Material
     // 对于无法补齐的部分可以使用 float padding_i 进行补齐(其中i是一个变量)
 public:
     Material()
-        : diffuseTexId(-1.0f),
+        : baseColor(glm::vec3(0.8824, 0.0627, 0.0627)),
+          diffuseTexId(-1.0f),
           specularTexId(-1.0f),
           heightTexId(-1.0f),
           ambientTexId(-1.0f),
@@ -102,7 +103,7 @@ public:
     }
 
     glm::vec3 baseColor; // 基础颜色
-    float anisotropic;
+    float padding_0;
 
     float diffuseTexId;
     float specularTexId;

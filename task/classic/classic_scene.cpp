@@ -22,8 +22,9 @@ namespace GL_TASK
     {
         // 模型文件路径
         std::vector<std::string> modelPaths = {
-            "./source/model/shark.obj",
-            // "./source/model/room/overall.obj"
+            // "./source/model/shark.obj",
+            // "./source/model/room/overall.obj",
+            "./source/model/nanosuit/nanosuit.obj"
         };
         // 先加载所有的模型文件 存储在meshes中
         for (auto path : modelPaths)
@@ -86,6 +87,8 @@ namespace GL_TASK
         shaderObject->setInt("verticesTex", 3);
         shaderObject->setInt("normalsTex", 4);
         shaderObject->setInt("transformsTex", 5);
+        shaderObject->setInt("materialsTex", 6);
+        shaderObject->setInt("textureMapsArrayTex", 7);
         shaderObject->setVec2("resolution", 1080, 720);
         shaderObject->stopUsing();
     }

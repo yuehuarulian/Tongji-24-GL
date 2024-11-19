@@ -113,7 +113,7 @@ void RenderManager::render_frame(int frameNumber)
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     auto camera_pos = camera->get_pos();
-    scene->render(camera->projection, camera->view, camera_pos);
+    scene->render();
 
     if (offscreen)
     {

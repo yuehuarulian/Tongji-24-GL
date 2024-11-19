@@ -1,8 +1,8 @@
 #include <scene.hpp>
 #include <mesh.hpp>
 #include <model.hpp>
+#define STB_IMAGE_RESIZE_IMPLEMENTATION
 #include "stb_image_resize.h"
-#include "stb_image.h"
 
 bool Scene::AddModel(const std::string &modelfilePath, glm::mat4 transformMat)
 {
