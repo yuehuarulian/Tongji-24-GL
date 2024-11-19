@@ -34,7 +34,7 @@ void RenderManager::initialize()
     camera = std::make_shared<Camera>(window, 90 * D2R, glm::vec3(0.0f, -60.0f, 180.0f), glm::pi<float>(), 0.f, 30.0f, 1.0f);
     scene = std::make_unique<GL_TASK::ClassicScene>(shader_manager, light_manager); // TODO
     skybox = std::make_unique<Skybox>(faces, "source/shader/skybox.vs", "source/shader/skybox.fs");
-    fluid_sim.BindMesh(&(scene->models[1]->model.meshes[0]));
+    // fluid_sim.BindMesh(&(scene->models[1]->model.meshes[0]));
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_MULTISAMPLE);
     glEnable(GL_BLEND);
@@ -111,7 +111,7 @@ void RenderManager::start_rendering(bool offscreen)
 
     for (int i = 0; i < frames; ++i)
     {
-        fluid_sim.wait_until_next_frame();
+        // fluid_sim.wait_until_next_frame();
         update_camera();
         render_frame(i);
         glfwPollEvents();
