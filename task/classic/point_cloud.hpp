@@ -16,7 +16,7 @@
 #include <memory>
 #include "shader.hpp"
 
-const float MIN_DENSITY = 0.02f;
+const float MIN_DENSITY = 0.0f;
 const float RANDOM_OFFSET = 0.0f;
 
 class PointCloud
@@ -37,7 +37,7 @@ public:
 private:
     std::shared_ptr<Shader> shader;
     std::vector<glm::vec3> points;
-    glm::mat4 model;
+    glm::mat4 model = glm::mat4(1.0f);
     GLuint VAO, VBO;
 
     void load_vdb_data(const std::string &filename);
