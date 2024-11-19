@@ -13,6 +13,7 @@ unsigned int TextureFromFile(const char *path, const string &directory, bool gam
 
     int width, height, nrComponents;
     unsigned char *data = stbi_load(filename.c_str(), &width, &height, &nrComponents, 0);
+    //std::cout<<filename.c_str()<<std::endl;
     if (data)
     {
         GLenum format;

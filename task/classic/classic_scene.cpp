@@ -50,7 +50,10 @@ namespace GL_TASK
             butterfly_model_matrix = glm::scale(butterfly_model_matrix, glm::vec3(1.f, 1.f, 1.f) * scale_rand);
             butterfly_model_matrix = glm::translate(butterfly_model_matrix, glm::vec3(translate_rand, 0.0f, translate_rand+10.0f));
             //auto butterfly_model_single=butterfly_model;
-            auto butterfly_model_single = std::make_shared<Butterfly>("source/model/butterfly/butterfly-all.dae", b_shader, true);
+            //auto butterfly_model_single = std::make_shared<Butterfly>("source/model/butterfly/butterfly-all.dae", b_shader, true);
+            //auto butterfly_model_single = std::make_shared<Butterfly>("source/model/butterfly/butterfly1119-2.dae", b_shader, true);
+            //auto butterfly_model_single = std::make_shared<Butterfly>("source/model/butterfly/butterfly1119-3.glb", b_shader, true);
+            auto butterfly_model_single = std::make_shared<Butterfly>("source/model/butterfly/ehhh.dae", b_shader, true);
             butterfly_model_single->set_model_matrix(butterfly_model_matrix);
             models.push_back(butterfly_model_single);
         }

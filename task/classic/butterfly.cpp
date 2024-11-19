@@ -23,7 +23,8 @@ void GL_TASK::Butterfly::draw(const glm::mat4 &projection, const glm::mat4 &view
     // for (int i = 0; i < transforms.size(); ++i)
     //     shader->setMat4("finalBonesMatrices[" + std::to_string(i) + "]", transforms[i]);
 
-    std::map<std::string, glm::mat4> keyframeTransforms = animator.m_KeyframeTransforms;
+    //std::map<std::string, glm::mat4> keyframeTransforms = animator.m_KeyframeTransforms;
+    glm::mat4 keyframeTransforms = animator.m_KeyframeTransforms["R"];
     //glm::mat4 current;
 
     // 传递关键帧变换矩阵给顶点着色器
@@ -42,12 +43,16 @@ void GL_TASK::Butterfly::draw(const glm::mat4 &projection, const glm::mat4 &view
     std::cout << "keyframeinshader: " << glm::to_string(current) << std::endl; //*/
 
     shader->use();
-    shader->setMat4("keyframeTransforms", keyframeTransforms["Circle"]);
-    //std::cout << "keyframeinshader: " << glm::to_string(keyframeTransforms["Circle"]) << std::endl;
+    //shader->setMat4("keyframeTransforms", keyframeTransforms["Circle"]);
+    shader->setMat4("keyframeTransforms", keyframeTransforms);
+    //std::cout << "keyframeinshader: " << glm::to_string(keyframeTransforms) << std::endl;
     shader->setMat4("projection", projection);
     shader->setMat4("view", view);
     shader->setMat4("model", model_matrix);
     shader->setVec3("camPos", camera_pos);
+    model.Draw(*shader);
+    keyframeTransforms = animator.m_KeyframeTransforms["L"];
+    shader->setMat4("keyframeTransforms", keyframeTransforms);
 
     model.Draw(*shader);
     // checkOpenGLError("After model draw");
