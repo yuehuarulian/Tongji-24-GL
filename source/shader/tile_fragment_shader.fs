@@ -178,7 +178,7 @@ void main()
     d.y *= resolution.y / resolution.x*scale;
     d.x *= scale;
     vec3 rayDir = normalize(d.x * camera.right + d.y * camera.up + camera.forward);
-    Ray ray = Ray(camera.position, rayDir);
+    Ray ray = Ray(camera.position, rayDir); // 生成光线
     
     vec4 pixelColor = PathTrace(ray);
     FragColor = vec4(pixelColor);
