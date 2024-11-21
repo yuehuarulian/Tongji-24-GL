@@ -28,7 +28,7 @@ namespace GL_TASK
         // room
         auto shader = shader_manager.get_shader("room_shader");
         light_manager.apply_lights(shader);
-        auto room_model = std::make_shared<Room>("source/model/room/overall.obj", shader, true);
+        auto room_model = std::make_shared<Room>("source/model/room1.0/overall.obj", shader, true);
         glm::mat4 room_model_matrix = glm::mat4(1.0f);
         room_model_matrix = glm::rotate(room_model_matrix, glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
         room_model_matrix = glm::rotate(room_model_matrix, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
