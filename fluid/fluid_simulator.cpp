@@ -38,7 +38,7 @@ FluidSimulator::FluidSimulator(bool def) :
 };
 
 FluidSimulator::FluidSimulator(const std::string& config_path) : 
-	_default(false) {
+	_default(false), _cfgfile(config_path) {
 	// ���������ļ�
 	nlohmann::json config;
 	std::ifstream config_file(config_path);

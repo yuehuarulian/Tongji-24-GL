@@ -45,6 +45,7 @@ void FluidConfig::init_cfg() {
 	if ("" == _cfgfile) {
 		_water_level = 0.35;
 		_wave_amplitude = 3;
+		return;
 	}
 	// ���������ļ�
 	nlohmann::json config;
