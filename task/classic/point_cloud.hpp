@@ -16,7 +16,7 @@
 #include <memory>
 #include "shader.hpp"
 
-const float MIN_DENSITY = 0.2f;
+const float MIN_DENSITY = 0.0f;
 const float RANDOM_OFFSET = 0.0f;
 
 struct Particle

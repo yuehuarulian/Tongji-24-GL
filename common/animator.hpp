@@ -11,7 +11,6 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/string_cast.hpp>
 
-
 class Animator
 {
 public:
@@ -19,6 +18,8 @@ public:
     {
         m_CurrentTime = 0.0;
         m_CurrentAnimation = animation;
+        path_y = (float)((rand() % (20 - (-20))) + (-20)) / 10; //-2.0-2.0
+        path_z = (float)((rand() % (50 - (-50))) + (-50)) / 10; //-5.0-5.0
     }
 
     void UpdateAnimation(float dt)
@@ -30,13 +31,13 @@ public:
             m_CurrentTime = fmod(m_CurrentTime, m_CurrentAnimation->GetDuration());
             CalculateNodeTransform(&m_CurrentAnimation->GetRootNode(), glm::mat4(1.0f));
 
-            glm::vec3 pathtranslate(m_CurrentTime / 500, 0.0f, m_CurrentTime / 500);
-            glm::vec4 translation_R = m_KeyframeTransforms["R"][3]; // 获取第四列
-            translation_R += glm::vec4(pathtranslate, 0.0f);        // 直接加上平移向量
-            m_KeyframeTransforms["R"][3] = translation_R;           // 设置回去
-            glm::vec4 translation_L = m_KeyframeTransforms["L"][3]; // 获取第四列
-            translation_L += glm::vec4(pathtranslate, 0.0f);        // 直接加上平移向量
-            m_KeyframeTransforms["L"][3] = translation_L;           // 设置回去
+            glm::vec3 pathtranslate(m_CurrentTime / 500, path_y, m_CurrentTime / 500 * path_z);
+            glm::vec4 translation_R = m_KeyframeTransforms["R"][3];
+            translation_R += glm::vec4(pathtranslate, 0.0f);
+            m_KeyframeTransforms["R"][3] = translation_R;
+            glm::vec4 translation_L = m_KeyframeTransforms["L"][3];
+            translation_L += glm::vec4(pathtranslate, 0.0f);
+            m_KeyframeTransforms["L"][3] = translation_L;
         }
     }
 
@@ -64,10 +65,11 @@ public:
     std::map<std::string, glm::mat4> m_KeyframeTransforms;
 
 private:
-    
     Animation *m_CurrentAnimation;
     float m_CurrentTime;
     float m_DeltaTime;
+    float path_y;
+    float path_z;
 
     glm::vec3 InterpolatePosition(const std::vector<KeyPosition> &positions, float animationTime)
     {
@@ -110,7 +112,7 @@ private:
                 return index;
         }
         return 0;
-        //assert(0);
+        // assert(0);
     }
 
     int GetRotationIndex(const std::vector<KeyRotation> &rotations, float animationTime)
@@ -121,7 +123,7 @@ private:
                 return index;
         }
         return 0;
-        //assert(0);
+        // assert(0);
     }
 
     int GetScaleIndex(const std::vector<KeyScale> &scales, float animationTime)
@@ -132,7 +134,7 @@ private:
                 return index;
         }
         return 0;
-        //assert(0);
+        // assert(0);
     }
 
     float GetScaleFactor(float lastTimeStamp, float nextTimeStamp, float animationTime)
