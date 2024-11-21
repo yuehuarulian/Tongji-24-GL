@@ -23,12 +23,16 @@ namespace GL_TASK
         // 模型文件路径
         std::vector<std::string> modelPaths = {
             // "./source/model/shark.obj",
-            // "./source/model/room/overall.obj",
-            "./source/model/nanosuit/nanosuit.obj"
+            "./source/model/room/overall.obj",
+            // "./source/model/nanosuit/nanosuit.obj"
         };
+        glm::mat4 room_model_matrix = glm::mat4(1.0f);
+        room_model_matrix = glm::rotate(room_model_matrix, glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+        room_model_matrix = glm::rotate(room_model_matrix, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+        room_model_matrix = glm::scale(room_model_matrix, glm::vec3(1.f, 1.f, 1.f) * 1.3f);
         // 先加载所有的模型文件 存储在meshes中
         for (auto path : modelPaths)
-            AddModel(path);
+            AddModel(path, room_model_matrix);
 
         this->createBLAS();  // 建立低层次的BVH加速结构
         this->createTLAS();  // 建立高层次的BVH加速结构

@@ -110,24 +110,35 @@ Mesh *Model::processMesh(aiMesh *mesh, const aiScene *scene)
 
     // 3. 获取材质
     Material m_material = Material();
-    m_material.baseColor = glm::vec3(0.3, 0.2, 0.4);
+    m_material.baseColor = glm::vec3(0.0, 1.0, 0.0);
     aiMaterial *material = scene->mMaterials[mesh->mMaterialIndex];
     {
         // 1. 漫反射纹理
         m_material.diffuseTexId = loadMaterialTextures(material, aiTextureType_DIFFUSE);
         // 2. 镜面反射纹理
-        m_material.specularTexId = loadMaterialTextures(material, aiTextureType_SPECULAR);
+        m_material.specularTexId = loadMaterialTextures(material, aiTextureType_SPECULAR);   
         // 3. 法线贴图
-        m_material.heightTexId = loadMaterialTextures(material, aiTextureType_HEIGHT);
+        m_material.heightTexId = loadMaterialTextures(material, aiTextureType_HEIGHT);     
         // 4. 高度贴图
-        m_material.ambientTexId = loadMaterialTextures(material, aiTextureType_AMBIENT);
+        m_material.ambientTexId = loadMaterialTextures(material, aiTextureType_AMBIENT);    
         // PBR 相关贴图
         // 5. 金属度贴图
-        m_material.metalnessTexId = loadMaterialTextures(material, aiTextureType_METALNESS);
+        m_material.metalnessTexId = loadMaterialTextures(material, aiTextureType_METALNESS);    
         // 6. 粗糙度贴图
-        m_material.diffuse_roughnessTexId = loadMaterialTextures(material, aiTextureType_DIFFUSE_ROUGHNESS);
+        m_material.diffuse_roughnessTexId = loadMaterialTextures(material, aiTextureType_DIFFUSE_ROUGHNESS); 
         // 7. 环境光遮蔽贴图
         m_material.ambient_occlusionTexId = loadMaterialTextures(material, aiTextureType_AMBIENT_OCCLUSION);
+       
+        printf("/******************************/\n");
+        printf("Material Texture ID INFO:\n");
+        printf("diffuseTexId: #%f\n", m_material.diffuseTexId);
+        printf("specularTexId: #%f\n", m_material.specularTexId);
+        printf("heightTexId: #%f\n", m_material.heightTexId);
+        printf("ambientTexId: #%f\n", m_material.ambientTexId);
+        printf("metalnessTexId: #%f\n", m_material.metalnessTexId);
+        printf("diffuse_roughnessTexId: #%f\n", m_material.diffuse_roughnessTexId);
+        printf("ambient_occlusionTexId: #%f\n", m_material.ambient_occlusionTexId);
+        printf("/******************************/\n");
     }
 
     // 使用提取的数据创建并返回 Mesh 对象
@@ -155,7 +166,8 @@ int Model::loadMaterialTextures(aiMaterial *mat, aiTextureType type)
     Texture *texture = new Texture();
     if (texture->LoadTexture(filename))
     {
-        textures_loaded.push_back(texture);
+        id = textures_loaded.size();        // id为对应的索引
+        textures_loaded.push_back(texture); // 将纹理存储起来以便复用
     }
     else
     {

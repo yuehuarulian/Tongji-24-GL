@@ -47,7 +47,7 @@ int main()
     LightManager light_manager;                                         // 光源管理者
     GL_TASK::ClassicScene classic_scene(shader_manager, light_manager); // 场景类 -- Important!! -- 配置场景
 
-    Camera camera(window, 75 * D2R, glm::vec3(0.0f, 0.0f, -750.0f), glm::pi<float>(), 0.f, 30.0f, 1.0f); // 摄像机
+    Camera camera(window, 75 * D2R, glm::vec3(0.0f, 0.0f, -50.0f), glm::pi<float>(), 0.f, 30.0f, 1.0f); // 摄像机
     Skybox skybox(faces, "source/shader/skybox.vs", "source/shader/skybox.fs");                          // 天空盒
     GUIManager gui_manager(window, camera, light_manager);                                               // IMGUI
 
