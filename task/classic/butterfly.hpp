@@ -4,7 +4,7 @@
 #include "shader.hpp"
 #include "renderable_model.hpp"
 #include "animator.hpp"
-#include "animation.h"
+#include "animation.hpp"
 #define GLM_ENABLE_EXPERIMENTAL
 #include "glm/glm.hpp"
 

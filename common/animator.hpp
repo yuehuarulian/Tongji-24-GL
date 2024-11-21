@@ -5,83 +5,13 @@
 #include <vector>
 #include <assimp/scene.h>
 #include <assimp/Importer.hpp>
-#include <animation.h>
-#include <bone.h>
+
+#include "animation.hpp"
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/string_cast.hpp>
 
-/*class Animator
-{
-public:
-    Animator(Animation *animation)
-    {
-        m_CurrentTime = 0.0;
-        m_CurrentAnimation = animation;
 
-        m_FinalBoneMatrices.reserve(100);
-
-        for (int i = 0; i < 100; i++)
-            m_FinalBoneMatrices.push_back(glm::mat4(1.0f));
-    }
-
-    void UpdateAnimation(float dt)
-    {
-        m_DeltaTime = dt;
-        if (m_CurrentAnimation)
-        {
-            m_CurrentTime += m_CurrentAnimation->GetTicksPerSecond() * dt;
-            m_CurrentTime = fmod(m_CurrentTime, m_CurrentAnimation->GetDuration());
-            CalculateBoneTransform(&m_CurrentAnimation->GetRootNode(), glm::mat4(1.0f));
-        }
-    }
-
-    void PlayAnimation(Animation *pAnimation)
-    {
-        m_CurrentAnimation = pAnimation;
-        m_CurrentTime = 0.0f;
-    }
-
-    void CalculateBoneTransform(const AssimpNodeData *node, glm::mat4 parentTransform)
-    {
-        std::string nodeName = node->name;
-        glm::mat4 nodeTransform = node->transformation;
-
-        Bone *Bone = m_CurrentAnimation->FindBone(nodeName);
-
-        if (Bone)
-        {
-            Bone->Update(m_CurrentTime);
-            nodeTransform = Bone->GetLocalTransform();
-        }
-
-        glm::mat4 globalTransformation = parentTransform * nodeTransform;
-
-        auto boneInfoMap = m_CurrentAnimation->GetBoneIDMap();
-        if (boneInfoMap.find(nodeName) != boneInfoMap.end())
-        {
-            int index = boneInfoMap[nodeName].id;
-        //std::cout << "index" << index << std::endl;
-            glm::mat4 offset = boneInfoMap[nodeName].offset;
-        //std::cout << "offset" << glm::to_string(offset) << std::endl;
-            m_FinalBoneMatrices[index] = globalTransformation * offset;
-        }
-
-        for (int i = 0; i < node->childrenCount; i++)
-            CalculateBoneTransform(&node->children[i], globalTransformation);
-    }
-
-    std::vector<glm::mat4> GetFinalBoneMatrices()
-    {
-        return m_FinalBoneMatrices;
-    }
-
-private:
-    std::vector<glm::mat4> m_FinalBoneMatrices;
-    Animation *m_CurrentAnimation;
-    float m_CurrentTime;
-    float m_DeltaTime;
-};*/
 class Animator
 {
 public:
@@ -89,11 +19,6 @@ public:
     {
         m_CurrentTime = 0.0;
         m_CurrentAnimation = animation;
-
-        m_FinalBoneMatrices.reserve(100);
-
-        for (int i = 0; i < 100; i++)
-            m_FinalBoneMatrices.push_back(glm::mat4(1.0f));
     }
 
     void UpdateAnimation(float dt)
@@ -102,38 +27,17 @@ public:
         if (m_CurrentAnimation)
         {
             m_CurrentTime += m_CurrentAnimation->GetTicksPerSecond() * dt;
-
             m_CurrentTime = fmod(m_CurrentTime, m_CurrentAnimation->GetDuration());
-            // std::cout<<m_CurrentTime<<std::endl;
-            //  std::cout<<m_CurrentAnimation->GetDuration()<<std::endl;
             CalculateNodeTransform(&m_CurrentAnimation->GetRootNode(), glm::mat4(1.0f));
-            // glm::vec3 pathtranslate((2.0f + 1.0f * cos(m_CurrentTime * 2.0 * M_PI)) * cos(2.0f + 1.0f * cos(m_CurrentTime * 2.0 * M_PI)),
-            //                         (2.0f + 1.0f * cos(2.0f + 1.0f * cos(m_CurrentTime * 2.0 * M_PI))) * sin(2.0f + 1.0f * cos(m_CurrentTime * 2.0 * M_PI)),
-            //                         1.0 * sin(2.0f + 1.0f * cos(m_CurrentTime * 2.0 * M_PI)));
-            // glm::vec3 pathtranslate(m_CurrentTime,m_CurrentTime,m_CurrentTime);
 
             glm::vec3 pathtranslate(m_CurrentTime / 500, 0.0f, m_CurrentTime / 500);
-            //std::cout << "translate: " << glm::to_string(pathtranslate) << std::endl;
-            //std::cout << "keyframeinanimator: " << glm::to_string(m_KeyframeTransforms["R"]) << std::endl;
-            //m_KeyframeTransforms["R"] = glm::translate(m_KeyframeTransforms["R"], pathtranslate);
-            // m_KeyframeTransforms["L"] = glm::translate(m_KeyframeTransforms["L"], pathtranslate);
-            
-
             glm::vec4 translation_R = m_KeyframeTransforms["R"][3]; // 获取第四列
             translation_R += glm::vec4(pathtranslate, 0.0f);        // 直接加上平移向量
             m_KeyframeTransforms["R"][3] = translation_R;           // 设置回去
-
             glm::vec4 translation_L = m_KeyframeTransforms["L"][3]; // 获取第四列
             translation_L += glm::vec4(pathtranslate, 0.0f);        // 直接加上平移向量
             m_KeyframeTransforms["L"][3] = translation_L;           // 设置回去
-            //std::cout << "keyframeinanimator: " << glm::to_string(m_KeyframeTransforms["L"]) << std::endl;
         }
-    }
-
-    void PlayAnimation(Animation *pAnimation)
-    {
-        m_CurrentAnimation = pAnimation;
-        m_CurrentTime = 0.0f;
     }
 
     void CalculateNodeTransform(const AssimpNodeData *node, glm::mat4 parentTransform)
@@ -152,26 +56,15 @@ public:
         }
 
         glm::mat4 globalTransformation = parentTransform * nodeTransform;
-        // std::cout << nodeName<<"&keyframeinprocess: " << glm::to_string(globalTransformation) << std::endl; //
         m_KeyframeTransforms[nodeName] = globalTransformation;
-
-        // m_CurrentAnimation->m_Keyframes[nodeName] = globalTransformation;
-
-        // std::cout<<node->childrenCount<<std::endl;//
-
         for (int i = 0; i < node->childrenCount; i++)
             CalculateNodeTransform(&node->children[i], globalTransformation);
     }
 
-    std::vector<glm::mat4> GetFinalBoneMatrices()
-    {
-        return m_FinalBoneMatrices;
-    }
     std::map<std::string, glm::mat4> m_KeyframeTransforms;
 
 private:
-    std::vector<glm::mat4> m_FinalBoneMatrices;
-
+    
     Animation *m_CurrentAnimation;
     float m_CurrentTime;
     float m_DeltaTime;
@@ -216,7 +109,8 @@ private:
             if (animationTime < positions[index + 1].timeStamp)
                 return index;
         }
-        assert(0);
+        return 0;
+        //assert(0);
     }
 
     int GetRotationIndex(const std::vector<KeyRotation> &rotations, float animationTime)
@@ -226,7 +120,8 @@ private:
             if (animationTime < rotations[index + 1].timeStamp)
                 return index;
         }
-        assert(0);
+        return 0;
+        //assert(0);
     }
 
     int GetScaleIndex(const std::vector<KeyScale> &scales, float animationTime)
@@ -236,7 +131,8 @@ private:
             if (animationTime < scales[index + 1].timeStamp)
                 return index;
         }
-        assert(0);
+        return 0;
+        //assert(0);
     }
 
     float GetScaleFactor(float lastTimeStamp, float nextTimeStamp, float animationTime)
