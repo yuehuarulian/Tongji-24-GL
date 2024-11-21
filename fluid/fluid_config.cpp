@@ -42,8 +42,25 @@ void FluidConfig::update(double t) {}
 
 //=========================================================================================================
 void FluidConfig::init_cfg() {
-	if ("" == _cfgfile) "continue";
-	_base_height = 0.35;
+	if ("" == _cfgfile) {
+		_water_level = 0.35;
+		_wave_amplitude = 3;
+		return;
+	}
+	// 加载配置文件
+	nlohmann::json config;
+	std::ifstream config_file(_cfgfile);
+	if (!config_file.is_open()) {
+		throw std::runtime_error("Failed to open configuration file: " + _cfgfile);
+	}
+	config_file >> config;
+	std::cout << "Init fluid configer by cfg_file: " << _cfgfile << std::endl;
+
+	// 从配置文件读取参数
+	_water_level = config.value("water_level", 0.35);
+	_wave_amplitude = config.value("wave_amplitude", 3);
+	
+	// 初始化波纹
 	initialize_waves();
 }
 
@@ -81,7 +98,7 @@ void FluidConfig::fill_basin() {
 	_sim.seed_area(grid_offset, vec3d(grid_size),
 		[&](vec3d pos) {
 			return
-				pos.x <= grid_offset.x + double(grid_size.x) * _base_height + 2 * _scale * simulate_pond_wave(pos.y, pos.z, 0.0) &&
+				pos.x <= grid_offset.x + double(grid_size.x) * _water_level + _wave_amplitude * _scale * simulate_pond_wave(pos.y, pos.z, 0.0) &&
 				_basin(pos);
 		},
 		vec3d(0.0, 0.0, 0.0)
@@ -98,7 +115,7 @@ void FluidConfig::set_sources() {
 
 	auto src1 = std::make_unique<fluid::source>();
 	auto src2 = std::make_unique<fluid::source>();
-	for (std::size_t x = 1; x < grid_size.x * _base_height / 2; ++x) {
+	for (std::size_t x = 1; x < grid_size.x * _water_level / 2; ++x) {
 		for (std::size_t y = grid_size.y / 2 - 5; y < grid_size.y / 2 + 5; ++y) {
 			for (std::size_t dz = grid_size.z / 4; dz < grid_size.z / 2; ++dz) {
 				std::size_t bz = grid_size.z / 2;

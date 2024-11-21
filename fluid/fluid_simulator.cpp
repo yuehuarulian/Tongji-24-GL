@@ -14,7 +14,7 @@ FluidSimulator::FluidSimulator(bool def) :
 	_default(def),
 	_cfgfile(""),
 	_scale(0.1), // ģ�����Ź�ģ
-	roomModel("source/model/room/overall.obj", _scale, vec3d(0.0, 0.0, 0.0)), // ���뷿��ģ��
+	roomModel("../assets/overall.obj", _scale, vec3d(0.0, 0.0, 0.0)), // ���뷿��ģ��
 	roomObstacle(roomModel.get_mesh(), sim_cell_size, sim_grid_offset, sim_grid_size), //������ˢ������
 	sim_grid_offset(roomModel.get_offset() - vec3d(1.0, 1.0, 1.0)),  // ����ƫ����
 	sim_grid_size(roomModel.get_size() + vec3d(2.0, 2.0, 2.0)),  // �����С
@@ -38,7 +38,7 @@ FluidSimulator::FluidSimulator(bool def) :
 };
 
 FluidSimulator::FluidSimulator(const std::string& config_path) : 
-	_default(false) {
+	_default(false), _cfgfile(config_path) {
 	// ���������ļ�
 	nlohmann::json config;
 	std::ifstream config_file(config_path);
@@ -241,8 +241,8 @@ void FluidSimulator::mesher_thread() {
 			if (!updateBoundMesh()) {
 				MeshFinSignal = true;
 			}
-			std::ofstream fout("fluid_mesh.obj");
-			sim_mesh.save_obj(fout);  // ��������Ϊ .obj �ļ�
+			//std::ofstream fout("fluid_mesh.obj");
+			//sim_mesh.save_obj(fout);  // ��������Ϊ .obj �ļ�
 		}
 	}
 }

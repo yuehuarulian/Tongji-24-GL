@@ -1,5 +1,5 @@
 {
-  "model_path": "source/model/room/overall.obj",
+  "model_path": "../assets/overall.obj",
   "scale": 0.1,
   "model_offset": [ 0.0, 0.0, 0.0 ],
   "sim_cell_size": 1.0,
@@ -7,5 +7,8 @@
   "sim_method": "apic",
   "sim_blending_factor": 1.0,
   "sim_dt": 0.0166667,
-  "sim_time": 0.0
+  "sim_time": 0.0,
+
+  "water_level": 0.35,
+  "wave_amplitude": 5
 }
