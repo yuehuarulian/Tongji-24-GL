@@ -4,7 +4,7 @@
 
 namespace GL_TASK
 {
-    FluidScene::FluidScene(ShaderManager &shader_manager, LightManager &light_manager, float pre) : Scene(shader_manager, light_manager), precision(pre)
+    FluidScene::FluidScene(ShaderManager &shader_manager, LightManager &light_manager) : Scene(shader_manager, light_manager)
     {
         setup_scene();
     }
@@ -40,7 +40,7 @@ namespace GL_TASK
         // Liquid model
         auto liquid_shader = shader_manager.get_shader("liquid_shader");
         light_manager.apply_lights(liquid_shader);
-        glm::mat4 liquid_model_matrix = glm::scale(room_model_matrix, glm::vec3(1.f, 1.f, 1.f) * (1.f / precision)); // Adjust scale
+        glm::mat4 liquid_model_matrix = glm::scale(room_model_matrix, glm::vec3(1.f, 1.f, 1.f) * (1.f / 0.2f)); // Adjust scale
         auto liquid_model = std::make_shared<Room>("source/model/fluid/mesh.obj", liquid_shader, true);
         liquid_model->set_model_matrix(liquid_model_matrix);
         models.push_back(liquid_model);

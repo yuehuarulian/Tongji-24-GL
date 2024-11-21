@@ -11,12 +11,12 @@
 #include "fluid/pressure_solver.h"
 
 namespace fluid {
-	//¼ÆËãÁ£×ÓÔÚÍø¸ñÖÐµÄË÷Òý
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ðµï¿½ï¿½ï¿½ï¿½ï¿½
 	vec3s simulation::particle::compute_cell_index(vec3d grid_offset, double cell_size) const {
 		return vec3s((position - grid_offset) / cell_size);
 	}
 
-	//¼ÆËãÁ£×ÓµÄÍø¸ñË÷ÒýºÍÏà¶ÔÎ»ÖÃ
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Óµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î»ï¿½ï¿½
 	std::pair<vec3s, vec3d> simulation::particle::compute_cell_index_and_position(
 		vec3d grid_offset, double cell_size
 	) const {
@@ -25,14 +25,14 @@ namespace fluid {
 		return { cell_index, float_index - vec3d(cell_index) };
 	}
 
-	//µ÷ÕûÄ£ÄâÍø¸ñ´óÐ¡
+	//ï¿½ï¿½ï¿½ï¿½Ä£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð¡
 	void simulation::resize(vec3s sz) {
 		_grid = mac_grid(sz);
 		//std::cout << "sz: (" << sz.x << " " << sz.y << " " << sz.z << ")" << std::endl;
 		_space_hash = grid3<_cell_particles>(sz);
 	}
 
-	//Ä£ÄâµÄ¸üÐÂº¯Êý£¬°´Ê±¼ä²½³¤dtÇ°½ø
+	//Ä£ï¿½ï¿½Ä¸ï¿½ï¿½Âºï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ä²½ï¿½ï¿½dtÇ°ï¿½ï¿½
 	void simulation::update(double dt) {
 		while (true) {
 			double ts = cfl_number * cfl();
@@ -45,7 +45,7 @@ namespace fluid {
 		}
 	}
 
-	//Ä£ÄâÒ»¸öµ¥Ò»µÄÊ±¼ä²½£¬´¦ÀíÁ£×Ó¸üÐÂ¡¢Åö×²¼ì²â¡¢ÖØÁ¦¡¢Ñ¹Á¦µÈ
+	//Ä£ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½Ê±ï¿½ä²½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ó¸ï¿½ï¿½Â¡ï¿½ï¿½ï¿½×²ï¿½ï¿½â¡¢ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ñ¹ï¿½ï¿½ï¿½ï¿½
 	void simulation::time_step(double dt) {
 		if (pre_time_step_callback) {
 			pre_time_step_callback(dt);
@@ -142,13 +142,13 @@ namespace fluid {
 		time_step(std::min(cfl_number * cfl(), 0.033));
 	}
 
-	//ÖØÖÃÓÃÓÚ´æ´¢Á£×ÓË÷ÒýµÄ¿Õ¼ä¹þÏ£±í
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ú´æ´¢ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¿Õ¼ï¿½ï¿½Ï£ï¿½ï¿½
 	void simulation::reset_space_hash() {
 		_space_hash.fill(_cell_particles());
 		_fluid_cells.clear();
 	}
 
-	//ÅÐ¶ÏÁ£×ÓµÄÎ»ÖÃÊÇ·ñÔÚ¸ø¶¨µÄµ¥ÔªÄÚ
+	//ï¿½Ð¶ï¿½ï¿½ï¿½ï¿½Óµï¿½Î»ï¿½ï¿½ï¿½Ç·ï¿½ï¿½Ú¸ï¿½ï¿½ï¿½ï¿½Äµï¿½Ôªï¿½ï¿½
 	bool simulation::particle_is_in_cell(vec3s cell, vec3d position) {
 		std::uniform_real_distribution<double> dist(0.0, cell_size);
 		vec3d offset = grid_offset + vec3d(cell) * cell_size;
@@ -159,7 +159,7 @@ namespace fluid {
 		return false;
 	}
 
-	//ÔÚ¸ø¶¨µÄµ¥ÔªÄÚÉú³ÉÁ£×Ó£¬²¢½«ÆäÌí¼Óµ½Á£×ÓÁÐ±í
+	//ï¿½Ú¸ï¿½ï¿½ï¿½ï¿½Äµï¿½Ôªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ó£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Óµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð±ï¿½
 	void simulation::seed_cell(vec3s cell, vec3d velocity, std::size_t dens) {
 		std::size_t
 			index = grid().grid().index_to_raw(cell),
@@ -177,7 +177,7 @@ namespace fluid {
 		_space_hash(cell).count = target;
 	}
 
-	//ÔÚÁ¢·½ÌåÇøÓòÄÚÉú³ÉÁ£×Ó
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	void simulation::seed_box(vec3d start, vec3d size, vec3d vel, std::size_t dens) {
 		vec3d end = start + size;
 		vec3s
@@ -194,7 +194,7 @@ namespace fluid {
 				);
 	}
 
-	//ÔÚÇòÌåÇøÓòÄÚÉú³ÉÁ£×Ó
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	void simulation::seed_sphere(vec3d center, double radius, vec3d vel, std::size_t dens) {
 		vec3s
 			start_cell = world_position_to_cell_index_unclamped(center - vec3d(radius, radius, radius)),
@@ -209,7 +209,7 @@ namespace fluid {
 				);
 	}
 
-	//½«ÊÀ½ç×ø±ê×ª»»ÎªÍø¸ñË÷Òý£¨´ø±ß½ç£©¡£
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½×ªï¿½ï¿½Îªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ß½ç£©ï¿½ï¿½
 	vec3s simulation::world_position_to_cell_index(vec3d pos) const {
 		return vec_ops::apply<vec3s>(
 			static_cast<const std::size_t & (*)(const std::size_t&, const std::size_t&)>(std::min),
@@ -217,7 +217,7 @@ namespace fluid {
 		);
 	}
 
-	//½«ÊÀ½ç×ø±ê×ª»»ÎªÍø¸ñË÷Òý£¨²»´ø±ß½ç£©¡£
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½×ªï¿½ï¿½Îªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ß½ç£©ï¿½ï¿½
 	vec3s simulation::world_position_to_cell_index_unclamped(vec3d pos) const {
 		return vec_ops::apply<vec3s>(
 			[](double v) {
@@ -227,7 +227,7 @@ namespace fluid {
 				);
 	}
 
-	//¼ÆËãµ±Ç°Á÷ÌåÏµÍ³µÄ CFL Ìõ¼þ¡£
+	//ï¿½ï¿½ï¿½ãµ±Ç°ï¿½ï¿½ï¿½ï¿½ÏµÍ³ï¿½ï¿½ CFL ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	double simulation::cfl() const {
 		double maxlen = 0.0;
 		for (const particle &p : particles()) {
@@ -236,7 +236,7 @@ namespace fluid {
 		return cell_size / std::sqrt(maxlen);
 	}
 
-	//ÄÚºËº¯Êý£¬¼ÆËãÁ£×ÓÓ°ÏìÈ¨ÖØ¡£
+	//ï¿½ÚºËºï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ó°ï¿½ï¿½È¨ï¿½Ø¡ï¿½
 	double simulation::_kernel(vec3d p) const {
 		// linear kernel
 		return
@@ -245,7 +245,7 @@ namespace fluid {
 			std::max(0.0, 1.0 - std::abs(p.z));
 	}
 
-	//¼ÆËãÄÚºËÌÝ¶È£¬ÓÃÓÚÁ÷Ìå¶¯Á¦Ñ§¼ÆËã¡£
+	//ï¿½ï¿½ï¿½ï¿½ï¿½Úºï¿½ï¿½Ý¶È£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½å¶¯ï¿½ï¿½Ñ§ï¿½ï¿½ï¿½ã¡£
 	vec3d simulation::_grad_kernel(vec3d p) const {
 		vec3d neg_sign = vec_ops::apply<vec3d>(
 			[](double d) {
@@ -257,7 +257,7 @@ namespace fluid {
 		return vec3d(neg_sign.x * n.y * n.z, n.x * neg_sign.y * n.z, n.x * n.y * neg_sign.z) / cell_size;
 	}
 
-	//¸üÐÂÁ£×ÓÎ»ÖÃ£¬Ä£ÄâÁ÷ÌåµÄ¶ÔÁ÷¡£
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î»ï¿½Ã£ï¿½Ä£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¶ï¿½ï¿½ï¿½ï¿½ï¿½
 	void simulation::_advect_particles(double dt) {
 		for (auto &src : sources) {
 			if (src->active && src->coerce_velocity) {
@@ -283,7 +283,7 @@ namespace fluid {
 		}
 	}
 
-	//¸üÐÂÁ£×ÓÔÚÍø¸ñÖÐµÄÎ»ÖÃ²¢Éú³É¹þÏ£±í¡£
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ðµï¿½Î»ï¿½Ã²ï¿½ï¿½ï¿½ï¿½É¹ï¿½Ï£ï¿½ï¿½ï¿½ï¿½
 	void simulation::update_and_hash_particles() {
 		for (particle &p : _particles) {
 			vec3d grid_pos = (p.position - grid_offset) / cell_size;
@@ -299,7 +299,7 @@ namespace fluid {
 		hash_particles();
 	}
 
-	//¸ù¾ÝÁ£×ÓËùÔÚµ¥Ôª½øÐÐÅÅÐò²¢Éú³É¹þÏ£±í¡£
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Úµï¿½Ôªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½É¹ï¿½Ï£ï¿½ï¿½ï¿½ï¿½
 	void simulation::hash_particles() {
 		reset_space_hash();
 
@@ -327,7 +327,7 @@ namespace fluid {
 		}
 	}
 
-	//½«Á£×ÓËÙ¶È´«µÝµ½Íø¸ñ£¨Ê¹ÓÃPIC·½·¨£©¡£
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ù¶È´ï¿½ï¿½Ýµï¿½ï¿½ï¿½ï¿½ï¿½Ê¹ï¿½ï¿½PICï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	void simulation::_transfer_to_grid_pic() {
 		double half_cell = 0.5 * cell_size;
 		double zpos = grid_offset.z + half_cell;
@@ -375,14 +375,14 @@ namespace fluid {
 		}
 	}
 
-	//½«Á£×ÓËÙ¶È´«µÝµ½Íø¸ñ£¨Ê¹ÓÃFLIP·½·¨£©¡£
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ù¶È´ï¿½ï¿½Ýµï¿½ï¿½ï¿½ï¿½ï¿½Ê¹ï¿½ï¿½FLIPï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	void simulation::_transfer_to_grid_flip() {
 		_transfer_to_grid_pic();
 		_old_grid = _grid;
 		_remove_boundary_velocities(_old_grid);
 	}
 
-	//½«Á£×ÓËÙ¶È´«µÝµ½Íø¸ñ£¨Ê¹ÓÃAPIC·½·¨£©¡£
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ù¶È´ï¿½ï¿½Ýµï¿½ï¿½ï¿½ï¿½ï¿½Ê¹ï¿½ï¿½APICï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	void simulation::_transfer_to_grid_apic() {
 		double half_cell = 0.5 * cell_size;
 		double zpos = grid_offset.z + half_cell;
@@ -437,7 +437,7 @@ namespace fluid {
 		_remove_boundary_velocities(_grid);
 	}
 
-	//¸ù¾ÝÑ¡ÔñµÄÄ£Äâ·½·¨£¨PIC¡¢FLIP¡¢APIC£©½«ËÙ¶È´«µÝµ½Íø¸ñ¡£
+	//ï¿½ï¿½ï¿½ï¿½Ñ¡ï¿½ï¿½ï¿½Ä£ï¿½â·½ï¿½ï¿½ï¿½ï¿½PICï¿½ï¿½FLIPï¿½ï¿½APICï¿½ï¿½ï¿½ï¿½ï¿½Ù¶È´ï¿½ï¿½Ýµï¿½ï¿½ï¿½ï¿½ï¿½
 	void simulation::_transfer_to_grid() {
 		switch (simulation_method) {
 		case method::pic:
@@ -452,7 +452,7 @@ namespace fluid {
 		}
 	}
 
-	//»ñÈ¡µ¥Ôª¸º·½ÏòµÄÃæËÙ¶È¡£
+	//ï¿½ï¿½È¡ï¿½ï¿½Ôªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ù¶È¡ï¿½
 	vec3d simulation::_get_negative_face_velocities(const mac_grid &grid, vec3s id) {
 		vec3d neg_vel;
 		if (id.x > 0) {
@@ -467,7 +467,7 @@ namespace fluid {
 		return neg_vel;
 	}
 
-	//ÒÆ³ý±ß½çµ¥ÔªµÄËÙ¶È£¬ÒÔÈ·±£±ß½çÌõ¼þ¡£
+	//ï¿½Æ³ï¿½ï¿½ß½çµ¥Ôªï¿½ï¿½ï¿½Ù¶È£ï¿½ï¿½ï¿½È·ï¿½ï¿½ï¿½ß½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	void simulation::_remove_boundary_velocities(mac_grid &g) {
 		vec3s max_pos = g.grid().get_size() - vec3s(1, 1, 1);
 		if (g.grid().get_array_size(g.grid().get_size()) > 0) {
@@ -487,7 +487,7 @@ namespace fluid {
 		}
 	}
 
-	//´ÓÍø¸ñÖÐÈ¡ÑùËÙ¶È²¢¸üÐÂÁ£×Ó£¨Ê¹ÓÃPIC·½·¨£©¡£
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È¡ï¿½ï¿½ï¿½Ù¶È²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ó£ï¿½Ê¹ï¿½ï¿½PICï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	void simulation::_transfer_from_grid_pic() {
 		for (particle &p : _particles) {
 			auto [grid_index, t] = p.compute_cell_index_and_position(grid_offset, cell_size);
@@ -504,7 +504,7 @@ namespace fluid {
 		}
 	}
 
-	//´ÓÍø¸ñÖÐÈ¡ÑùËÙ¶È²¢¸üÐÂÁ£×Ó£¨Ê¹ÓÃFLIP·½·¨£©¡£	
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È¡ï¿½ï¿½ï¿½Ù¶È²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ó£ï¿½Ê¹ï¿½ï¿½FLIPï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	
 	void simulation::_transfer_from_grid_flip(double blend) {
 		for (particle &p : _particles) {
 			auto [grid_index, t] = p.compute_cell_index_and_position(grid_offset, cell_size);
@@ -565,7 +565,7 @@ namespace fluid {
 			_grad_kernel(vec3d(tx - 1.0, ty - 1.0, tz - 1.0)) * v111;
 	}
 
-	//´ÓÍø¸ñÖÐÈ¡ÑùËÙ¶È²¢¸üÐÂÁ£×Ó£¨Ê¹ÓÃAPIC·½·¨£©¡£
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È¡ï¿½ï¿½ï¿½Ù¶È²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ó£ï¿½Ê¹ï¿½ï¿½APICï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	void simulation::_transfer_from_grid_apic() {
 		for (particle &p : _particles) {
 			auto [grid_index, t] = p.compute_cell_index_and_position(grid_offset, cell_size);
@@ -591,7 +591,7 @@ namespace fluid {
 		}
 	}
 
-	//¸ù¾ÝÑ¡ÔñµÄÄ£Äâ·½·¨£¨PIC¡¢FLIP¡¢APIC£©´ÓÍø¸ñÖÐÈ¡ÑùËÙ¶È²¢¸üÐÂÁ£×Ó
+	//ï¿½ï¿½ï¿½ï¿½Ñ¡ï¿½ï¿½ï¿½Ä£ï¿½â·½ï¿½ï¿½ï¿½ï¿½PICï¿½ï¿½FLIPï¿½ï¿½APICï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È¡ï¿½ï¿½ï¿½Ù¶È²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	void simulation::_transfer_from_grid() {
 		switch (simulation_method) {
 		case method::pic:
@@ -606,7 +606,7 @@ namespace fluid {
 		}
 	}
 
-	//Ð£ÕýÁ£×ÓÎ»ÖÃ£¬ÒÔ·ÀÖ¹Á£×ÓÖØµþ¡£
+	//Ð£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î»ï¿½Ã£ï¿½ï¿½Ô·ï¿½Ö¹ï¿½ï¿½ï¿½ï¿½ï¿½Øµï¿½ï¿½ï¿½
 	void simulation::_correct_positions(double dt) {
 		// "Preserving Fluid Sheets with Adaptively Sampled Anisotropic Particles"
 		// https://github.com/ryichando/shiokaze/blob/53997a4dcaee9ae8c55dcdbd9077f95f1f6c052a/src/flip/macnbflip3.cpp#L377
@@ -657,7 +657,7 @@ namespace fluid {
 		}
 	}
 
-	//¼ì²â²¢´¦ÀíÁ£×ÓÓë¹ÌÌå±ß½çµÄÅö×²¡£
+	//ï¿½ï¿½â²¢ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ß½ï¿½ï¿½ï¿½ï¿½×²ï¿½ï¿½
 	void simulation::_detect_collisions() {
 		int nparticles = static_cast<int>(_particles.size());
 #pragma omp parallel for
@@ -731,7 +731,7 @@ namespace fluid {
 		}
 	}
 
-	// ÔÚÁ÷ÌåÇøÓòÖÜÎ§À©Õ¹ËÙ¶È£¬ÒÔÌî³ä¿Õ°×ÇøÓò¡£
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î§ï¿½ï¿½Õ¹ï¿½Ù¶È£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Õ°ï¿½ï¿½ï¿½ï¿½ï¿½
 	void simulation::_extrapolate_velocities(const std::vector<vec3s> &fluid_cells) {
 		grid3<unsigned char> valid(grid().grid().get_size(), 0);
 		for (vec3s cell : fluid_cells) {
@@ -803,7 +803,7 @@ namespace fluid {
 		}
 	}
 
-	//¸üÐÂÁ÷ÌåÔ´£¬½«ÐÂµÄÁ÷ÌåÁ£×Ó¼ÓÈëÄ£Äâ¡£
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô´ï¿½ï¿½ï¿½ï¿½ï¿½Âµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ó¼ï¿½ï¿½ï¿½Ä£ï¿½â¡£
 	void simulation::_update_sources() {
 		for (auto &src : sources) {
 			if (!src->active || !src->seed) {
@@ -814,7 +814,7 @@ namespace fluid {
 			}
 		}
 	}
-	//¸üÐÂÁ÷Ìå¾®£¬É¾³ý¶ÔÓ¦ÇøÓòµÄÁ÷ÌåÁ£×Ó
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½å¾®ï¿½ï¿½É¾ï¿½ï¿½ï¿½ï¿½Ó¦ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	void simulation::_update_drains() {
 		for (auto& dra : drains) {
 			if (!dra->active) {
@@ -830,7 +830,7 @@ namespace fluid {
 		}
 	}
 
-	//¸üÐÂÁ£×ÓÑ¹Á¦
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ñ¹ï¿½ï¿½
 	bool is_inside(const vec3s& index, const vec3s& grid_size) {
 		return index.x >= 0 && index.x < grid_size.x &&
 			index.y >= 0 && index.y < grid_size.y &&
@@ -838,10 +838,10 @@ namespace fluid {
 	}
 	void simulation::_update_particle_pressures(std::vector<double> _pressure) {
 		for (particle& p : _particles) {
-			// »ñÈ¡Á£×ÓËùÔÚµÄÍø¸ñµ¥Ôª¼°Ïà¶ÔÎ»ÖÃ
+			// ï¿½ï¿½È¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Úµï¿½ï¿½ï¿½ï¿½ï¿½Ôªï¿½ï¿½ï¿½ï¿½ï¿½Î»ï¿½ï¿½
 			auto [grid_index, rel_pos] = p.compute_cell_index_and_position(grid_offset, cell_size);
 
-			// È¡³öÖÜÎ§µÄÍø¸ñµ¥ÔªÑ¹Á¦Öµ
+			// È¡ï¿½ï¿½ï¿½ï¿½Î§ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÔªÑ¹ï¿½ï¿½Öµ
 			double pressures[8];
 			vec3s neighbor_offsets[8] = {
 				{0, 0, 0}, {1, 0, 0}, {0, 1, 0}, {1, 1, 0},
@@ -852,7 +852,7 @@ namespace fluid {
 				vec3s neighbor_index = grid_index + neighbor_offsets[i];
 				if (is_inside(neighbor_index, grid().grid().get_size())) {
 					std::size_t neighbor_flat = grid().grid().index_to_raw(neighbor_index);
-					// ¼ì²é _pressure Êý×éÊÇ·ñÔ½½ç
+					// ï¿½ï¿½ï¿½ _pressure ï¿½ï¿½ï¿½ï¿½ï¿½Ç·ï¿½Ô½ï¿½ï¿½
 					if (neighbor_flat < _pressure.size()) {
 						pressures[i] = _pressure[neighbor_flat];
 					}
@@ -863,11 +863,11 @@ namespace fluid {
 					}
 				}
 				else {
-					pressures[i] = 0.0; // ±ß½çÍâÑ¹Á¦Ä¬ÈÏÎª0
+					pressures[i] = 0.0; // ï¿½ß½ï¿½ï¿½ï¿½Ñ¹ï¿½ï¿½Ä¬ï¿½ï¿½Îª0
 				}
 			}
 
-			// Ê¹ÓÃÈýÏßÐÔ²åÖµ¼ÆËãÁ£×ÓÑ¹Á¦
+			// Ê¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô²ï¿½Öµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ñ¹ï¿½ï¿½
 			p.pressure = trilerp(
 				pressures[0], pressures[1], pressures[2], pressures[3],
 				pressures[4], pressures[5], pressures[6], pressures[7],

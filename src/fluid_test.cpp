@@ -55,12 +55,11 @@ int main()
     GLFWwindow *window = initialize_glfw_window();
     printOpenGLInfo();
 
-    float precision = 0.2; // 建议0.05-0.5之间，默认精度为0.2
-    fluid::FluidSimulator fluid_sim(precision);
+    fluid::FluidSimulator fluid_sim;
 
     ShaderManager shader_manager;
     LightManager light_manager;
-    GL_TASK::FluidScene fluid_scene(shader_manager, light_manager, precision);
+    GL_TASK::FluidScene fluid_scene(shader_manager, light_manager);
     std::cout << "Mesh num:" << fluid_scene.models[1]->model.meshes.size() << std::endl;
     std::cout << "Mesh address:" << &(fluid_scene.models[1]->model.meshes[0]) << std::endl;
     fluid_sim.BindMesh(&(fluid_scene.models[1]->model.meshes[0])); // 绑定的1号模型的第0个mesh（水是一号）

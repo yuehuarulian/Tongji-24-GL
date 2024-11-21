@@ -2,11 +2,12 @@
 #include "classic_scene.hpp"
 #include "draw_base_model.hpp"
 #include "room.hpp"
+#include "fluid.hpp"
 #include "butterfly.hpp"
 
 namespace GL_TASK
 {
-    ClassicScene::ClassicScene(ShaderManager &shader_manager, LightManager &light_manager, float precision) : Scene(shader_manager, light_manager), precision(precision)
+    ClassicScene::ClassicScene(ShaderManager &shader_manager, LightManager &light_manager) : Scene(shader_manager, light_manager)
     {
         setup_scene();
     }
@@ -40,12 +41,12 @@ namespace GL_TASK
         
         // 调试在线渲染请注释掉水模型，否则会非常卡
         // Liquid model
-        // auto liquid_shader = shader_manager.get_shader("liquid_shader");
-        // light_manager.apply_lights(liquid_shader);
-        // glm::mat4 liquid_model_matrix = glm::scale(room_model_matrix, glm::vec3(1.f, 1.f, 1.f) * (1.f / precision)); // Adjust scale
-        // auto liquid_model = std::make_shared<Room>("source/model/fluid/mesh.obj", liquid_shader, true);
-        // liquid_model->set_model_matrix(liquid_model_matrix);
-        // models.push_back(liquid_model);
+        auto liquid_shader = shader_manager.get_shader("liquid_shader");
+        light_manager.apply_lights(liquid_shader);
+        //glm::mat4 liquid_model_matrix = glm::scale(room_model_matrix, glm::vec3(1.f, 1.f, 1.f) * (1.f / precision)); // Adjust scale
+        auto liquid_model = std::make_shared<Fluid>("source/model/fluid/mesh.obj", liquid_shader, true);
+        liquid_model->set_model_matrix(room_model_matrix);
+        models.push_back(liquid_model);
 
         // butterfly
         /*auto b_shader = shader_manager.get_shader("butterfly_shader");

@@ -29,7 +29,8 @@ namespace fluid {
 
         // 配置文件
         std::string _cfgfile;
-        double _base_height;
+        double _water_level;
+        double _wave_amplitude;
 
         // 波纹参数
         struct Wave {

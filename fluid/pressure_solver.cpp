@@ -370,14 +370,14 @@ namespace fluid {
 	}
 
 	std::vector<double> pressure_solver::get_full_pressure() const {
-		// »ñÈ¡Íø¸ñµÄ´óÐ¡
+		// ï¿½ï¿½È¡ï¿½ï¿½ï¿½ï¿½Ä´ï¿½Ð¡
 		vec3s grid_size = _sim.grid().grid().get_size();
 		std::size_t total_cells = grid_size.x * grid_size.y * grid_size.z;
 
-		// ³õÊ¼»¯Ò»¸ö°üº¬ËùÓÐÍø¸ñµ¥ÔªÑ¹Á¦µÄÏòÁ¿£¬Ä¬ÈÏÖµÎª 0.0
+		// ï¿½ï¿½Ê¼ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÔªÑ¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¬ï¿½ï¿½ÖµÎª 0.0
 		std::vector<double> full_pressure(total_cells, 0.0);
 
-		// Ìî³äÁ÷Ìåµ¥ÔªµÄÑ¹Á¦Öµ
+		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½åµ¥Ôªï¿½ï¿½Ñ¹ï¿½ï¿½Öµ
 		for (std::size_t i = 0; i < _fluid_cells.size(); ++i) {
 			std::size_t flat_index = _sim.grid().grid().index_to_raw(_fluid_cells[i]);
 			full_pressure[flat_index] = _pressure[i];

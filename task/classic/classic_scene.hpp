@@ -13,13 +13,12 @@ namespace GL_TASK
     class ClassicScene : public Scene
     {
     public:
-        ClassicScene(ShaderManager &shader_manager, LightManager &light_manager, float precision = 0.2);
+        ClassicScene(ShaderManager &shader_manager, LightManager &light_manager);
         ~ClassicScene() = default;
 
         void render(const glm::mat4 &projection, const glm::mat4 &view, glm::vec3 &camera_pos) override;
 
     private:
-        float precision;
         std::vector<std::shared_ptr<PointCloud>> point_clouds;
         std::vector<glm::vec3> area_lights_position = {
             glm::vec3(33.90, 107.25, -82.75),   // bulb.001  xyz
