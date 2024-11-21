@@ -1,6 +1,6 @@
-
 #include "fluid_scene.hpp"
 #include "draw_base_model.hpp"
+#include "room.hpp"
 
 namespace GL_TASK
 {

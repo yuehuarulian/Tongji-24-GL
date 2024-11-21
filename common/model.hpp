@@ -11,6 +11,7 @@
 
 #include "mesh.hpp"
 #include "shader.hpp"
+#include "assimp_glm_helpers.hpp"
 
 #include <string>
 #include <fstream>
