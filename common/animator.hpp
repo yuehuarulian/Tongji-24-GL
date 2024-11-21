@@ -104,18 +104,29 @@ public:
             m_CurrentTime += m_CurrentAnimation->GetTicksPerSecond() * dt;
 
             m_CurrentTime = fmod(m_CurrentTime, m_CurrentAnimation->GetDuration());
-            //std::cout<<m_CurrentTime<<std::endl;
-            // std::cout<<m_CurrentAnimation->GetDuration()<<std::endl;
+            // std::cout<<m_CurrentTime<<std::endl;
+            //  std::cout<<m_CurrentAnimation->GetDuration()<<std::endl;
             CalculateNodeTransform(&m_CurrentAnimation->GetRootNode(), glm::mat4(1.0f));
             // glm::vec3 pathtranslate((2.0f + 1.0f * cos(m_CurrentTime * 2.0 * M_PI)) * cos(2.0f + 1.0f * cos(m_CurrentTime * 2.0 * M_PI)),
             //                         (2.0f + 1.0f * cos(2.0f + 1.0f * cos(m_CurrentTime * 2.0 * M_PI))) * sin(2.0f + 1.0f * cos(m_CurrentTime * 2.0 * M_PI)),
             //                         1.0 * sin(2.0f + 1.0f * cos(m_CurrentTime * 2.0 * M_PI)));
-            //glm::vec3 pathtranslate(m_CurrentTime,m_CurrentTime,m_CurrentTime);
+            // glm::vec3 pathtranslate(m_CurrentTime,m_CurrentTime,m_CurrentTime);
 
-            glm::vec3 pathtranslate(m_CurrentTime/50,0.0f,m_CurrentTime/50);
-            //std::cout << "keyframeinanimator: " << glm::to_string(m_KeyframeTransforms["Circle"]) << std::endl;
-            //m_KeyframeTransforms["Circle"] = glm::translate(m_KeyframeTransforms["Circle"], pathtranslate);
-            //std::cout << "keyframeinanimator: " << glm::to_string(m_KeyframeTransforms["Circle"]) << std::endl;
+            glm::vec3 pathtranslate(m_CurrentTime / 500, 0.0f, m_CurrentTime / 500);
+            //std::cout << "translate: " << glm::to_string(pathtranslate) << std::endl;
+            //std::cout << "keyframeinanimator: " << glm::to_string(m_KeyframeTransforms["R"]) << std::endl;
+            //m_KeyframeTransforms["R"] = glm::translate(m_KeyframeTransforms["R"], pathtranslate);
+            // m_KeyframeTransforms["L"] = glm::translate(m_KeyframeTransforms["L"], pathtranslate);
+            
+
+            glm::vec4 translation_R = m_KeyframeTransforms["R"][3]; // 获取第四列
+            translation_R += glm::vec4(pathtranslate, 0.0f);        // 直接加上平移向量
+            m_KeyframeTransforms["R"][3] = translation_R;           // 设置回去
+
+            glm::vec4 translation_L = m_KeyframeTransforms["L"][3]; // 获取第四列
+            translation_L += glm::vec4(pathtranslate, 0.0f);        // 直接加上平移向量
+            m_KeyframeTransforms["L"][3] = translation_L;           // 设置回去
+            //std::cout << "keyframeinanimator: " << glm::to_string(m_KeyframeTransforms["L"]) << std::endl;
         }
     }
 
@@ -141,7 +152,7 @@ public:
         }
 
         glm::mat4 globalTransformation = parentTransform * nodeTransform;
-        //std::cout << nodeName<<"&keyframeinprocess: " << glm::to_string(globalTransformation) << std::endl; //
+        // std::cout << nodeName<<"&keyframeinprocess: " << glm::to_string(globalTransformation) << std::endl; //
         m_KeyframeTransforms[nodeName] = globalTransformation;
 
         // m_CurrentAnimation->m_Keyframes[nodeName] = globalTransformation;
