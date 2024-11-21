@@ -1,252 +1,254 @@
-#include <iostream>  // ï¿½ï¿½ï¿½ï¿½ï¿½×¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-#include <fstream>   // ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½ï¿½
+#include <iostream>  // ÒýÈë±ê×¼ÊäÈëÊä³ö¿â
+#include <fstream>   // ÒýÈëÎÄ¼þÁ÷¿â
+#include <nlohmann/json.hpp> // ÒýÈëÅäÖÃÎÄ¼þ¿â
 
-#include <fluid/mesher.h>  // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-#include <fluid/data_structures/point_cloud.h>  // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ý½á¹¹
+#include <fluid/mesher.h>  // Íø¸ñÉú³ÉÆ÷
+#include <fluid/data_structures/point_cloud.h>  // µãÔÆÊý¾Ý½á¹¹
 
-#include "fluid/fluid_simulator.h"  // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä£ï¿½ï¿½Í·ï¿½Ä¼ï¿½
-
-using fluid::vec2d;  // Ê¹ï¿½ï¿½ fluid ï¿½ï¿½ï¿½ï¿½ï¿½Õ¼ï¿½ï¿½ÐµÄ¶ï¿½Î¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-using fluid::vec2s;  // Ê¹ï¿½ï¿½ fluid ï¿½ï¿½ï¿½ï¿½ï¿½Õ¼ï¿½ï¿½ÐµÄ¶ï¿½Î¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-using fluid::vec3d;  // Ê¹ï¿½ï¿½ fluid ï¿½ï¿½ï¿½ï¿½ï¿½Õ¼ï¿½ï¿½Ðµï¿½ï¿½ï¿½Î¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-using fluid::vec3s;  // Ê¹ï¿½ï¿½ fluid ï¿½ï¿½ï¿½ï¿½ï¿½Õ¼ï¿½ï¿½Ðµï¿½ï¿½ï¿½Î¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+#include "fluid/fluid_simulator.h"  // ²âÊÔÁ÷ÌåÄ£ÄâÍ·ÎÄ¼þ
 
 using namespace fluid;
 
-// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-FluidSimulator::FluidSimulator(double scale) :
-	roomModel("source/model/room/overall.obj", scale, vec3d(0.0, 0.0, 0.0)), // ï¿½ï¿½ï¿½ë·¿ï¿½ï¿½Ä£ï¿½ï¿½
-	roomObstacle(roomModel.get_mesh(), sim_cell_size, sim_grid_offset, sim_grid_size), //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ë¢ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-	sim_grid_offset(roomModel.get_offset() - vec3d(1.0, 1.0, 1.0)),  // ï¿½ï¿½ï¿½ï¿½Æ«ï¿½ï¿½ï¿½ï¿½
-	sim_grid_size(roomModel.get_size() + vec3d(2.0, 2.0, 2.0)),  // ï¿½ï¿½ï¿½ï¿½ï¿½Ð¡
-	sim_grid_center(roomModel.get_offset() + roomModel.get_size() / 2), // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-	sim_cell_size(1.0), // ï¿½ï¿½ï¿½ï¿½Ôªï¿½ï¿½Ð¡
-	sim_method(fluid::simulation::method::apic), // Ê¹ï¿½ï¿½apicÄ£ï¿½ï¿½
-	sim_blending_factor(1.0),  // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-	sim_gravity(vec3d(-981.0, 0.0, 0.0)),  // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-	sim_dt(1 / 60.0), // Ê±ï¿½ä²½ï¿½ï¿½
-	// ï¿½ï¿½mesh
+// ¹¹½¨º¯Êý£º³õÊ¼»¯²ÎÊý
+FluidSimulator::FluidSimulator(bool def) :
+	_default(def),
+	_cfgfile(""),
+	_scale(0.1), // Ä£ÐÍËõ·Å¹æÄ£
+	roomModel("../assets/overall.obj", _scale, vec3d(0.0, 0.0, 0.0)), // µ¼Èë·¿¼äÄ£ÐÍ
+	roomObstacle(roomModel.get_mesh(), sim_cell_size, sim_grid_offset, sim_grid_size), //½«·¿¼äË¢½øÍø¸ñ
+	sim_grid_offset(roomModel.get_offset() - vec3d(1.0, 1.0, 1.0)),  // Íø¸ñÆ«ÒÆÁ¿
+	sim_grid_size(roomModel.get_size() + vec3d(2.0, 2.0, 2.0)),  // Íø¸ñ´óÐ¡
+	sim_grid_center(roomModel.get_offset() + roomModel.get_size() / 2), // Íø¸ñÖÐÐÄ
+	sim_cell_size(1.0), // Íø¸ñµ¥Ôª´óÐ¡
+	sim_method(fluid::simulation::method::apic), // Ê¹ÓÃapicÄ£Äâ
+	sim_blending_factor(1.0),  // »ìºÏÒò×Ó
+	sim_gravity(vec3d(-981.0, 0.0, 0.0)),  // ÖØÁ¦ÏòÁ¿
+	sim_dt(1 / 60.0), // Ê±¼ä²½³¤
+	sim_time(0.0), // ´ÓÊ±¿Ì0¿ªÊ¼Ä£Äâ
+	// °ó¶¨mesh
 	isMeshBound(false),
 	pMesh(nullptr)
 {
-	// Ê¹ï¿½ï¿½ lambda ï¿½ï¿½ï¿½ï¿½Ê½ï¿½ï¿½ï¿½ï¿½Ô±ï¿½ï¿½ï¿½ï¿½ï¿½ó¶¨µï¿½ï¿½ï¿½Ç°Êµï¿½ï¿½
+	// Ê¹ÓÃ lambda ±í´ïÊ½½«³ÉÔ±º¯Êý°ó¶¨µ½µ±Ç°ÊµÀý
 	sim_thread = std::thread([this]() { simulation_thread(); });
 	mesh_thread = std::thread([this]() { mesher_thread(); });
-	// ï¿½ï¿½ï¿½ß³ï¿½ï¿½ï¿½Îªï¿½ï¿½ï¿½ï¿½Ä£Ê½
+	// ½«Ïß³ÌÉèÎª·ÖÀëÄ£Ê½
 	sim_thread.detach();
 	mesh_thread.detach();
 };
 
-// ï¿½ï¿½ï¿½ï¿½Ä£ï¿½ï¿½×´Ì¬ï¿½Äºï¿½ï¿½ï¿½
-void FluidSimulator::update_simulation(const fluid::simulation& sim) {
-	// ï¿½Õ¼ï¿½ï¿½Âµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+FluidSimulator::FluidSimulator(const std::string& config_path) : 
+	_default(false) {
+	// ¼ÓÔØÅäÖÃÎÄ¼þ
+	nlohmann::json config;
+	std::ifstream config_file(config_path);
+	if (!config_file.is_open()) {
+		throw std::runtime_error("Failed to open configuration file: " + config_path);
+	}
+	config_file >> config;
+	std::cout << "Init fluid simulator by cfg_file: " << config_path << std::endl;
+
+	// ´ÓÅäÖÃÎÄ¼þ¶ÁÈ¡²ÎÊý
+	std::string model_path = config["model_path"];
+	_scale = config.value("scale", 1.0);
+	vec3d model_offset = vec3d(
+		config["model_offset"][0],
+		config["model_offset"][1],
+		config["model_offset"][2]
+	);
+	roomModel = LoadModel(model_path, _scale, model_offset); // µ¼Èë·¿¼äÄ£ÐÍ
+	sim_grid_offset = roomModel.get_offset() - vec3d(1.0, 1.0, 1.0);  // Íø¸ñÆ«ÒÆÁ¿
+	sim_grid_size = vec3s(roomModel.get_size() + vec3d(2.0, 2.0, 2.0));  // Íø¸ñ´óÐ¡
+	sim_grid_center = roomModel.get_offset() + roomModel.get_size() / 2; // Íø¸ñÖÐÐÄ
+	sim_cell_size = config.value("sim_cell_size", 1.0);  // Íø¸ñµ¥Ôª´óÐ¡
+	roomObstacle = obstacle(roomModel.get_mesh(), sim_cell_size, sim_grid_offset, sim_grid_size); // ½«·¿¼äÄ£ÐÍË¢ÈëÍø¸ñ
+	sim_method = (config["sim_method"] == "pic" ? fluid::simulation::method::pic :
+				(config["sim_method"] == "flip" ? fluid::simulation::method::flip_blend :
+				(config["sim_method"] == "apic" ? fluid::simulation::method::apic : 
+					fluid::simulation::method::apic))); // Ê¹ÓÃapicÄ£Äâ
+	sim_blending_factor = config.value("sim_blending_factor", 1.0);  // »ìºÏÒò×Ó
+	sim_gravity = vec3d(
+		config["sim_gravity"][0],
+		config["sim_gravity"][1],
+		config["sim_gravity"][2]
+	);  // ÖØÁ¦ÏòÁ¿
+	sim_dt = config.value("sim_dt", 1.0 / 60.0); // Ê±¼ä²½³¤
+	sim_time = config.value("sim_time", 0.0); // ´ÓÊ±¿Ì0¿ªÊ¼Ä£Äâ
+
+	// °ó¶¨mesh
+	isMeshBound = false;
+	pMesh = nullptr;
+	
+	// Ïß³Ì³õÊ¼»¯
+	sim_thread = std::thread([this]() { simulation_thread(); });
+	mesh_thread = std::thread([this]() { mesher_thread(); });
+	sim_thread.detach();
+	mesh_thread.detach();
+}
+
+// ¸üÐÂÄ£Äâ×´Ì¬µÄº¯Êý
+void FluidSimulator::update_simulation(const fluid::simulation& sim, FluidConfig& fluid_cfg) {
+	// ¸üÐÂÁ÷Ìå×´Ì¬
+	fluid_cfg.update(sim_time);
+	// ÊÕ¼¯ÐÂµÄÁ£×ÓÊý¾Ý
 	std::vector<fluid::simulation::particle> new_particles(sim.particles().begin(), sim.particles().end());
 
-	double energy = 0.0;  // ï¿½ï¿½ï¿½Ú¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	double energy = 0.0;  // ÓÃÓÚ¼ÆËã×ÜÄÜÁ¿
 	for (fluid::simulation::particle& p : new_particles) {
-		energy += 0.5 * p.velocity.squared_length();  // ï¿½ï¿½ï¿½ï¿½
-		energy -= fluid::vec_ops::dot(sim.gravity, p.position);  // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+		energy += 0.5 * p.velocity.squared_length();  // ¶¯ÄÜ
+		energy -= fluid::vec_ops::dot(sim.gravity, p.position);  // ÖØÁ¦ÊÆÄÜ
 	}
-	std::cout << "    total energy: " << energy << "\n";  // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	std::cout << "    total energy: " << energy << "\n";  // Êä³ö×ÜÄÜÁ¿
 
-	// ï¿½Õ¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Õ¼ï¿½ï¿½ï¿½ï¿½ï¿½
-	fluid::grid3<std::size_t> grid(sim.grid().grid().get_size(), 0);  // ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	// ÊÕ¼¯Íø¸ñµÄÕ¼ÓÃÇé¿ö
+	fluid::grid3<std::size_t> grid(sim.grid().grid().get_size(), 0);  // ³õÊ¼»¯Íø¸ñ
 	for (const auto& particle : sim.particles()) {
-		vec3s pos(fluid::vec3i((particle.position - sim.grid_offset) / sim.cell_size));  // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Úµï¿½ï¿½ï¿½ï¿½ï¿½Î»ï¿½ï¿½
+		vec3s pos(fluid::vec3i((particle.position - sim.grid_offset) / sim.cell_size));  // ¼ÆËãÁ£×ÓËùÔÚµÄÍø¸ñÎ»ÖÃ
 		if (pos.x < grid.get_size().x && pos.y < grid.get_size().y && pos.z < grid.get_size().z) {
-			++grid(pos);  // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Õ¼ï¿½Ã¼ï¿½ï¿½ï¿½
+			++grid(pos);  // ¸üÐÂÍø¸ñµÄÕ¼ÓÃ¼ÆÊý
 		}
 	}
 
-	// ï¿½Õ¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ù¶ï¿½ï¿½ï¿½ï¿½ï¿½
-	fluid::grid3<vec3d> grid_vels(sim.grid().grid().get_size());  // ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½Ù¶ï¿½ï¿½ï¿½ï¿½ï¿½
+	// ÊÕ¼¯Íø¸ñµÄËÙ¶ÈÊý¾Ý
+	fluid::grid3<vec3d> grid_vels(sim.grid().grid().get_size());  // ³õÊ¼»¯ËÙ¶ÈÍø¸ñ
 	for (std::size_t z = 0; z < grid_vels.get_size().z; ++z) {
 		for (std::size_t y = 0; y < grid_vels.get_size().y; ++y) {
 			for (std::size_t x = 0; x < grid_vels.get_size().x; ++x) {
-				grid_vels(x, y, z) = sim.grid().grid()(x, y, z).velocities_posface;  // ï¿½ï¿½È¡Ã¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ôªï¿½ï¿½ï¿½Ù¶ï¿½
+				grid_vels(x, y, z) = sim.grid().grid()(x, y, z).velocities_posface;  // »ñÈ¡Ã¿¸öÍø¸ñµ¥ÔªµÄËÙ¶È
 			}
 		}
 	}
 
-	// Ê¹ï¿½Ã»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÝµÄ·ï¿½ï¿½ï¿½
+	// Ê¹ÓÃ»¥³âËø±£»¤¶Ô¹²ÏíÊý¾ÝµÄ·ÃÎÊ
 	{
-		std::lock_guard<std::mutex> guard(sim_particles_lock);  // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-		sim_particles = std::move(new_particles);  // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-		sim_grid_occupation = std::move(grid);  // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Õ¼ï¿½ï¿½ï¿½ï¿½ï¿½
-		sim_grid_velocities = std::move(grid_vels);  // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ù¶ï¿½
-		sim_mesh_valid = false;  // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Îªï¿½ï¿½Ð§
-		sim_mesher_sema.notify();  // Í¨Öªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ß³ï¿½
+		std::lock_guard<std::mutex> guard(sim_particles_lock);  // Ëø¶¨Á£×ÓÊý¾Ý
+		sim_particles = std::move(new_particles);  // ¸üÐÂÁ£×ÓÊý¾Ý
+		sim_grid_occupation = std::move(grid);  // ¸üÐÂÍø¸ñÕ¼ÓÃÇé¿ö
+		sim_grid_velocities = std::move(grid_vels);  // ¸üÐÂÍø¸ñËÙ¶È
+		sim_mesh_valid = false;  // ±ê¼ÇÍø¸ñÎªÎÞÐ§
+		sim_mesher_sema.notify();  // Í¨ÖªÍø¸ñÉú³ÉÏß³Ì
+		SimFinSignal = true;
 	}
 }
 
-void FluidSimulator::reset_simulation(fluid::simulation& sim) {
-	sim.particles().clear();  // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-	// ï¿½ï¿½ï¿½Ã¹ï¿½ï¿½åµ¥Ôª
-	sim.grid().grid().for_each(
-		[](vec3s, fluid::mac_grid::cell& cell) {
-			cell.cell_type = fluid::mac_grid::cell::type::air;  // ï¿½ï¿½ï¿½ï¿½ï¿½Ðµï¿½Ôªï¿½ï¿½Îªï¿½ï¿½ï¿½ï¿½
-		}
-	);
-	// ï¿½ï¿½ï¿½ï¿½ï¿½â²¿ï¿½ß½ï¿½Îªï¿½ï¿½ï¿½ï¿½
-	/*sim.grid().grid().for_each([&](vec3s cell, fluid::mac_grid::cell& c) {
-		vec3d cell_position = sim.grid_offset + vec3d(cell) * sim.cell_size;
-		if (is_outside_room(cell_position, room_mesh)) {
-			c.cell_type = fluid::mac_grid::cell::type::solid;
-		}
-		});*/
-		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä±ï¿½ï¿½ï¿½ï¿½Í½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-	std::cout << "Seting solid cells..." << std::endl;
-	std::cout << "Grid size: (" << sim.grid().grid().get_size().x << ", " << sim.grid().grid().get_size().y << ", " << sim.grid().grid().get_size().z << ")" << std::endl;
-	unsigned int total_cells = static_cast<unsigned int>(sim.grid().grid().get_size().x * sim.grid().grid().get_size().y * sim.grid().grid().get_size().z);
-	unsigned int solid_cells = 0;
-	// ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½ï¿½Ð¡ÖµÎªÒ»ï¿½ï¿½ï¿½Ü´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÖµÎªÒ»ï¿½ï¿½ï¿½ï¿½Ð¡ï¿½ï¿½ï¿½ï¿½
-	vec3s min_coords(std::numeric_limits<std::size_t>::max(), std::numeric_limits<std::size_t>::max(), std::numeric_limits<std::size_t>::max());
-	vec3s max_coords(0, 0, 0);
-	sim.grid().grid().for_each(
-		[&](vec3s cell, fluid::mac_grid::cell& c) {
-			if (roomObstacle.is_cell_on_surface(cell)) {
-				c.cell_type = fluid::mac_grid::cell::type::solid;
-				++solid_cells;
-				//std::cout << "solid cell " << solid_cells << " :(" << cell.x << ' ' << cell.y << ' ' << cell.z << ')' << std::endl
-			}
-		});
-	std::cout << "solid cells: " << solid_cells << " in " << total_cells << "." << std::endl;
-	std::cout << std::endl;
-	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô´
-	sim.sources.clear();
-
-	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ã±ï¿½ï¿½ï¿½ï¿½ï¿½Ã²ï¿½Í¬ï¿½Ä³ï¿½Ê¼ï¿½ï¿½ï¿½ï¿½×´Ì¬
-	std::cout << "Initializing liquid state..." << std::endl;
-	//ï¿½ï¿½ï¿½ï¿½Ú²ï¿½ï¿½ï¿½ï¿½ï¿½
-	std::cout << "Start filling interior area..." << std::endl;
-	sim.seed_area(sim_grid_offset, vec3d(sim_grid_size),
-		[&](vec3d pos) {
-			return
-				pos.x < -double(sim_grid_size.x) / 4 &&
-				(pos.y - sim_grid_center.y) * (pos.y - sim_grid_center.y) + (pos.z - sim_grid_center.z) * (pos.z - sim_grid_center.z) >= sim_grid_size.z * sim_grid_size.z / 16 &&
-				roomObstacle.is_cell_inside(pos);
-		},
-		vec3d(0.0, 0.0, 0.0)
-	);
-	std::cout << "Starting seting liquid source..." << std::endl;
-	// ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ù¶Èºï¿½Î»ï¿½ï¿½
-	auto source = std::make_unique<fluid::source>();
-	for (std::size_t y = 1; y < 5; ++y) {
-		for (std::size_t x = sim_grid_size.x / 2 - sim_grid_size.x / 20; x < sim_grid_size.x / 2 + sim_grid_size.x / 20; ++x) {
-			for (std::size_t z = sim_grid_size.z / 2 - sim_grid_size.x / 20; z < sim_grid_size.z / 2 + sim_grid_size.x / 20; ++z) {
-				if (roomObstacle.is_cell_inside(vec3s(x, y, z)))
-					source->cells.emplace_back(x, y, z);  // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô´ï¿½Äµï¿½ÔªÎ»ï¿½ï¿½
-			}
-		}
-	}
-	source->velocity = vec3d(0.0, 200.0, 0.0);  // ï¿½ï¿½ï¿½ï¿½Ô´ï¿½ï¿½ï¿½Ù¶ï¿½
-	source->coerce_velocity = true;  // Ç¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô´ï¿½ï¿½ï¿½Ù¶ï¿½
-	sim.sources.emplace_back(std::move(source));  // ï¿½ï¿½Ô´ï¿½ï¿½ï¿½Óµï¿½Ä£ï¿½ï¿½ï¿½ï¿½
-	std::cout << "Finish initializing liquid state." << std::endl;
-	std::cout << std::endl;
-
-	// ï¿½ï¿½ï¿½Ã¿Õ¼ï¿½ï¿½Ï£ï¿½ï¿½ï¿½ï¿½ï¿½Ú¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î»ï¿½Ãºï¿½×´Ì¬
-	sim.reset_space_hash();
+void FluidSimulator::reset_simulation(FluidConfig& fluid_cfg) {
+	fluid_cfg.apply();
 };
 
-// Ä£ï¿½ï¿½ï¿½ß³Ì£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä£ï¿½ï¿½ï¿½Ö´ï¿½ï¿½
+// Ä£ÄâÏß³Ì£¬¹ÜÀíÁ÷ÌåÄ£ÄâµÄÖ´ÐÐ
 void FluidSimulator::simulation_thread() {
-	fluid::simulation sim;  // ï¿½ï¿½ï¿½ï¿½Ä£ï¿½ï¿½ï¿½ï¿½ï¿½
+	fluid::simulation sim;  // ´´½¨Ä£Äâ¶ÔÏó
 
-	sim.resize(sim_grid_size);  // ï¿½ï¿½ï¿½ï¿½Ä£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð¡
-	sim.grid_offset = sim_grid_offset;  // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ«ï¿½ï¿½ï¿½ï¿½
-	sim.cell_size = sim_cell_size;  // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ôªï¿½ï¿½Ð¡
-	sim.simulation_method = sim_method;  // ï¿½ï¿½ï¿½ï¿½Ä£ï¿½â·½ï¿½ï¿½Îª APICï¿½ï¿½Affine Particle-In-Cellï¿½ï¿½
-	/*sim.blending_factor = 0.99;*/
-	sim.blending_factor = sim_blending_factor;  // ï¿½ï¿½ï¿½Ã»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-	sim.gravity = sim_gravity;  // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	sim.resize(sim_grid_size);  // ÉèÖÃÄ£ÄâÍø¸ñ´óÐ¡
+	sim.grid_offset = sim_grid_offset;  // ÉèÖÃÍø¸ñÆ«ÒÆÁ¿
+	sim.cell_size = sim_cell_size;  // ÉèÖÃÍø¸ñµ¥Ôª´óÐ¡
+	sim.simulation_method = sim_method;  // ÉèÖÃÄ£Äâ·½·¨Îª APIC£¨Affine Particle-In-Cell£©
+	sim.blending_factor = sim_blending_factor;  // ÉèÖÃ»ìºÏÒò×Ó
+	sim.gravity = sim_gravity;  // ÉèÖÃÖØÁ¦ÏòÁ¿
+	sim.total_time = sim_time;  // ÉèÖÃ³õÊ¼Ê±¼ä
 
-	// ï¿½ï¿½Ã¿ï¿½ï¿½Ê±ï¿½ä²½Ö®Ç°ï¿½Ä»Øµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ä²½ï¿½ï¿½Ï¢
+	// ÔÚÃ¿¸öÊ±¼ä²½Ö®Ç°µÄ»Øµ÷º¯Êý£¬ÓÃÓÚÊä³öÊ±¼ä²½ÐÅÏ¢
 	sim.pre_time_step_callback = [](double dt) {
 		std::cout << "  time step " << dt << "\n";
 		};
-	// ï¿½ï¿½Ñ¹ï¿½ï¿½ï¿½ï¿½ï¿½Ö®ï¿½ï¿½Ä»Øµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï¢
+	// ÔÚÑ¹Á¦Çó½âÖ®ºóµÄ»Øµ÷º¯Êý£¬ÓÃÓÚÊä³öÇó½âÐÅÏ¢
 	sim.post_pressure_solve_callback = [&sim](
 		double, std::vector<double>& pressure, double residual, std::size_t iters
 		) {
 			std::cout << "    iterations = " << iters << "\n";
 			if (iters > 100) {
-				std::cout << "*** WARNING: large number of iterations\n";  // ï¿½ï¿½Ê¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+				std::cout << "*** WARNING: large number of iterations\n";  // ÌáÊ¾µü´ú´ÎÊý¹ý¶à
 			}
-			std::cout << "    residual = " << residual << "\n";  // ï¿½ï¿½ï¿½ï¿½Ð²ï¿½
+			std::cout << "    residual = " << residual << "\n";  // Êä³ö²Ð²î
 			auto max_it = std::max_element(pressure.begin(), pressure.end());
 			if (max_it != pressure.end()) {
-				std::cout << "    max pressure = " << *max_it << "\n";  // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ñ¹ï¿½ï¿½
+				std::cout << "    max pressure = " << *max_it << "\n";  // Êä³ö×î´óÑ¹Á¦
 			}
 		};
-	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ó´ï¿½ï¿½ï¿½ï¿½Ä»Øµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ù¶ï¿½
+	// ÔÚÍø¸ñµ½Á£×Ó´«ÊäºóµÄ»Øµ÷º¯Êý£¬Êä³öÁ£×Ó×î´óËÙ¶È
 	sim.post_grid_to_particle_transfer_callback = [&sim](double) {
 		double maxv = 0.0;
 		for (const fluid::simulation::particle& p : sim.particles()) {
-			maxv = std::max(maxv, p.velocity.squared_length());  // ï¿½ï¿½È¡ï¿½ï¿½ï¿½ï¿½Ù¶ï¿½
+			maxv = std::max(maxv, p.velocity.squared_length());  // »ñÈ¡×î´óËÙ¶È
 		}
 		std::cout << "    max particle velocity = " << std::sqrt(maxv) << "\n";
 		};
-	// Ä£ï¿½ï¿½ï¿½ï¿½Ñ­ï¿½ï¿½
+
+	// ÅäÖÃÁ÷Ìå×´Ì¬
+	FluidConfig sim_cfg(sim, _scale,
+		// ±êÊ¶Á÷ÌåÄÚ²¿ÇøÓò
+		[&](vec3d pos) {return roomObstacle.is_cell_inside(pos); },
+		// ±êÊ¶Á÷ÌåÔ´Óë¾®ÇøÓò
+		[&](vec3s pos) {return roomObstacle.is_cell_inside(pos); },
+		// ±êÊ¶Á÷Ìå±ßÔµÇøÓò
+		[&](vec3s pos) {return roomObstacle.is_cell_on_surface(pos); },
+		// ÅäÖÃÎÄ¼þÂ·¾¶
+		_cfgfile
+	);
+
+	// Ä£ÄâÖ÷Ñ­»·
 	while (true) {
-		if (sim_reset) {  // ï¿½ï¿½ï¿½ï¿½ï¿½Òªï¿½ï¿½ï¿½ï¿½
-			reset_simulation(sim);
-			update_simulation(sim);  // ï¿½ï¿½ï¿½ï¿½Ä£ï¿½ï¿½×´Ì¬
-			sim_reset = false;  // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+		if (sim_reset) {  // Èç¹ûÐèÒªÖØÖÃ
+			reset_simulation(sim_cfg);
+			update_simulation(sim, sim_cfg);  // ¸üÐÂÄ£Äâ×´Ì¬
+			sim_reset = false;  // ÖØÖÃÍê³É
 		}
 
-		if (!sim_paused) {  // ï¿½ï¿½ï¿½Î´ï¿½ï¿½Í£
+		if (!sim_paused) {  // Èç¹ûÎ´ÔÝÍ£
 			std::cout << "update\n";
-			sim.update(sim_dt);  // ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½Ê±ï¿½ä²½ï¿½ï¿½ï¿½ï¿½Ä£ï¿½ï¿½ï¿½ï¿½ï¿½
-			update_simulation(sim);  // ï¿½ï¿½ï¿½ï¿½Ä£ï¿½ï¿½×´Ì¬
+			sim.update(sim_dt);  // ½øÐÐÒ»¸öÊ±¼ä²½³¤µÄÄ£Äâ¸üÐÂ
+			update_simulation(sim, sim_cfg);  // ¸üÐÂÄ£Äâ×´Ì¬
 		}
-		else if (sim_advance) {  // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Îªï¿½ï¿½ï¿½ï¿½Ç°ï¿½ï¿½
+		else if (sim_advance) {  // Èç¹ûÉèÖÃÎªµ¥²½Ç°½ø
 			sim_advance = false;
-			sim.time_step();  // ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½Ê±ï¿½ä²½ï¿½ï¿½
-			update_simulation(sim);  // ï¿½ï¿½ï¿½ï¿½Ä£ï¿½ï¿½×´Ì¬
+			sim.time_step();  // ½øÐÐÒ»¸öÊ±¼ä²½³¤
+			update_simulation(sim, sim_cfg);  // ¸üÐÂÄ£Äâ×´Ì¬
 		}
-		std::cout << "one sim thread end." << std::endl;
+		sim_time = sim.total_time; // Ã¿Ò»Ê±¼ä²½¸üÐÂÄ£Äâ×ÜÊ±¼ä
+		std::cout << "One sim thread end. [total time = " << sim_time << "s]" << std::endl;
 	}
 }
 
 void FluidSimulator::mesher_thread() {
 	while (true) {
-		sim_mesher_sema.wait();  // ï¿½È´ï¿½ï¿½Åºï¿½ï¿½ï¿½ï¿½ï¿½È·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Òªï¿½ï¿½ï¿½ï¿½
+		sim_mesher_sema.wait();  // µÈ´ýÐÅºÅÁ¿£¬È·ÈÏÍø¸ñÐèÒª¸üÐÂ
 		std::vector<vec3d> particles;
 		{
-			std::lock_guard<std::mutex> lock(sim_particles_lock);  // ï¿½ï¿½ï¿½ï¿½ï¿½Ô·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+			std::lock_guard<std::mutex> lock(sim_particles_lock);  // ¼ÓËøÒÔ·ÃÎÊÁ£×ÓÊý¾Ý
 			if (sim_mesh_valid) {
-				continue;  // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð§ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+				continue;  // Èç¹ûÍø¸ñÊý¾ÝÓÐÐ§£¬ÔòÌø¹ý¸üÐÂ
 			}
 			for (const fluid::simulation::particle& p : sim_particles) {
-				particles.emplace_back(p.position);  // ï¿½Õ¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Óµï¿½Î»ï¿½ï¿½ï¿½ï¿½Ï¢
+				particles.emplace_back(p.position);  // ÊÕ¼¯ËùÓÐÁ£×ÓµÄÎ»ÖÃÐÅÏ¢
 			}
-			sim_mesh_valid = true;  // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Îªï¿½ï¿½Ð§
+			sim_mesh_valid = true;  // ±ê¼ÇÍø¸ñÊý¾ÝÎªÓÐÐ§
 		}
 
-		// Ê¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Âµï¿½ï¿½ï¿½ï¿½ï¿½
+		// Ê¹ÓÃÍø¸ñÉú³ÉÆ÷Éú³ÉÐÂµÄÍø¸ñ
 		fluid::mesher mesher;
-		mesher.particle_extent = 2.0;  // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ó°ï¿½ì·¶Î§ // TODO values close or smaller than 1 causes holes to appear in meshes
-		mesher.cell_radius = 3;  // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ôªï¿½ë¾¶
-		mesher.grid_offset = sim_grid_offset;  // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ«ï¿½ï¿½
-		mesher.cell_size = 0.5;  // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ôªï¿½ï¿½Ð¡
-		mesher.resize(sim_grid_size * 2);  // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ß´ï¿½
-		fluid::mesher::mesh_t mesh = mesher.generate_mesh(particles, 0.5);  // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-		mesh.generate_normals();  // ï¿½ï¿½ï¿½É·ï¿½ï¿½ß£ï¿½ï¿½ï¿½ï¿½Ú¹ï¿½ï¿½ï¿½ï¿½ï¿½È¾
+		mesher.particle_extent = 2.0;  // ÉèÖÃÁ£×ÓÓ°Ïì·¶Î§ // TODO values close or smaller than 1 causes holes to appear in meshes
+		mesher.cell_radius = 3;  // ÉèÖÃÍø¸ñµ¥Ôª°ë¾¶
+		mesher.grid_offset = sim_grid_offset;  // ÉèÖÃÍø¸ñÆ«ÒÆ
+		mesher.cell_size = 0.5;  // ÉèÖÃÍø¸ñµ¥Ôª´óÐ¡
+		mesher.resize(sim_grid_size * 2);  // µ÷ÕûÍø¸ñ³ß´ç
+		fluid::mesher::mesh_t mesh = mesher.generate_mesh(particles, 0.5);  // Éú³ÉÍø¸ñ
+		mesh.generate_normals();  // Éú³É·¨Ïß£¬ÓÃÓÚ¹âÕÕäÖÈ¾
 
 		{
-			std::lock_guard<std::mutex> lock(sim_mesh_lock);  // ï¿½ï¿½ï¿½ï¿½ï¿½Ô±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-			sim_mesh = std::move(mesh);  // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-
-			// ï¿½ï¿½ï¿½Â°ï¿½meshï¿½ï¿½Êµï¿½ï¿½
-			if (!updateBoundMesh())
-				FinSignal = true;
+			std::lock_guard<std::mutex> lock(sim_mesh_lock);  // ¼ÓËøÒÔ±£»¤Íø¸ñÊý¾Ý
+			sim_mesh = std::move(mesh);  // ¸üÐÂÍø¸ñÊý¾Ý
+			// ¸üÐÂ°ó¶¨meshÀàÊµÌå
+			if (!updateBoundMesh()) {
+				MeshFinSignal = true;
+			}
+			std::ofstream fout("fluid_mesh.obj");
+			sim_mesh.save_obj(fout);  // µ¼³öÍø¸ñÎª .obj ÎÄ¼þ
 		}
 	}
 }
 
 int FluidSimulator::updateBoundMesh() {
-	// Î´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	// Î´°ó¶¨ÔòÌø¹ý
 	if (!isMeshBound || !pMesh) {
 		std::cout << "FluidSimulator:: unbound mesh" << endl;
 		return -1;
@@ -254,22 +256,22 @@ int FluidSimulator::updateBoundMesh() {
 
 	std::cout << "FluidSimulator:: update mesh." << endl;
 	std::cout << "	Before: " << pMesh->vertices.size() << " vertices and " << pMesh->indices.size() << " indices." << endl;
-	// ï¿½ï¿½Õ¾ÉµÄ¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	// Çå¿Õ¾ÉµÄ¶¥µãºÍË÷ÒýÊý¾Ý
 	pMesh->vertices.clear();
 	pMesh->indices.clear();
 
-	// ï¿½ï¿½ï¿½ï¿½ simMesh.positionsï¿½ï¿½ï¿½ï¿½ï¿½ Mesh ï¿½Ä¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	// ±éÀú simMesh.positions£¬Ìî³ä Mesh µÄ¶¥µãÊý¾Ý
 	for (size_t i = 0; i < sim_mesh.positions.size(); ++i) {
 		Vertex vertex;
 
-		// ï¿½ï¿½ï¿½Ã¶ï¿½ï¿½ï¿½Î»ï¿½ï¿½
+		// ÉèÖÃ¶¥µãÎ»ÖÃ
 		vertex.Position = glm::vec3(
 			static_cast<float>(sim_mesh.positions[i].x),
 			static_cast<float>(sim_mesh.positions[i].y),
 			static_cast<float>(sim_mesh.positions[i].z)
 		);
 
-		// ï¿½ï¿½ï¿½Ã·ï¿½ï¿½ß£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ú£ï¿½
+		// ÉèÖÃ·¨Ïß£¨Èç¹û´æÔÚ£©
 		if (i < sim_mesh.normals.size()) {
 			vertex.Normal = glm::vec3(
 				static_cast<float>(sim_mesh.normals[i].x),
@@ -278,10 +280,10 @@ int FluidSimulator::updateBoundMesh() {
 			);
 		}
 		else {
-			vertex.Normal = glm::vec3(0.0f, 0.0f, 0.0f); // Ä¬ï¿½Ï·ï¿½ï¿½ï¿½
+			vertex.Normal = glm::vec3(0.0f, 0.0f, 0.0f); // Ä¬ÈÏ·¨Ïß
 		}
 
-		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ê£¨ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ú£ï¿½
+		// ÉèÖÃÎÆÀí×ø±ê£¨Èç¹û´æÔÚ£©
 		if (i < sim_mesh.uvs.size()) {
 			vertex.TexCoords = glm::vec2(
 				static_cast<float>(sim_mesh.uvs[i].x),
@@ -289,26 +291,26 @@ int FluidSimulator::updateBoundMesh() {
 			);
 		}
 		else {
-			vertex.TexCoords = glm::vec2(0.0f, 0.0f); // Ä¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+			vertex.TexCoords = glm::vec2(0.0f, 0.0f); // Ä¬ÈÏÎÆÀí×ø±ê
 		}
 
-		// Ä¬ï¿½ï¿½ï¿½ï¿½ï¿½ßºÍ¸ï¿½ï¿½ï¿½ï¿½ï¿½
+		// Ä¬ÈÏÇÐÏßºÍ¸±ÇÐÏß
 		vertex.Tangent = glm::vec3(0.0f, 0.0f, 0.0f);
 		vertex.Bitangent = glm::vec3(0.0f, 0.0f, 0.0f);
 
-		// ï¿½ï¿½ï¿½ï¿½Ó°ï¿½ì£¨ï¿½ï¿½ï¿½ï¿½ï¿½Ã£ï¿½
+		// ¹Ç÷ÀÓ°Ïì£¨²»ÊÊÓÃ£©
 		std::fill(std::begin(vertex.m_BoneIDs), std::end(vertex.m_BoneIDs), 0);
 		std::fill(std::begin(vertex.m_Weights), std::end(vertex.m_Weights), 0.0f);
 
 		pMesh->vertices.push_back(vertex);
 	}
 
-	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	// Ìî³äË÷ÒýÊý¾Ý
 	for (size_t i = 0; i < sim_mesh.indices.size(); ++i) {
 		pMesh->indices.push_back(static_cast<unsigned int>(sim_mesh.indices[i]));
 	}
 
-	// ï¿½ï¿½ï¿½ï¿½ setupMesh ï¿½ï¿½ï¿½ï¿½ VAO/VBO/EBO
+	// µ÷ÓÃ setupMesh ¸üÐÂ VAO/VBO/EBO
 	pMesh->updateMesh();
 	std::cout << "	After: " << pMesh->vertices.size() << " vertices and " << pMesh->indices.size() << " indices." << endl;
 	std::cout << "FluidSimulator:: update mesh." << endl;
@@ -331,6 +333,12 @@ void FluidSimulator::BindMesh(Mesh* const pm) {
 	return;
 }
 
+double FluidSimulator::get_scale() const {
+	return _scale;
+}
+double FluidSimulator::get_time() const {
+	return sim_time;
+}
 vec3d FluidSimulator::get_grid_offset() const {
 	return sim_grid_offset;
 }
@@ -373,7 +381,7 @@ mesher::mesh_t FluidSimulator::get_room_mesh_t() const {
 void FluidSimulator::save_mesh_to_obj(const std::string& filepath) {
 	std::lock_guard<std::mutex> guard(sim_mesh_lock);
 	std::ofstream fout(filepath);
-	sim_mesh.save_obj(fout);  // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Îª .obj ï¿½Ä¼ï¿½
+	sim_mesh.save_obj(fout);  // µ¼³öÍø¸ñÎª .obj ÎÄ¼þ
 	std::cout << "Have exported mesh data to " << filepath << std::endl;
 }
 
@@ -382,19 +390,32 @@ void FluidSimulator::save_points_to_txt(const std::string& filepath) {
 	{
 		std::lock_guard<std::mutex> guard(sim_particles_lock);
 		for (const fluid::simulation::particle& p : sim_particles) {
-			points.emplace_back(p.position);  // ï¿½ï¿½È¡ï¿½ï¿½ï¿½ï¿½Î»ï¿½ï¿½ï¿½ï¿½Ï¢
+			points.emplace_back(p.position);  // »ñÈ¡Á£×ÓÎ»ÖÃÐÅÏ¢
 		}
 	}
 	std::ofstream fout(filepath);
-	fluid::point_cloud::save_to_naive(fout, points.begin(), points.end());  // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î»ï¿½ï¿½
+	fluid::point_cloud::save_to_naive(fout, points.begin(), points.end());  // µ¼³öÁ£×ÓÎ»ÖÃ
 	std::cout << "Have exported points data to points.txt" << std::endl;
 }
 
-// Í¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-void FluidSimulator::wait_until_next_frame() {
-	while (!FinSignal) {
+// Í¬²½º¯Êý
+void FluidSimulator::wait_until_next_sim(int i) {
+	while (!SimFinSignal) {
 		continue;
 	}
-	FinSignal = false;
-	std::cout << "FluidSimulator:: a new frame come." << std::endl;
+	SimFinSignal = false;
+	std::cout << "FluidSimulator:: ";
+	if (i >= 0) std::cout << "the " << i << "th";
+	else std::cout << "a new";
+	std::cout << " sim time step come." << std::endl;
+}
+void FluidSimulator::wait_until_next_frame(int i) {
+	while (!MeshFinSignal) {
+		continue;
+	}
+	MeshFinSignal = false;
+	std::cout << "FluidSimulator:: ";
+	if (i >= 0) std::cout << "the " << i << "th";
+	else std::cout << "a new";
+	std::cout << " frame come." << std::endl;
 }

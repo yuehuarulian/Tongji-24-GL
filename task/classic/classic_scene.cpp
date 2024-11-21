@@ -37,24 +37,7 @@ namespace GL_TASK
         auto room_model = std::make_shared<Room>("source/model/room/overall.obj", shader, true);
         room_model->set_model_matrix(room_model_matrix);
         models.push_back(room_model);
-
-        // butterfly
-        auto b_shader = shader_manager.get_shader("butterfly_shader");
-        light_manager.apply_lights(b_shader);
-        for (auto &butterfly_model_matrix : butterfly_model_matrix_vec)
-        {
-            float scale_rand = (float)((rand() % (500 - 200)) + 200) / 100 * 3;
-            float translate_rand = (float)((rand() % (1000 - (-1000))) + (-1000)) / 100;
-            float rotate_rand = (float)((rand() % (900 - (-900))) + (-900)) / 10;
-            butterfly_model_matrix = glm::rotate(butterfly_model_matrix, glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-            butterfly_model_matrix = glm::rotate(butterfly_model_matrix, glm::radians(rotate_rand), glm::vec3(0.0f, 1.0f, 0.0f));
-            butterfly_model_matrix = glm::scale(butterfly_model_matrix, glm::vec3(1.f, 1.f, 1.f) * scale_rand);
-            butterfly_model_matrix = glm::translate(butterfly_model_matrix, glm::vec3(translate_rand, 0.0f, translate_rand + 10.0f));
-            auto butterfly_model_single = std::make_shared<Butterfly>("source/model/butterfly/ehhh.dae", b_shader, true);
-            butterfly_model_single->set_model_matrix(butterfly_model_matrix);
-            models.push_back(butterfly_model_single);
-        }
-
+        
         // 调试在线渲染请注释掉水模型，否则会非常卡
         // Liquid model
         // auto liquid_shader = shader_manager.get_shader("liquid_shader");
@@ -64,8 +47,26 @@ namespace GL_TASK
         // liquid_model->set_model_matrix(liquid_model_matrix);
         // models.push_back(liquid_model);
 
+        // butterfly
+        /*auto b_shader = shader_manager.get_shader("butterfly_shader");
+        light_manager.apply_lights(b_shader);
+        for (auto &butterfly_model_matrix : butterfly_model_matrix_vec)
+        {
+            float scale_rand = (float)((rand() % (500 - 200)) + 200) / 100 * 3;
+
+            float translate_rand = (float)((rand() % (1000 - (-1000))) + (-1000)) / 100;
+            float rotate_rand = (float)((rand() % (900 - (-900))) + (-900)) / 10;
+            butterfly_model_matrix = glm::rotate(butterfly_model_matrix, glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+            butterfly_model_matrix = glm::rotate(butterfly_model_matrix, glm::radians(rotate_rand), glm::vec3(0.0f, 1.0f, 0.0f));
+            butterfly_model_matrix = glm::scale(butterfly_model_matrix, glm::vec3(1.f, 1.f, 1.f) * scale_rand);
+            butterfly_model_matrix = glm::translate(butterfly_model_matrix, glm::vec3(translate_rand, 0.0f, translate_rand + 10.0f));
+            auto butterfly_model_single = std::make_shared<Butterfly>("source/model/butterfly/ehhh.dae", b_shader, true);
+            butterfly_model_single->set_model_matrix(butterfly_model_matrix);
+            models.push_back(butterfly_model_single);
+        }*/
+
         // 点云
-        auto cloud_shader1 = shader_manager.get_shader("cloud");
+        /*auto cloud_shader1 = shader_manager.get_shader("cloud");
         auto point_cloud1 = std::make_shared<PointCloud>("source/model/point_cloud/Cumulonimbus_11.vdb", cloud_shader1);
         glm::mat4 model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(0.0f, 30.0f, -30.0f));
@@ -79,7 +80,7 @@ namespace GL_TASK
         model = glm::translate(model, glm::vec3(-80.0f, 40.0f, -110.0f));
         model = glm::scale(model, glm::vec3(0.4f));
         point_cloud2->set_model_matrix(model);
-        point_clouds.push_back(point_cloud2);
+        point_clouds.push_back(point_cloud2);*/
     }
 
     void ClassicScene::render(const glm::mat4 &projection, const glm::mat4 &view, glm::vec3 &camera_pos)

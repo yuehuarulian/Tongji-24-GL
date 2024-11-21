@@ -9,55 +9,55 @@ namespace fluid {
     class LoadModel {
     public:
         /**
-         * @brief ï¿½ï¿½ï¿½ìº¯ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½Ä¼ï¿½Â·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Åºï¿½Æ«ï¿½ï¿½ï¿½ï¿½
-         * @param filepath Ä£ï¿½ï¿½ï¿½Ä¼ï¿½Â·ï¿½ï¿½
-         * @param scale Ä£ï¿½Íµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-         * @param offset Ä£ï¿½Íµï¿½Æ«ï¿½ï¿½ï¿½ï¿½
+         * @brief ¹¹Ôìº¯Êý£¬³õÊ¼»¯ÎÄ¼þÂ·¾¶¡¢Ëõ·ÅºÍÆ«ÒÆÁ¿
+         * @param filepath Ä£ÐÍÎÄ¼þÂ·¾¶
+         * @param scale Ä£ÐÍµÄËõ·ÅÒò×Ó
+         * @param offset Ä£ÐÍµÄÆ«ÒÆÁ¿
          */
         LoadModel();
         LoadModel(const std::string& filepath, double scale = 1.0, const vec3d& offset = vec3d(0.0, 0.0, 0.0));
 
         /**
-        * @brief ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä£ï¿½Íµï¿½meshï¿½ï¿½
-        * @param filepath Ä£ï¿½ï¿½ï¿½Ä¼ï¿½Â·ï¿½ï¿½
-        * @param scale Ä£ï¿½Íµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-        * @param offset Ä£ï¿½Íµï¿½Æ«ï¿½ï¿½ï¿½ï¿½
+        * @brief ¼ÓÔØÐÂÄ£ÐÍµ½meshÖÐ
+        * @param filepath Ä£ÐÍÎÄ¼þÂ·¾¶
+        * @param scale Ä£ÐÍµÄËõ·ÅÒò×Ó
+        * @param offset Ä£ÐÍµÄÆ«ÒÆÁ¿
         */
         void addModel(const std::string& filepath, double scale = 1.0, const vec3d& offset = vec3d(0.0, 0.0, 0.0));
 
         /**
-         * @brief ï¿½ï¿½È¡Ä£ï¿½Íµï¿½ mesh
-         * @return ï¿½ï¿½ï¿½Øµï¿½ mesh
+         * @brief »ñÈ¡Ä£ÐÍµÄ mesh
+         * @return ¼ÓÔØµÄ mesh
          */
         const renderer::scene::mesh_t& get_mesh() const;
 
         /**
-         * @brief ï¿½ï¿½È¡Ä£ï¿½ï¿½ï¿½ï¿½Ê¼Î»ï¿½ï¿½ï¿½ï¿½Ï¢(ï¿½ï¿½ï¿½ï¿½Æ«ï¿½ï¿½ï¿½ï¿½)
-         * @return ï¿½ï¿½Ê¼Î»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½offset
+         * @brief »ñÈ¡Ä£ÐÍÆðÊ¼Î»ÖÃÐÅÏ¢(Íø¸ñÆ«ÒÆÁ¿)
+         * @return ÆðÊ¼Î»ÖÃ×ø±êoffset
          */
         const vec3d& get_offset() const;
 
         /**
-         * @brief ï¿½ï¿½È¡Ä£ï¿½Í´ï¿½Ð¡ï¿½ï¿½Ï¢(ï¿½ï¿½ï¿½ï¿½ï¿½Ð¡)
-         * @return Ä£ï¿½ï¿½ï¿½ï¿½Õ¼ï¿½ï¿½ï¿½Î¿Õ¼ï¿½ï¿½Ð¡size
+         * @brief »ñÈ¡Ä£ÐÍ´óÐ¡ÐÅÏ¢(Íø¸ñ´óÐ¡)
+         * @return Ä£ÐÍËùÕ¼·½ÐÎ¿Õ¼ä´óÐ¡size
          */
         const vec3d& get_size() const;
 
         /**
-         * @brief ï¿½ï¿½Ó¡Ä£ï¿½ï¿½ï¿½ï¿½Ï¢ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï¢
+         * @brief ´òÓ¡Ä£ÐÍÐÅÏ¢£¬°üÀ¨¶¥µãÊýÁ¿ºÍÆäËû»ù±¾ÐÅÏ¢
          */
         void print_mesh_info() const;
 
     private:
-        std::string filepath_;                // ï¿½Ä¼ï¿½Â·ï¿½ï¿½
-        double scale_;                        // Ä£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-        vec3d offset_;                        // Ä£ï¿½ï¿½Æ«ï¿½ï¿½ï¿½ï¿½
-        renderer::scene::mesh_t mesh_;        // ï¿½æ´¢ï¿½ï¿½ï¿½Øµï¿½ mesh
-        vec3d min_coords_, max_coords_, size_coords_;        // ï¿½ï¿½ï¿½Ú´æ´¢Ä£ï¿½Íµï¿½ï¿½ï¿½Ð¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Öµ
+        std::string filepath_;                // ÎÄ¼þÂ·¾¶
+        double scale_;                        // Ä£ÐÍËõ·ÅÒò×Ó
+        vec3d offset_;                        // Ä£ÐÍÆ«ÒÆÁ¿
+        renderer::scene::mesh_t mesh_;        // ´æ´¢¼ÓÔØµÄ mesh
+        vec3d min_coords_, max_coords_, size_coords_;        // ÓÃÓÚ´æ´¢Ä£ÐÍµÄ×îÐ¡ºÍ×î´ó×ø±êÖµ
 
         /**
-         * @brief ï¿½ï¿½ï¿½ï¿½Ä£ï¿½ï¿½
-         * @return ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ø³É¹ï¿½ï¿½ï¿½ï¿½ï¿½ trueï¿½ï¿½ï¿½ï¿½ï¿½ò·µ»ï¿½ false
+         * @brief ¼ÓÔØÄ£ÐÍ
+         * @return Èç¹û¼ÓÔØ³É¹¦·µ»Ø true£¬·ñÔò·µ»Ø false
          */
         bool load();
     };

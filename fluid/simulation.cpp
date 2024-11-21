@@ -67,6 +67,7 @@ namespace fluid {
 
 		update_and_hash_particles();
 		_update_sources();
+		_update_drains();
 		hash_particles();
 
 		_transfer_to_grid();
@@ -103,6 +104,7 @@ namespace fluid {
 		{
 			pressure_solver solver(*this, fluid_cells);
 			auto [pressure, residual, iters] = solver.solve(dt);
+			_update_particle_pressures(solver.get_full_pressure());
 			if (post_pressure_solve_callback) {
 				post_pressure_solve_callback(dt, pressure, residual, iters);
 			}
@@ -128,6 +130,12 @@ namespace fluid {
 		if (post_grid_to_particle_transfer_callback) {
 			post_grid_to_particle_transfer_callback(dt);
 		}
+
+		if (post_time_step_callback) {
+			post_time_step_callback(dt);
+		}
+		// update sim time
+		total_time += dt;
 	}
 
 	void simulation::time_step() {
@@ -138,6 +146,17 @@ namespace fluid {
 	void simulation::reset_space_hash() {
 		_space_hash.fill(_cell_particles());
 		_fluid_cells.clear();
+	}
+
+	//判断粒子的位置是否在给定的单元内
+	bool simulation::particle_is_in_cell(vec3s cell, vec3d position) {
+		std::uniform_real_distribution<double> dist(0.0, cell_size);
+		vec3d offset = grid_offset + vec3d(cell) * cell_size;
+		vec3d pos = position - offset;
+		if (pos.x >= 0 && pos.y >= 0 && pos.z >= 0 &&
+			pos.x < 1 && pos.y < 1 && pos.y < 1)
+			return true;
+		return false;
 	}
 
 	//在给定的单元内生成粒子，并将其添加到粒子列表
@@ -787,12 +806,73 @@ namespace fluid {
 	//更新流体源，将新的流体粒子加入模拟。
 	void simulation::_update_sources() {
 		for (auto &src : sources) {
-			if (!src->active) {
+			if (!src->active || !src->seed) {
 				continue;
 			}
 			for (vec3s v : src->cells) {
 				seed_cell(v, src->velocity, src->target_density_cubic_root);
 			}
+		}
+	}
+	//更新流体井，删除对应区域的流体粒子
+	void simulation::_update_drains() {
+		for (auto& dra : drains) {
+			if (!dra->active) {
+				continue;
+			}
+			remove_particles([&](const vec3d& pos) {
+					for (vec3s c : dra->cells) {
+						if (particle_is_in_cell(c, pos))
+							return true;
+					}
+					return false;
+				}, dra->percentage);
+		}
+	}
+
+	//更新粒子压力
+	bool is_inside(const vec3s& index, const vec3s& grid_size) {
+		return index.x >= 0 && index.x < grid_size.x &&
+			index.y >= 0 && index.y < grid_size.y &&
+			index.z >= 0 && index.z < grid_size.z;
+	}
+	void simulation::_update_particle_pressures(std::vector<double> _pressure) {
+		for (particle& p : _particles) {
+			// 获取粒子所在的网格单元及相对位置
+			auto [grid_index, rel_pos] = p.compute_cell_index_and_position(grid_offset, cell_size);
+
+			// 取出周围的网格单元压力值
+			double pressures[8];
+			vec3s neighbor_offsets[8] = {
+				{0, 0, 0}, {1, 0, 0}, {0, 1, 0}, {1, 1, 0},
+				{0, 0, 1}, {1, 0, 1}, {0, 1, 1}, {1, 1, 1}
+			};
+
+			for (int i = 0; i < 8; ++i) {
+				vec3s neighbor_index = grid_index + neighbor_offsets[i];
+				if (is_inside(neighbor_index, grid().grid().get_size())) {
+					std::size_t neighbor_flat = grid().grid().index_to_raw(neighbor_index);
+					// 检查 _pressure 数组是否越界
+					if (neighbor_flat < _pressure.size()) {
+						pressures[i] = _pressure[neighbor_flat];
+					}
+					else {
+						pressures[i] = 0.0;
+						std::cerr << "Warning: Neighbor index " << neighbor_flat
+							<< " is out of _pressure bounds (" << _pressure.size() << ").\n";
+					}
+				}
+				else {
+					pressures[i] = 0.0; // 边界外压力默认为0
+				}
+			}
+
+			// 使用三线性插值计算粒子压力
+			p.pressure = trilerp(
+				pressures[0], pressures[1], pressures[2], pressures[3],
+				pressures[4], pressures[5], pressures[6], pressures[7],
+				rel_pos.x, rel_pos.y, rel_pos.z
+			);
 		}
 	}
 }

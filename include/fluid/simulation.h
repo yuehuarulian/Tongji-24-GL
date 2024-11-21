@@ -21,6 +21,8 @@ namespace fluid {
 	/// A fluid simulation.
 	class simulation {
 	public:
+		/// Sim time
+		double total_time = 0.0;
 		/// A particle.
 		struct particle {
 			vec3d
@@ -40,6 +42,8 @@ namespace fluid {
 			/// Computes the cell index and fraction position inside the cell of this particle. This function assumes
 			/// that the computation won't result in underflow of the cell index.
 			std::pair<vec3s, vec3d> compute_cell_index_and_position(vec3d grid_offset, double cell_size) const;
+			// pressure of the particle
+			double pressure;
 		};
 		/// The simulation method.
 		enum class method : unsigned char {
@@ -75,6 +79,7 @@ namespace fluid {
 		/// for this function to be effective. This function updates \ref _cell_particles::count but does **not**
 		/// insert the particles at the right position.
 		void seed_cell(vec3s cell, vec3d velocity, std::size_t density = default_seeding_density);
+		bool particle_is_in_cell(vec3s cell, vec3d position);
 
 		/// Seeds the given region using the given predicate that indicates whether a point is inside the region to
 		/// be seeded.
@@ -96,7 +101,6 @@ namespace fluid {
 						for (std::size_t sx = 0; sx < density; ++sx) {
 							for (std::size_t sy = 0; sy < density; ++sy) {
 								for (std::size_t sz = 0; sz < density; ++sz) {
-									
 									vec3d position =
 										grid_offset + cell_offset +
 										vec3d(vec3s(sx, sy, sz)) * small_cell_size +
@@ -135,6 +139,18 @@ namespace fluid {
 				end_cell = world_position_to_cell_index_unclamped(end);
 			seed_func(
 				start_cell, end_cell - start_cell + vec3s(1, 1, 1), is_seed, velocity, density
+			);
+		}
+		// remove particles
+		template <typename Func>
+		void remove_particles(const Func& condition, const double percentage = 1.0) {
+			std::uniform_real_distribution<double> dist(0.0, 1.0);
+			_particles.erase(
+				std::remove_if(_particles.begin(), _particles.end(),
+					[&](const particle& p) {
+						return dist(random) <= percentage && condition(p.position); // 调用传入的函数条件
+					}),
+				_particles.end()
 			);
 		}
 
@@ -189,9 +205,12 @@ namespace fluid {
 		/// The function that will be called in each time step after velocities have been transferred from the grid
 		/// to the particles. The parameter is the delta time.
 		std::function<void(double)> post_grid_to_particle_transfer_callback;
+		/// The function that will be called as soon as a new time step ends. The parameter is the delta time.
+		std::function<void(double)> post_time_step_callback;
 
 		pcg32 random; ///< The random engine for the simulation.
 		std::vector<std::unique_ptr<source>> sources;
+		std::vector<std::unique_ptr<drain>> drains;
 		vec3d
 			grid_offset, ///< The offset of the grid's origin.
 			gravity; ///< The gravity.
@@ -293,5 +312,9 @@ namespace fluid {
 
 		/// Seeds all fluid sources.
 		void _update_sources();
+		/// Remove all fluid drains.
+		void _update_drains();
+
+		void _update_particle_pressures(std::vector<double> _pressure);
 	};
 }

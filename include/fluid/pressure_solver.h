@@ -27,6 +27,7 @@ namespace fluid {
 
 		/// Initializes this solver given the \ref fluid_grid.
 		explicit pressure_solver(simulation&, const std::vector<vec3s>&);
+		std::vector<double> get_full_pressure() const;
 
 		/// Solves for the pressure.
 		///
@@ -94,5 +95,8 @@ namespace fluid {
 		static void _muladd(
 			std::vector<double>&, const std::vector<double> &a, const std::vector<double> &b, double s
 		);
+
+		/// store pressures
+		std::vector<double> _pressure;
 	};
 }
