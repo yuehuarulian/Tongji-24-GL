@@ -111,7 +111,7 @@ void RenderManager::start_rendering(bool offscreen)
 
     for (int i = 0; i < frames; ++i)
     {
-        fluid_sim.wait_until_next_frame();
+        scene->wait_until_next_frame(i);
         update_camera();
         render_frame(i);
         glfwPollEvents();
@@ -125,7 +125,7 @@ void RenderManager::update_camera()
     camera->compute_matrices_from_inputs(window);
 }
 
-void RenderManager::render_frame(int frameNumber)
+void RenderManager::render_frame(int frame_number)
 {
     if (offscreen)
         glBindFramebuffer(GL_FRAMEBUFFER, msaa_fbo);
@@ -150,8 +150,8 @@ void RenderManager::render_frame(int frameNumber)
         glReadPixels(0, 0, window_width, window_height, GL_RGB, GL_UNSIGNED_BYTE, pixels.data());
 
         std::ostringstream oss;
-        oss << "./offline_rendering/frame_" << std::setw(3) << std::setfill('0') << frameNumber << ".png";
-        cout << "framenumber: " << frameNumber << endl;
+        oss << "./offline_rendering/frame_" << std::setw(3) << std::setfill('0') << frame_number << ".png";
+        cout << "frame_number: " << frame_number << endl;
         stbi_flip_vertically_on_write(true);
         stbi_write_png(oss.str().c_str(), window_width, window_height, 3, pixels.data(), window_width * 3);
     }

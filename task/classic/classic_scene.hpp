@@ -18,6 +18,8 @@ namespace GL_TASK
 
         void render(const glm::mat4 &projection, const glm::mat4 &view, glm::vec3 &camera_pos) override;
 
+        void wait_until_next_frame(int frame_number) override;
+
     private:
         std::vector<std::shared_ptr<PointCloud>> point_clouds;
         std::vector<glm::vec3> area_lights_position = {
@@ -40,7 +42,6 @@ namespace GL_TASK
             glm::vec3(0., -1., 0.),
             glm::vec3(0., -1., 0.),
         };
-        glm::mat4 room_model_matrix = glm::mat4(1.0f);
         std::vector<glm::mat4> butterfly_model_matrix_vec = {
             glm::mat4(1.0f),
             glm::mat4(1.0f),

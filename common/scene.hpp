@@ -15,6 +15,8 @@ public:
 
     virtual void render(const glm::mat4 &projection, const glm::mat4 &view, glm::vec3 &camera_pos) = 0;
 
+    virtual void wait_until_next_frame(int frame_number) {}
+
     std::vector<std::shared_ptr<RenderableModel>> models;
 
 protected:

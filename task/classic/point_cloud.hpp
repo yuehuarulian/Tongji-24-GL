@@ -16,8 +16,15 @@
 #include <memory>
 #include "shader.hpp"
 
-const float MIN_DENSITY = 0.0f;
+const float MIN_DENSITY = 0.2f;
 const float RANDOM_OFFSET = 0.0f;
+
+struct Particle
+{
+    glm::vec3 position;
+    glm::vec3 velocity;
+    glm::vec3 acceleration;
+};
 
 class PointCloud
 {
@@ -27,7 +34,8 @@ public:
     ~PointCloud();
 
     void draw(const glm::mat4 &projection = glm::mat4(1.0f), const glm::mat4 &view = glm::mat4(1.0f),
-              const glm::vec3 &viewPos = glm::vec3(0.0f), const glm::vec3 &fogColor = glm::vec3(0.0f), float fogDensity = 0.0f, bool sort_points = false);
+              const glm::vec3 &viewPos = glm::vec3(0.0f), const glm::vec3 &fogColor = glm::vec3(0.0f),
+              float fogDensity = 0.0f, bool sort_points = false, bool updata_particles = false, float deltatime = 1 / 60.0f);
 
     void set_model_matrix(glm::mat4 &model)
     {
@@ -37,10 +45,14 @@ public:
 private:
     std::shared_ptr<Shader> shader;
     std::vector<glm::vec3> points;
+    std::vector<Particle> particles;
     glm::mat4 model = glm::mat4(1.0f);
     GLuint VAO, VBO;
 
+    void update(float deltaTime = 1 / 60.0f);
     void load_vdb_data(const std::string &filename);
+    void setup_particles();
+    glm::vec3 get_velocity_from_field(const glm::vec3 &position);
     void setup_opengl();
     void sort_points_by_depth(const glm::vec3 &viewPos);
 };

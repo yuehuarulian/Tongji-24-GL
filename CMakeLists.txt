@@ -46,8 +46,8 @@ add_subdirectory(include/imgui)
 add_executable(main src/main.cpp src/glad.c  ${FLUID_LIST} ${TASK_LIST} ${CLASSIC_LIST} ${COMMON_LIST} ${IMGUI_LIST})
 target_link_libraries(main glfw3 libassimpd imgui openvdb tbb12 zlib1 blosc)
 
-# add_executable(offline_rendering src/main_offline.cpp src/glad.c ${FLUID_LIST}  ${TASK_LIST} ${CLASSIC_LIST} ${COMMON_LIST} ${IMGUI_LIST})
-# target_link_libraries(offline_rendering glfw3 libassimpd imgui openvdb tbb12 zlib1 blosc)
+add_executable(offline_rendering src/main_offline.cpp src/glad.c ${FLUID_LIST}  ${TASK_LIST} ${CLASSIC_LIST} ${COMMON_LIST} ${IMGUI_LIST})
+target_link_libraries(offline_rendering glfw3 libassimpd imgui openvdb tbb12 zlib1 blosc)
 
 # add_executable(fluid_testbed src/fluid_testbed.cpp src/glad.c ${FLUID_LIST} ${COMMON_LIST})
 # target_compile_options(fluid_testbed PRIVATE -msse2)

@@ -54,7 +54,7 @@ int main()
 
     // fluid_sim.BindMesh(&(classic_scene.models[1]->model.meshes[0])); // 绑定的1号模型的第0个mesh（水是一号）
 
-    Camera camera(window, 75 * D2R, glm::vec3(0.0f, 20.0f, 180.0f), glm::pi<float>(), 0.f, 30.0f, 1.0f);
+    Camera camera(window, 75 * D2R, glm::vec3(0.0f, -70.0f, 180.0f), glm::pi<float>(), 15. * D2R, 30.0f, 1.0f);
 
     Skybox skybox(faces, "source/shader/skybox.vs", "source/shader/skybox.fs");
 
