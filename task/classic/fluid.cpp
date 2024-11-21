@@ -18,3 +18,18 @@ void GL_TASK::Fluid::draw(const glm::mat4 &projection, const glm::mat4 &view, co
     model.Draw(*shader);
     // checkOpenGLError("After model draw");
 }
+
+void GL_TASK::Fluid::set_model_matrix(const glm::mat4 &model)
+{ 
+    model_matrix = glm::scale(model, glm::vec3(1.f, 1.f, 1.f) * (1.f / float(fluid_sim.get_scale()))); // Adjust scale
+}
+
+glm::mat4 GL_TASK::Fluid::get_model_matrix() const
+{
+    return model_matrix;
+}
+
+void GL_TASK::Fluid::wait_until_next_frame(int frame)
+{
+    fluid_sim.wait_until_next_frame(frame);
+}

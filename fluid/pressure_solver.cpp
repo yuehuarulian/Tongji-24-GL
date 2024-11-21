@@ -25,13 +25,13 @@ namespace fluid {
 		std::vector<double> precon = _compute_preconditioner();
 		double residual = 0.0;
 
-		std::vector<double> p(_fluid_cells.size(), 0.0);
+		_pressure = std::vector<double>(_fluid_cells.size(), 0.0);
 		double tot = 0.0;
 		for (double bval : b) {
 			tot += bval * bval;
 		}
 		if (tot < 1e-6) {
-			return { p, 0.0, 0 };
+			return { _pressure, 0.0, 0 };
 		}
 		std::vector<double> r = b;
 
@@ -48,7 +48,7 @@ namespace fluid {
 
 			double alpha = sigma_ps / vec_ops::dynamic::dot(z, s);
 
-			_muladd(p, p, s, alpha);
+			_muladd(_pressure, _pressure, s, alpha);
 			_muladd(r, r, z, -alpha);
 
 			residual = *std::max_element(r.begin(), r.end());
@@ -67,7 +67,7 @@ namespace fluid {
 
 			sigma_ps = sigma_new;
 		}
-		return { p, residual, i };
+		return { _pressure, residual, i };
 	}
 
 	void pressure_solver::apply_pressure(double dt, const std::vector<double> &p) const {
@@ -367,5 +367,22 @@ namespace fluid {
 		for (std::size_t i = 0; i < a.size(); ++i) {
 			out[i] = a[i] + s * b[i];
 		}
+	}
+
+	std::vector<double> pressure_solver::get_full_pressure() const {
+		// 获取网格的大小
+		vec3s grid_size = _sim.grid().grid().get_size();
+		std::size_t total_cells = grid_size.x * grid_size.y * grid_size.z;
+
+		// 初始化一个包含所有网格单元压力的向量，默认值为 0.0
+		std::vector<double> full_pressure(total_cells, 0.0);
+
+		// 填充流体单元的压力值
+		for (std::size_t i = 0; i < _fluid_cells.size(); ++i) {
+			std::size_t flat_index = _sim.grid().grid().index_to_raw(_fluid_cells[i]);
+			full_pressure[flat_index] = _pressure[i];
+		}
+
+		return full_pressure;
 	}
 }

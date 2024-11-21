@@ -5,87 +5,102 @@
 #include <vector>
 #include <thread>
 #include <string>
-#include <fluid/mesher.h>  // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-#include <fluid/simulation.h>  // ï¿½ï¿½ï¿½ï¿½Ä£ï¿½ï¿½ï¿½ï¿½Øµï¿½Í·ï¿½Ä¼ï¿½
-#include <fluid/data_structures/grid.h>  // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½İ½á¹¹
-#include <fluid/data_structures/obstacle.h>  // ï¿½ï¿½Ì¬ï¿½Ï°ï¿½ï¿½ï¿½ï¿½ï¿½
+#include <fluid/mesher.h>  // Íø¸ñÀàĞÍ
+#include <fluid/simulation.h>  // Á÷ÌåÄ£ÄâÏà¹ØµÄÍ·ÎÄ¼ş
+#include <fluid/data_structures/grid.h>  // Íø¸ñÊı¾İ½á¹¹
+#include <fluid/data_structures/obstacle.h>  // ¾²Ì¬ÕÏ°­ÎïÀà
 
-#include "fluid/load_model.h" // Ä£ï¿½ï¿½Ë¢ï¿½ï¿½
-#include "mesh.hpp" // meshï¿½ï¿½
+#include "fluid/load_model.h" // Ä£ĞÍË¢Èë
+#include "fluid/fluid_config.h"  // ²âÊÔÁ÷ÌåÅäÖÃÍ·ÎÄ¼ş
+#include "mesh.hpp" // mesh°ó¶¨
 
 namespace fluid {
     class FluidSimulator {
     public:
-        FluidSimulator(double scale = 0.2);
-        // ï¿½ï¿½mesh
+        FluidSimulator(bool def);//Ä¬ÈÏ³õÊ¼»¯
+        FluidSimulator(const std::string& config_path = "fluid_config.json");//ÅäÖÃÎÄ¼ş³õÊ¼»¯
+        // °ó¶¨mesh
         void BindMesh(Mesh* const pMesh);
-        // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í£
+        // ÖØÖÃÓëÔİÍ£
         void reset();
         void pause();
         void advance();
-        // ï¿½ï¿½ï¿½Ø²ï¿½ï¿½ï¿½
+        // ·µ»Ø²ÎÊı
+        double get_scale() const;
+        double get_time() const;
         vec3d get_grid_offset() const;
         vec3s get_grid_size() const;
         vec3d get_grid_center() const;
         double get_cell_size() const;
         vec3d get_min_corner() const;
         vec3d get_max_corner() const;
-        // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+        // ·µ»ØÊı¾İ
         std::vector<simulation::particle> get_particles();
+        std::vector<double> get_pressure();
         mesher::mesh_t get_mesh_t();
         grid3<std::size_t> get_grid_occupation();
         grid3<vec3d> get_grid_velocities();
         mesher::mesh_t get_room_mesh_t() const;
-        // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+        // µ¼³öÊı¾İ
         void save_mesh_to_obj(std::string const& path = "mesh.obj");
         void save_points_to_txt(const std::string& filepath = "points.txt");
-        // Í¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-        void wait_until_next_frame();
+        // Í¬²½º¯Êı
+        void wait_until_next_sim(int i = -1);
+        void wait_until_next_frame(int i = -1);
 
     private:
-        // ï¿½ï¿½ï¿½ï¿½Ä£ï¿½ï¿½
+        // ÅäÖÃÎÄ¼şÂ·¾¶
+        std::string _cfgfile;
+
+        // µ¼ÈëÄ£ĞÍ
+        double _scale;
         LoadModel roomModel;
 
-        // Ä£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-        vec3d sim_grid_offset;  // ï¿½ï¿½ï¿½ï¿½Æ«ï¿½ï¿½ï¿½ï¿½
-        vec3s sim_grid_size;  // ï¿½ï¿½ï¿½ï¿½ï¿½Ğ¡
-        vec3d sim_grid_center; // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-        double sim_cell_size;  // ï¿½ï¿½ï¿½ï¿½Ôªï¿½ï¿½Ğ¡
-        simulation::method sim_method; // Ä£ï¿½â·½ï¿½ï¿½
-        double sim_blending_factor;  // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-        vec3d sim_gravity;  // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-        double sim_dt; // Ê±ï¿½ä²½ï¿½ï¿½
+        // Ä£Äâ»ù±¾²ÎÊı
+        vec3d sim_grid_offset;  // Íø¸ñÆ«ÒÆÁ¿
+        vec3s sim_grid_size;  // Íø¸ñ´óĞ¡
+        vec3d sim_grid_center; // Íø¸ñÖĞĞÄ
+        double sim_cell_size;  // Íø¸ñµ¥Ôª´óĞ¡
+        simulation::method sim_method; // Ä£Äâ·½·¨
+        double sim_blending_factor;  // »ìºÏÒò×Ó
+        vec3d sim_gravity;  // ÖØÁ¦ÏòÁ¿
+        double sim_dt; // Ê±¼ä²½³¤
+        double sim_time; // Ä£ÄâÒÑ¾­½øĞĞµÄÊ±¼ä
 
-        // ï¿½ï¿½Ä£ï¿½ï¿½Ë¢ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+        // ½«Ä£ĞÍË¢ÈëÍø¸ñ
         obstacle roomObstacle;
 
-        // Ä£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ß³ï¿½
-        bool FinSignal{ false }; // ï¿½ß³ï¿½ï¿½ï¿½ï¿½ï¿½Åºï¿½
+        // Ä£ÄâºÍÍø¸ñÉú³ÉÏß³Ì
+        bool SimFinSignal{ false };
+        bool MeshFinSignal{ false };
         std::thread sim_thread;
         std::thread mesh_thread;
 
-        // meshï¿½ï¿½
+        // mesh°ó¶¨
         bool isMeshBound;
         Mesh *pMesh;
 
-        // ï¿½ï¿½ï¿½Óºï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½İ¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-        std::mutex sim_particles_lock;  // ï¿½ï¿½ï¿½ï¿½Í¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½İµÄ»ï¿½ï¿½ï¿½ï¿½ï¿½
-        std::vector<simulation::particle> sim_particles;  // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-        std::mutex sim_mesh_lock;  // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ú±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-        mesher::mesh_t sim_mesh;  // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-        grid3<std::size_t> sim_grid_occupation;  // ï¿½ï¿½ï¿½ï¿½Õ¼ï¿½ï¿½ï¿½ï¿½ï¿½
-        grid3<vec3d> sim_grid_velocities;  // ï¿½ï¿½ï¿½ï¿½ï¿½Ù¶ï¿½ï¿½ï¿½ï¿½ï¿½
-        bool sim_mesh_valid = false;  // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ğ§ï¿½Ô±ï¿½Ö¾
-        semaphore sim_mesher_sema;  // ï¿½ï¿½ï¿½Ú¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Éµï¿½ï¿½Åºï¿½ï¿½ï¿½
+        // Á£×ÓºÍÍø¸ñÊı¾İ¼ÆËã²ÎÊı
+        std::mutex sim_particles_lock;  // ÓÃÓÚÍ¬²½Á£×ÓÊı¾İµÄ»¥³âËø
+        std::vector<simulation::particle> sim_particles;  // Á£×ÓÊı¾İ
+        std::mutex sim_mesh_lock;  // »¥³âËø£¬ÓÃÓÚ±£»¤Íø¸ñÊı¾İ
+        mesher::mesh_t sim_mesh;  // Íø¸ñÊı¾İ
+        grid3<std::size_t> sim_grid_occupation;  // Íø¸ñÕ¼ÓÃÇé¿ö
+        grid3<vec3d> sim_grid_velocities;  // Íø¸ñËÙ¶ÈÊı¾İ
+        bool sim_mesh_valid = false;  // Íø¸ñÓĞĞ§ĞÔ±êÖ¾
+        semaphore sim_mesher_sema;  // ÓÃÓÚ¿ØÖÆÍø¸ñÉú³ÉµÄĞÅºÅÁ¿
 
-        // ï¿½ï¿½ï¿½ï¿½Ò»Ğ©Ô­ï¿½Ó±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ú¿ï¿½ï¿½ï¿½Ä£ï¿½ï¿½×´Ì¬
+        // ¶¨ÒåÒ»Ğ©Ô­×Ó±äÁ¿£¬ÓÃÓÚ¿ØÖÆÄ£Äâ×´Ì¬
         std::atomic_bool
-            sim_paused = false,  // ï¿½ï¿½ï¿½ï¿½Ä£ï¿½ï¿½ï¿½Ç·ï¿½ï¿½ï¿½Í£
-            sim_reset = true,   // ï¿½ï¿½ï¿½ï¿½Ä£ï¿½ï¿½ï¿½Ç·ï¿½ï¿½ï¿½ï¿½ï¿½
-            sim_advance = false;  // ï¿½ï¿½ï¿½ï¿½Ä£ï¿½ï¿½ï¿½Ç·ñµ¥²ï¿½Ç°ï¿½ï¿½
+            sim_paused = false,  // ¿ØÖÆÄ£ÄâÊÇ·ñÔİÍ£
+            sim_reset = true,   // ¿ØÖÆÄ£ÄâÊÇ·ñÖØÖÃ
+            sim_advance = false;  // ¿ØÖÆÄ£ÄâÊÇ·ñµ¥²½Ç°½ø
 
-        void update_simulation(const simulation& sim);
-        void reset_simulation(simulation& sim);
+        // ÊÇ·ñÆôÓÃÁ÷ÌåÉèÖÃÄ¬ÈÏÖµ
+        bool _default;
+
+        void update_simulation(const simulation& sim, FluidConfig& fluid_cfg);
+        void reset_simulation(FluidConfig& fluid_cfg);
         void simulation_thread();
         void mesher_thread();
         int updateBoundMesh();

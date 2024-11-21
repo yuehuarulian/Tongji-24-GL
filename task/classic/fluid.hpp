@@ -16,12 +16,12 @@ namespace GL_TASK
 
         void draw(const glm::mat4 &projection, const glm::mat4 &view, const glm::vec3 &camera_pos) override;
 
-        void set_model_matrix(const glm::mat4 &model) { model_matrix = model; }
+        void set_model_matrix(const glm::mat4 &model);
 
-        void wait_until_next_frame()
-        {
-            fluid_sim.wait_until_next_frame();
-        }
+        glm::mat4 get_model_matrix() const;
+
+        void wait_until_next_frame(int frame = -1);
+
         fluid::FluidSimulator fluid_sim;
 
     private:

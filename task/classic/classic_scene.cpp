@@ -7,8 +7,8 @@
 
 namespace GL_TASK
 {
-    ClassicScene::ClassicScene(ShaderManager &shader_manager, LightManager &light_manager, float precision)
-        : Scene(shader_manager, light_manager), precision(precision)
+    ClassicScene::ClassicScene(ShaderManager &shader_manager, LightManager &light_manager)
+        : Scene(shader_manager, light_manager)
     {
         setup_scene();
     }
@@ -46,16 +46,16 @@ namespace GL_TASK
         // Liquid model
         auto liquid_shader = shader_manager.get_shader("liquid_shader");
         light_manager.apply_lights(liquid_shader);
-        glm::mat4 liquid_model_matrix = glm::scale(room_model_matrix, glm::vec3(1.f, 1.f, 1.f) * (1.f / precision)); // Adjust scale
+        //glm::mat4 liquid_model_matrix = glm::scale(room_model_matrix, glm::vec3(1.f, 1.f, 1.f) * (1.f / precision)); // Adjust scale
         auto liquid_model = std::make_shared<Fluid>("source/model/fluid/mesh.obj", liquid_shader, true);
-        liquid_model->set_model_matrix(liquid_model_matrix);
+        liquid_model->set_model_matrix(room_model_matrix);
         models.push_back(liquid_model);
 
         // 加载船模型
         auto boat_shader = shader_manager.get_shader("boat_shader");
         light_manager.apply_lights(boat_shader);
         boatInstance = std::make_shared<Boat>("source/model/boat/boat_obj.obj", boat_shader, true);
-        glm::mat4 boat_model_matrix = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 5.0f, 0.0f));
+        glm::mat4 boat_model_matrix = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -88.0f, 0.0f));
         boat_model_matrix = glm::scale(boat_model_matrix, glm::vec3(5.f));
         boatInstance->set_model_matrix(boat_model_matrix);
         models.push_back(boatInstance);
@@ -74,7 +74,7 @@ namespace GL_TASK
         fluidInstance->wait_until_next_frame();
 
         // 在物理更新之前应用浮力和阻力
-        applyFluidForces(boatInstance->getRigidBody(), fluidInstance);
+        applyFluidForces(boatInstance, fluidInstance);
 
         float deltaTime = calculateRenderTime(); // 计算渲染时间（单位：秒）
         printf("deltaTime: %f\n", deltaTime);

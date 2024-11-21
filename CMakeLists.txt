@@ -3,7 +3,6 @@ cmake_minimum_required(VERSION 3.5)
 #set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 project(BIGWORK)
-project(BIGWORK)
 
 include_directories(${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/task/classic ${PROJECT_SOURCE_DIR}/task ${PROJECT_SOURCE_DIR}/common)
 include_directories(${PROJECT_SOURCE_DIR}/openvdb_include)
@@ -43,7 +42,7 @@ file(GLOB_RECURSE FLUID_LIST "fluid/*.cpp")
 
 add_subdirectory(include/imgui)
 
-add_executable(main src/main.cpp src/glad.c  ${FLUID_LIST} ${TASK_LIST} ${CLASSIC_LIST} ${COMMON_LIST} ${IMGUI_LIST})
+add_executable(main src/main.cpp src/glad.c ${FLUID_LIST} ${TASK_LIST} ${CLASSIC_LIST} ${COMMON_LIST} ${IMGUI_LIST})
 target_link_libraries(main glfw3 libassimpd imgui openvdb tbb12 zlib1 blosc
 BulletDynamics   # Bullet 动力学
 BulletCollision  # Bullet 碰撞检测
@@ -59,8 +58,14 @@ Bullet3Common    # Bullet 通用库
 # target_compile_options(fluid_testbed PRIVATE -msse2)
 # target_link_libraries(fluid_testbed glfw3 libassimpd opengl32 glu32)
 
-# add_executable(fluid_test src/fluid_test.cpp src/glad.c ${FLUID_LIST} ${TASK_LIST} ${CLASSIC_LIST} ${COMMON_LIST} ${IMGUI_LIST})
-# target_link_libraries(fluid_test glfw3 libassimpd imgui openvdb tbb12 zlib1 blosc)
+add_executable(fluid_test src/fluid_test.cpp src/glad.c ${FLUID_LIST} ${TASK_LIST} ${CLASSIC_LIST} ${COMMON_LIST} ${IMGUI_LIST})
+target_link_libraries(fluid_test glfw3 libassimpd imgui openvdb tbb12 zlib1 blosc
+BulletDynamics   # Bullet 动力学
+BulletCollision  # Bullet 碰撞检测
+LinearMath       # Bullet 线性代数数学支持
+BulletSoftBody   # Bullet 软体支持
+Bullet3Common    # Bullet 通用库
+)
 
 # add_executable(imgui_test src/imgui_test.cpp src/glad.c ${COMMON_LIST} ${IMGUI_LIST})
 # target_link_libraries(imgui_test glfw3 libassimpd imgui)

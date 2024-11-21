@@ -15,7 +15,7 @@ namespace GL_TASK
     class ClassicScene : public Scene
     {
     public:
-        ClassicScene(ShaderManager &shader_manager, LightManager &light_manager, float precision = 0.2);
+        ClassicScene(ShaderManager &shader_manager, LightManager &light_manager);
         ~ClassicScene();
 
         void render(const glm::mat4 &projection, const glm::mat4 &view, glm::vec3 &camera_pos) override;
@@ -43,8 +43,6 @@ namespace GL_TASK
             glm::vec3(0., -1., 0.),
             glm::vec3(0., -1., 0.),
         };
-
-        float precision;
 
         btDiscreteDynamicsWorld *dynamicsWorld;
         std::shared_ptr<Boat> boatInstance;
