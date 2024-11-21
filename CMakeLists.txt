@@ -65,6 +65,6 @@ target_link_libraries(main glfw3 libassimpd imgui openvdb tbb12 zlib1 blosc)
 # add_executable(keyframe_test src/keyframe_test.cpp src/glad.c ${TASK_LIST} ${CLASSIC_LIST} ${COMMON_LIST} ${IMGUI_LIST})
 # target_link_libraries(keyframe_test glfw3 libassimpd imgui openvdb tbb12 zlib1 blosc)
 
-add_executable(bullet_test src/bullet_test.cpp src/glad.c ${COMMON_LIST} ${IMGUI_LIST})
-target_link_libraries(bullet_test glfw3 libassimpd imgui openvdb  zlib1 blosc BulletDynamics BulletCollision LinearMath BulletSoftBody Bullet3Common Bullet3Geometry)
+# add_executable(bullet_test src/bullet_test.cpp src/glad.c ${COMMON_LIST} ${IMGUI_LIST})
+# target_link_libraries(bullet_test glfw3 libassimpd imgui openvdb  zlib1 blosc BulletDynamics BulletCollision LinearMath BulletSoftBody Bullet3Common Bullet3Geometry)
 

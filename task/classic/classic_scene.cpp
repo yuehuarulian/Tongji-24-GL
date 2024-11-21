@@ -37,16 +37,16 @@ namespace GL_TASK
 
         // 调试在线渲染请注释掉水模型，否则会非常卡
         // Liquid model
-        auto liquid_shader = shader_manager.get_shader("liquid_shader");
-        light_manager.apply_lights(liquid_shader);
-        glm::mat4 liquid_model_matrix = glm::scale(room_model_matrix, glm::vec3(1.f, 1.f, 1.f) * (1.f / precision)); // Adjust scale
-        auto liquid_model = std::make_shared<Room>("source/model/fluid/mesh.obj", liquid_shader, true);
-        liquid_model->set_model_matrix(liquid_model_matrix);
-        models.push_back(liquid_model);
+        // auto liquid_shader = shader_manager.get_shader("liquid_shader");
+        // light_manager.apply_lights(liquid_shader);
+        // glm::mat4 liquid_model_matrix = glm::scale(room_model_matrix, glm::vec3(1.f, 1.f, 1.f) * (1.f / precision)); // Adjust scale
+        // auto liquid_model = std::make_shared<Room>("source/model/fluid/mesh.obj", liquid_shader, true);
+        // liquid_model->set_model_matrix(liquid_model_matrix);
+        // models.push_back(liquid_model);
 
         // 点云
         auto cloud_shader1 = shader_manager.get_shader("cloud");
-        auto point_cloud1 = std::make_shared<PointCloud>("source/model/point_cloud/Cloud_01.vdb", cloud_shader1);
+        auto point_cloud1 = std::make_shared<PointCloud>("source/model/point_cloud/Cumulonimbus_11.vdb", cloud_shader1);
         glm::mat4 model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(0.0f, 30.0f, -30.0f));
         model = glm::scale(model, glm::vec3(0.3f));
@@ -54,7 +54,7 @@ namespace GL_TASK
         point_clouds.push_back(point_cloud1);
 
         auto cloud_shader2 = shader_manager.get_shader("cloud");
-        auto point_cloud2 = std::make_shared<PointCloud>("source/model/point_cloud/Cloud_03.vdb", cloud_shader2);
+        auto point_cloud2 = std::make_shared<PointCloud>("source/model/point_cloud/Cumulonimbus_14.vdb", cloud_shader2);
         model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(-80.0f, 40.0f, -110.0f));
         model = glm::scale(model, glm::vec3(0.4f));
