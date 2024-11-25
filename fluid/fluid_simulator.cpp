@@ -22,7 +22,7 @@ FluidSimulator::FluidSimulator(bool def) :
 	sim_cell_size(1.0), // ����Ԫ��С
 	sim_method(fluid::simulation::method::apic), // ʹ��apicģ��
 	sim_blending_factor(1.0),  // �������
-	sim_gravity(vec3d(-981.0, 0.0, 0.0)),  // ��������
+	sim_gravity(vec3d(-981.0, 0.0, 0.0) * _scale),  // ��������
 	sim_dt(1 / 60.0), // ʱ�䲽��
 	sim_time(0.0), // ��ʱ��0��ʼģ��
 	// ��mesh
@@ -52,9 +52,9 @@ FluidSimulator::FluidSimulator(const std::string& config_path) :
 	std::string model_path = config["model_path"];
 	_scale = config.value("scale", 1.0);
 	vec3d model_offset = vec3d(
-		config["model_offset"][0],
-		config["model_offset"][1],
-		config["model_offset"][2]
+		config["model_offset"][0].get<double>() * _scale,
+		config["model_offset"][1].get<double>() * _scale,
+		config["model_offset"][2].get<double>() * _scale
 	);
 	roomModel = LoadModel(model_path, _scale, model_offset); // ���뷿��ģ��
 	sim_grid_offset = roomModel.get_offset() - vec3d(1.0, 1.0, 1.0);  // ����ƫ����
@@ -68,9 +68,9 @@ FluidSimulator::FluidSimulator(const std::string& config_path) :
 					fluid::simulation::method::apic))); // ʹ��apicģ��
 	sim_blending_factor = config.value("sim_blending_factor", 1.0);  // �������
 	sim_gravity = vec3d(
-		config["sim_gravity"][0],
-		config["sim_gravity"][1],
-		config["sim_gravity"][2]
+		config["sim_gravity"][0].get<double>() * _scale,
+		config["sim_gravity"][1].get<double>() * _scale,
+		config["sim_gravity"][2].get<double>() * _scale
 	);  // ��������
 	sim_dt = config.value("sim_dt", 1.0 / 60.0); // ʱ�䲽��
 	sim_time = config.value("sim_time", 0.0); // ��ʱ��0��ʼģ��
@@ -181,6 +181,8 @@ void FluidSimulator::simulation_thread() {
 		// ��ʶ����Դ�뾮����
 		[&](vec3s pos) {return roomObstacle.is_cell_inside(pos); },
 		// ��ʶ�����Ե����
+		[&](vec3d pos) {return roomObstacle.is_cell_on_surface(pos); },
+		// ��ʶ�����Ե����
 		[&](vec3s pos) {return roomObstacle.is_cell_on_surface(pos); },
 		// �����ļ�·��
 		_cfgfile
@@ -254,8 +256,8 @@ int FluidSimulator::updateBoundMesh() {
 		return -1;
 	}
 
-	std::cout << "FluidSimulator:: update mesh." << endl;
-	std::cout << "	Before: " << pMesh->vertices.size() << " vertices and " << pMesh->indices.size() << " indices." << endl;
+	//std::cout << "FluidSimulator:: update mesh." << endl;
+	//std::cout << "	Before: " << pMesh->vertices.size() << " vertices and " << pMesh->indices.size() << " indices." << endl;
 	// ��վɵĶ������������
 	pMesh->vertices.clear();
 	pMesh->indices.clear();
@@ -312,8 +314,8 @@ int FluidSimulator::updateBoundMesh() {
 
 	// ���� setupMesh ���� VAO/VBO/EBO
 	pMesh->updateMesh();
-	std::cout << "	After: " << pMesh->vertices.size() << " vertices and " << pMesh->indices.size() << " indices." << endl;
-	std::cout << "FluidSimulator:: update mesh." << endl;
+	//std::cout << "	After: " << pMesh->vertices.size() << " vertices and " << pMesh->indices.size() << " indices." << endl;
+	//std::cout << "FluidSimulator:: update mesh." << endl;
 	return 0;
 }
 

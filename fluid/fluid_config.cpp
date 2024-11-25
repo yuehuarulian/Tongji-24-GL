@@ -1,19 +1,20 @@
-#include <iostream>  // ÒýÈë±ê×¼ÊäÈëÊä³ö¿â
-#include <fstream>   // ÒýÈëÎÄ¼þÁ÷¿â
+#include <iostream>  // ï¿½ï¿½ï¿½ï¿½ï¿½×¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+#include <fstream>   // ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½ï¿½
 #include <cmath>
-#include <nlohmann/json.hpp> // ÒýÈëÅäÖÃÎÄ¼þ¿â
+#include <nlohmann/json.hpp> // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½
 
-#include "fluid/fluid_config.h"  // ²âÊÔÁ÷ÌåÅäÖÃÍ·ÎÄ¼þ
+#include "fluid/fluid_config.h"  // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í·ï¿½Ä¼ï¿½
 
-// ¶¨Òå³£Á¿
+// ï¿½ï¿½ï¿½å³£ï¿½ï¿½
 constexpr double PI = 3.141592653589793;
 using namespace fluid;
 
-// ¹¹½¨º¯Êý£º³õÊ¼»¯²ÎÊý
-FluidConfig::FluidConfig(fluid::simulation& simulation, const double scale, const std::function<bool(const vec3d&)>& basin, const std::function<bool(const vec3s&)>& buoy, const std::function<bool(const vec3s&)>& bathtub, const std::string& config_path)
+// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+FluidConfig::FluidConfig(fluid::simulation& simulation, const double scale, const std::function<bool(const vec3d&)>& basin, const std::function<bool(const vec3s&)>& buoy, const std::function<bool(const vec3d&)>& batht, const std::function<bool(const vec3s&)>& bathtub, const std::string& config_path)
     : _sim(simulation), _scale(scale),
 	_basin(basin ? basin : [](const vec3d&) { return false; }), 
 	_buoy(buoy ? buoy : [](const vec3s&) { return false; }),
+	_batht(batht ? batht : [](const vec3d&) { return false; }),
 	_bathtub(bathtub ? bathtub : [](const vec3s&) { return false; }),
     grid_offset(_sim.grid_offset),
 	grid_size(_sim.grid().grid().get_size()),
@@ -47,7 +48,7 @@ void FluidConfig::init_cfg() {
 		_wave_amplitude = 3;
 		return;
 	}
-	// ¼ÓÔØÅäÖÃÎÄ¼þ
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½
 	nlohmann::json config;
 	std::ifstream config_file(_cfgfile);
 	if (!config_file.is_open()) {
@@ -56,29 +57,29 @@ void FluidConfig::init_cfg() {
 	config_file >> config;
 	std::cout << "Init fluid configer by cfg_file: " << _cfgfile << std::endl;
 
-	// ´ÓÅäÖÃÎÄ¼þ¶ÁÈ¡²ÎÊý
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½È¡ï¿½ï¿½ï¿½ï¿½
 	_water_level = config.value("water_level", 0.35);
 	_wave_amplitude = config.value("wave_amplitude", 3);
 	
-	// ³õÊ¼»¯²¨ÎÆ
+	// ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	initialize_waves();
 }
 
-// ÖØÖÃÁ÷Ìå»·¾³
+// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½å»·ï¿½ï¿½
 void FluidConfig::clear() {
-    _sim.particles().clear();  // Çå¿ÕÁ£×Ó
-	// ÖØÖÃ¹ÌÌåµ¥Ôª
+    _sim.particles().clear();  // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	// ï¿½ï¿½ï¿½Ã¹ï¿½ï¿½åµ¥Ôª
 	_sim.grid().grid().for_each(
 		[](vec3s, fluid::mac_grid::cell& cell) {
-			cell.cell_type = fluid::mac_grid::cell::type::air;  // ½«ËùÓÐµ¥ÔªÉèÎª¿ÕÆø
+			cell.cell_type = fluid::mac_grid::cell::type::air;  // ï¿½ï¿½ï¿½ï¿½ï¿½Ðµï¿½Ôªï¿½ï¿½Îªï¿½ï¿½ï¿½ï¿½
 		}
 	);
-	// ÉèÖÃÍâ²¿±ß½çÎª¹ÌÌå
+	// ï¿½ï¿½ï¿½ï¿½ï¿½â²¿ï¿½ß½ï¿½Îªï¿½ï¿½ï¿½ï¿½
 	std::cout << "Seting solid cells..." << std::endl;
 	std::cout << "  Grid size: (" << grid_size.x << ", " << grid_size.y << ", " << grid_size.z << ")" << std::endl;
 	unsigned int total_cells = static_cast<unsigned int>(grid_size.x * grid_size.y * grid_size.z);
-	unsigned int solid_cells = 0;
-	// ³õÊ¼»¯×îÐ¡ÖµÎªÒ»¸öºÜ´óµÄÊý£¬×î´óÖµÎªÒ»¸öºÜÐ¡µÄÊý
+	unsigned int solid_cells = 0, inner_cells = 0;
+	// ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½ï¿½Ð¡ÖµÎªÒ»ï¿½ï¿½ï¿½Ü´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÖµÎªÒ»ï¿½ï¿½ï¿½ï¿½Ð¡ï¿½ï¿½ï¿½ï¿½
 	_sim.grid().grid().for_each(
 		[&](vec3s cell, fluid::mac_grid::cell& c) {
 			if (_bathtub(cell)) {
@@ -86,30 +87,36 @@ void FluidConfig::clear() {
 				++solid_cells;
 				//std::cout << "solid cell " << solid_cells << " :(" << cell.x << ' ' << cell.y << ' ' << cell.z << ')' << std::endl
 			}
+			if (_buoy(cell)) {
+				++inner_cells;
+				//std::cout << "solid cell " << solid_cells << " :(" << cell.x << ' ' << cell.y << ' ' << cell.z << ')' << std::endl
+			}
 		});
-	std::cout << "  solid cells: " << solid_cells << " in " << total_cells << "." << std::endl;
-	// ÖØÖÃÁ÷ÌåÔ´ºÍÁ÷Ìå¾®
+	std::cout << "  solid cells: " << solid_cells << " inner cells: " << inner_cells << " in " << total_cells << "." << std::endl;
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô´ï¿½ï¿½ï¿½ï¿½ï¿½å¾®
 	_sim.sources.clear();
 	_sim.drains.clear();
 }
 
-// Ìî³äÄÚ²¿ÇøÓò
+// ï¿½ï¿½ï¿½ï¿½Ú²ï¿½ï¿½ï¿½ï¿½ï¿½
 void FluidConfig::fill_basin() {
 	_sim.seed_area(grid_offset, vec3d(grid_size),
 		[&](vec3d pos) {
 			return
-				pos.x <= grid_offset.x + double(grid_size.x) * _water_level + _wave_amplitude * _scale * simulate_pond_wave(pos.y, pos.z, 0.0) &&
-				_basin(pos);
+				_basin(pos) && // ï¿½Ð¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ú·ï¿½ï¿½ï¿½ï¿½Ú²ï¿½
+				//!_batht(pos) && // ï¿½Ð¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ú·ï¿½ï¿½ï¿½ï¿½Ôµ
+				// È·ï¿½ï¿½Ë®ï¿½ï¿½ß¶ï¿½
+				pos.x <= grid_offset.x + double(grid_size.x) * _water_level + _wave_amplitude * _scale * simulate_pond_wave(pos.y, pos.z, 0.0);
 		},
 		vec3d(0.0, 0.0, 0.0)
 	);
-	// É¾³ýÁ£×Ó
+	// É¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	/*_sim.remove_particles([&](const vec3d& pos) {
 		return (pos.y - grid_center.y) * (pos.y - grid_center.y) + (pos.z - grid_center.z) * (pos.z - grid_center.z) <= grid_size.z * grid_size.z / 16;
 		}, 1.0);*/
 }
 
-// ´´½¨Á÷ÌåÔ´²¢ÉèÖÃËÙ¶ÈºÍÎ»ÖÃ
+// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ù¶Èºï¿½Î»ï¿½ï¿½
 void FluidConfig::set_sources() {
 	return;
 
@@ -138,16 +145,16 @@ void FluidConfig::set_sources() {
 		for (std::size_t x = grid_size.x / 2 - grid_size.x / 20; x < grid_size.x / 2 + grid_size.x / 20; ++x) {
 			for (std::size_t z = grid_size.z / 2 - grid_size.x / 20; z < grid_size.z / 2 + grid_size.x / 20; ++z) {
 				if (_buoy(vec3s(x, y, z)))
-					source->cells.emplace_back(x, y, z);  // Ìí¼ÓÁ÷ÌåÔ´µÄµ¥ÔªÎ»ÖÃ
+					source->cells.emplace_back(x, y, z);  // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô´ï¿½Äµï¿½ÔªÎ»ï¿½ï¿½
 			}
 		}
 	}
-	source->velocity = vec3d(0.0, 200.0, 0.0);  // ÉèÖÃÔ´µÄËÙ¶È
-	source->coerce_velocity = true;  // Ç¿ÖÆÁ÷ÌåÔ´µÄËÙ¶È
-	_sim.sources.emplace_back(std::move(source));  // ½«Ô´Ìí¼Óµ½Ä£ÄâÖÐ
+	source->velocity = vec3d(0.0, 200.0, 0.0);  // ï¿½ï¿½ï¿½ï¿½Ô´ï¿½ï¿½ï¿½Ù¶ï¿½
+	source->coerce_velocity = true;  // Ç¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô´ï¿½ï¿½ï¿½Ù¶ï¿½
+	_sim.sources.emplace_back(std::move(source));  // ï¿½ï¿½Ô´ï¿½ï¿½ï¿½Óµï¿½Ä£ï¿½ï¿½ï¿½ï¿½
 }
 
-// ´´½¨Á÷Ìå¾®
+// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½å¾®
 void FluidConfig::set_drains() {
 	return;
 
@@ -156,29 +163,29 @@ void FluidConfig::set_drains() {
 		for (std::size_t x = grid_size.x / 2 - grid_size.x / 20; x < grid_size.x / 2 + grid_size.x / 20; ++x) {
 			for (std::size_t z = grid_size.z / 2 - grid_size.x / 20; z < grid_size.z / 2 + grid_size.x / 20; ++z) {
 				if (_buoy(vec3s(x, y, z)))
-					drain->cells.emplace_back(x, y, z);  // Ìí¼ÓÁ÷ÌåÔ´µÄµ¥ÔªÎ»ÖÃ
+					drain->cells.emplace_back(x, y, z);  // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô´ï¿½Äµï¿½ÔªÎ»ï¿½ï¿½
 			}
 		}
 	}
 	drain->percentage = 0.5;
-	_sim.drains.emplace_back(std::move(drain));  // ½«¾®Ìí¼Óµ½Ä£ÄâÖÐ
+	_sim.drains.emplace_back(std::move(drain));  // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Óµï¿½Ä£ï¿½ï¿½ï¿½ï¿½
 }
 
-// Ä£Äâ²¨¶¯º¯Êý
+// Ä£ï¿½â²¨ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 double FluidConfig::simulate_pond_wave(double x, double y, double time) {
 	double height = 0.0;
 
-	// µþ¼ÓÃ¿¸ö²¨µÄÐ§¹û
+	// ï¿½ï¿½ï¿½ï¿½Ã¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð§ï¿½ï¿½
 	for (const auto& wave : waves) {
 		double wave_component = wave.amplitude *
 			sin(2 * PI * wave.frequency * (x * wave.direction_x + y * wave.direction_y) - wave.phase * time);
 		height += wave_component;
 	}
 
-	// ÒýÈëÔëÉùÄ£ÄâÎ¢Ð¡ÈÅ¶¯
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä£ï¿½ï¿½Î¢Ð¡ï¿½Å¶ï¿½
 	double noise = random_double(-0.05, 0.05);
 
-	// Ó¦ÓÃ×èÄáÏµÊý
+	// Ó¦ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ïµï¿½ï¿½
 	height *= pow(damping, time);
 
 	return height + noise;
@@ -197,17 +204,17 @@ void FluidConfig::initialize_waves() {
 
 	std::cout << "Generated wave parameters:\n";
 
-	for (int i = 0; i < 5; ++i) { // Éú³É 5 ¸ö²¨
+	for (int i = 0; i < 5; ++i) { // ï¿½ï¿½ï¿½ï¿½ 5 ï¿½ï¿½ï¿½ï¿½
 		Wave wave = {
-			amplitude_dist(generator), // Ëæ»ú·ù¶È
-			frequency_dist(generator), // Ëæ»úÆµÂÊ
-			phase_dist(generator),     // Ëæ»úÏàÎ»
-			direction_dist(generator), // Ëæ»ú·½Ïò (x)
-			direction_dist(generator)  // Ëæ»ú·½Ïò (y)
+			amplitude_dist(generator), // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+			frequency_dist(generator), // ï¿½ï¿½ï¿½Æµï¿½ï¿½
+			phase_dist(generator),     // ï¿½ï¿½ï¿½ï¿½ï¿½Î»
+			direction_dist(generator), // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ (x)
+			direction_dist(generator)  // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ (y)
 		};
 		waves.push_back(wave);
 
-		// ´òÓ¡²¨µÄ²ÎÊý
+		// ï¿½ï¿½Ó¡ï¿½ï¿½ï¿½Ä²ï¿½ï¿½ï¿½
 		std::cout << "  Wave " << i + 1 << ": "
 			<< "Amplitude = " << wave.amplitude
 			<< ", Frequency = " << wave.frequency

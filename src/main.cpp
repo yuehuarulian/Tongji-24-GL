@@ -50,7 +50,7 @@ int main()
 
     GL_TASK::ClassicScene classic_scene(shader_manager, light_manager); // 调试在线渲染请注释掉水模型，否则会非常卡
 
-    Camera camera(window, 75 * D2R, glm::vec3(0.0f, 20.0f, 180.0f), glm::pi<float>(), 0.f, 30.0f, 1.0f);
+    Camera camera(window, 75 * D2R, glm::vec3(0.0f, -80.0f, 40.0f), glm::pi<float>(), 0.f, 30.0f, 1.0f);
 
     Skybox skybox(faces, "source/shader/skybox.vs", "source/shader/skybox.fs");
 

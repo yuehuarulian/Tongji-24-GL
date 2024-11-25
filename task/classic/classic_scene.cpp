@@ -42,11 +42,12 @@ namespace GL_TASK
         room_model->set_model_matrix(room_model_matrix);
         room_model->getBoundingBox(room_min, room_max);
         models.push_back(room_model);
+        //room_min = glm::vec3(-196.531967, -179.108017, -84.000000);
+        //room_max = glm::vec3(139.669357, 221.026184, 80.000000);
 
         // Liquid model
         auto liquid_shader = shader_manager.get_shader("liquid_shader");
         light_manager.apply_lights(liquid_shader);
-        //glm::mat4 liquid_model_matrix = glm::scale(room_model_matrix, glm::vec3(1.f, 1.f, 1.f) * (1.f / precision)); // Adjust scale
         auto liquid_model = std::make_shared<Fluid>("source/model/fluid/mesh.obj", liquid_shader, true);
         liquid_model->set_model_matrix(room_model_matrix);
         models.push_back(liquid_model);
@@ -55,19 +56,19 @@ namespace GL_TASK
         auto boat_shader = shader_manager.get_shader("boat_shader");
         light_manager.apply_lights(boat_shader);
         boatInstance = std::make_shared<Boat>("source/model/boat/boat_obj.obj", boat_shader, true);
-        glm::mat4 boat_model_matrix = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -88.0f, 0.0f));
+        glm::mat4 boat_model_matrix = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f));
         boat_model_matrix = glm::scale(boat_model_matrix, glm::vec3(5.f));
         boatInstance->set_model_matrix(boat_model_matrix);
         models.push_back(boatInstance);
 
         // 初始化 Bullet 物理引擎
-        dynamicsWorld = initBullet(boatInstance.get(), room_min, room_max, glm::vec3(0.0f, 0.0f, 0.0f));
-        printf("room_min: %f %f %f\n", room_min.x, room_min.y, room_min.z);
+        dynamicsWorld = initBullet(boatInstance.get(), room_min, room_max, glm::vec3(0.0f, -77.0f, 0.0f));
+        //printf("room_min: %f %f %f\n", room_min.x, room_min.y, room_min.z);
     }
 
     void ClassicScene::render(const glm::mat4 &projection, const glm::mat4 &view, glm::vec3 &camera_pos)
     {
-        auto fluidInstance = std::dynamic_pointer_cast<Fluid>(models[1]);
+        auto fluidInstance = std::dynamic_pointer_cast<Fluid>(models[1]);//0仅用于debug，注意修改！！！
         if (!fluidInstance)
             throw std::runtime_error("models[1] is not a Fluid instance.");
 
@@ -76,19 +77,19 @@ namespace GL_TASK
         // 在物理更新之前应用浮力和阻力
         applyFluidForces(boatInstance, fluidInstance);
 
-        float deltaTime = calculateRenderTime(); // 计算渲染时间（单位：秒）
-        printf("deltaTime: %f\n", deltaTime);
-        dynamicsWorld->stepSimulation(deltaTime, 10); // 更新物理状态
+        //float deltaTime = calculateRenderTime(); // 计算渲染时间（单位：秒）
+        //printf("deltaTime: %f\n", deltaTime);
+        //dynamicsWorld->stepSimulation(deltaTime, 10); // 更新物理状态
 
-        dynamicsWorld->stepSimulation(1.0f / 60.0f, 10); // 更新物理引擎状态
+        float deltaTime = 1.0f / 60.0f;
+        dynamicsWorld->stepSimulation(deltaTime, 10); // 更新物理引擎状态
         // 获取船的刚体状态并更新模型矩阵
-        btTransform boatTransform;
-        boatInstance->getRigidBody()->getMotionState()->getWorldTransform(boatTransform);
-        glm::mat4 boat_model_matrix = glm::mat4(1.0f);
-        boatTransform.getOpenGLMatrix(glm::value_ptr(boat_model_matrix));
-        boat_model_matrix = boatInstance->get_model_matrix() * boat_model_matrix;
-        boatInstance->set_model_matrix(boat_model_matrix);
+        glm::mat4 boat_model_matrix = boatInstance->get_calculated_model_matrix();
         printf("boat position: %f %f %f\n", boat_model_matrix[3][0], boat_model_matrix[3][1], boat_model_matrix[3][2]);
+        btVector3 linearVelocity = boatInstance->getRigidBody()->getLinearVelocity();
+        printf("boat linear velocity: %f %f %f\n", linearVelocity.getX(), linearVelocity.getY(), linearVelocity.getZ());
+        btVector3 angularVelocity = boatInstance->getRigidBody()->getAngularVelocity();
+        printf("boat angular velocity: %f %f %f\n", angularVelocity.getX(), angularVelocity.getY(), angularVelocity.getZ());
 
         // // 获取房间边界信息并限制船的位置在房间内部
         // glm::vec3 roomMin, roomMax;

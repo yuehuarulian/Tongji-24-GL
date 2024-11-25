@@ -38,7 +38,7 @@ btDiscreteDynamicsWorld *initBullet(GL_TASK::Boat *boatInstance, const glm::vec3
     // **移除地面创建的代码部分** - 这里不需要地面
 
     // Create boat
-    btCollisionShape *boatShape = new btBoxShape(btVector3(0.5f, 0.5f, 0.5f));
+    btCollisionShape *boatShape = new btBoxShape(btVector3(8.0f, 8.0f, 8.0f));
 
     // 确保船的初始位置在房间内
     glm::vec3 boatStartPosition = glm::clamp(boat_start_position, room_min, room_max); // 将初始位置限制在房间范围内
@@ -118,17 +118,26 @@ void applyFluidForces(std::shared_ptr<GL_TASK::Boat> boat, std::shared_ptr<GL_TA
         return;
 
     // 获取船的世界变换
-    //btTransform trans;
-    //boatBody->getRigidBody()->getMotionState()->getWorldTransform(trans);
-    //btVector3 position = trans.getOrigin();
-    glm::mat4 boat_model_matrix = boat->get_model_matrix();
+    btTransform boatTransform;
+    boat->getRigidBody()->getMotionState()->getWorldTransform(boatTransform);
+    btVector3 boatCenter = boatTransform.getOrigin();
+    printf("boatCenter: %f %f %f\n", boatCenter.getX(), boatCenter.getY(), boatCenter.getZ());
+    // 获取船测世界坐标
+    glm::mat4 boat_model_matrix = boat->get_calculated_model_matrix();
     btVector3 boatPos = btVector3(boat_model_matrix[3][0], boat_model_matrix[3][1], boat_model_matrix[3][2]);
+    printf("boatPos: %f %f %f\n", boatPos.getX(), boatPos.getY(), boatPos.getZ());
+    btVector3 boatHalfExtents = static_cast<btBoxShape*>(boat->getRigidBody()->getCollisionShape())->getHalfExtentsWithMargin();
+    //printf("boatHalfExtents: %f %f %f\n", boatHalfExtents.getX(), boatHalfExtents.getY(), boatHalfExtents.getZ());
+    // 获取船体的 AABB 范围
+    btVector3 minBounds = boatPos - boatHalfExtents;
+    btVector3 maxBounds = boatPos + boatHalfExtents;
 
     // 获取流体粒子
     double p_scale = fluid->fluid_sim.get_scale();
     glm::mat4 fluid_model_matrix = fluid->get_model_matrix();
     std::vector<fluid::simulation::particle> particles = fluid->fluid_sim.get_particles();
 
+    // 初始化浮力
     btVector3 totalForce(0, 0, 0);
     btVector3 totalTorque(0, 0, 0);
 
@@ -136,6 +145,11 @@ void applyFluidForces(std::shared_ptr<GL_TASK::Boat> boat, std::shared_ptr<GL_TA
     {
         // 获取粒子位置和速度
         btVector3 particlePos = transformPosition(particle.position, fluid_model_matrix);
+        if (particlePos.getX() < minBounds.getX() || particlePos.getX() > maxBounds.getX() ||
+            particlePos.getY() < minBounds.getY() || particlePos.getY() > maxBounds.getY() ||
+            particlePos.getZ() < minBounds.getZ() || particlePos.getZ() > maxBounds.getZ()) { // 排除无关粒子
+            continue;
+        }
         btVector3 particleVel = transformVelocity(particle.velocity, fluid_model_matrix);
         //printf("particlePos: %f %f %f\n", particlePos.getX(), bparticlePos.getY(), particlePos.getZ());
         // 计算粒子压力
@@ -146,40 +160,33 @@ void applyFluidForces(std::shared_ptr<GL_TASK::Boat> boat, std::shared_ptr<GL_TA
         pressure = particle.pressure;
 
         // 计算浮力，划分区域
-        double radius = 10;
-        float submergedDepth = 0.0f;
-        if ((particlePos.getY() - boatPos.getY()) < 5.0f &&
-            (particlePos.getX() - boatPos.getX()) * (particlePos.getX() - boatPos.getX()) +
-            (particlePos.getZ() - boatPos.getZ()) * (particlePos.getZ() - boatPos.getZ()) < 
-            radius * radius) {
-            //printf("postion: %f vs %f\n", particlePos.getY(), boatPos.getY());
-            submergedDepth = std::max(0.0f, float(particlePos.getY() - boatPos.getY())); }
-        btVector3 buoyancyForce(0, pressure * submergedDepth / 1000, 0);
+        float submergedDepth = std::max(0.0f, float(particlePos.getY() - minBounds.getY())); //minBounds.getY()
+        btVector3 buoyancyForce(0, pressure * submergedDepth / 100.0, 0);
         if (submergedDepth > 0) {
-            printf("postion: %f vs %f\n", particlePos.getY(), boatPos.getY());
-            printf("pressure: %f submergedDepth: %f\n", pressure, submergedDepth);
-            printf("buoyancyForce: %f %f %f\n", buoyancyForce.getX(), buoyancyForce.getY(), buoyancyForce.getZ());
+            //printf("postion: %f vs %f\n", particlePos.getY(), boatPos.getY());
+            //printf("pressure: %f submergedDepth: %f\n", pressure, submergedDepth);
+            //printf("buoyancyForce: %f %f %f\n", buoyancyForce.getX(), buoyancyForce.getY(), buoyancyForce.getZ());
         }
 
         // 计算阻力 (根据相对速度)
         btVector3 relativeVelocity = boat->getRigidBody()->getLinearVelocity() - particleVel;
         // btVector3 dragForce = -fluid->dragCoefficient * relativeVelocity.length() * relativeVelocity;
-        btVector3 dragForce = -0.4 * relativeVelocity.length() * relativeVelocity;
-        //printf("dragForce: %f %f %f\n", dragForce.getX(), dragForce.getY(), dragForce.getZ());
+        btVector3 dragForce = -0.04 * relativeVelocity.length() * relativeVelocity;
+        // printf("dragForce: %f %f %f\n", dragForce.getX(), dragForce.getY(), dragForce.getZ());
 
         // 累积力
-        if (totalForce.getY() < 20.0f)
-        totalForce += buoyancyForce;// + dragForce;
+        totalForce += buoyancyForce + dragForce;
 
         // 计算扭矩 (以粒子到质心的向量计算)
         btVector3 relativePosition = particlePos - boatPos;
-        //totalTorque += relativePosition.cross(buoyancyForce + dragForce);
+        totalTorque += relativePosition.cross(buoyancyForce + dragForce);
     }
 
     // 应用力和扭矩到船体
     boat->getRigidBody()->applyCentralForce(totalForce);
     boat->getRigidBody()->applyTorque(totalTorque);
     printf("totalForce: %f %f %f\n", totalForce.getX(), totalForce.getY(), totalForce.getZ());
+    printf("totalTorque: %f %f %f\n", totalTorque.getX(), totalTorque.getY(), totalTorque.getZ());
 }
 
 void cleanup_physics(btDiscreteDynamicsWorld *dynamicsWorld)

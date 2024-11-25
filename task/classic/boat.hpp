@@ -15,25 +15,13 @@ namespace GL_TASK
 
         void draw(const glm::mat4 &projection, const glm::mat4 &view, const glm::vec3 &camera_pos) override
         {
-            if (rigidBody)
-            {
-                btTransform trans;
-                rigidBody->getMotionState()->getWorldTransform(trans);
-                float mat[16];
-                trans.getOpenGLMatrix(mat);
-                glm::mat4 M = glm::mat4(mat[0], mat[1], mat[2], mat[3],
-                                        mat[4], mat[5], mat[6], mat[7],
-                                        mat[8], mat[9], mat[10], mat[11],
-                                        mat[12], mat[13], mat[14], mat[15]);
+            shader->use();
+            shader->setMat4("projection", projection);
+            shader->setMat4("view", view);
+            shader->setMat4("model", get_calculated_model_matrix());
+            shader->setVec3("camPos", camera_pos);
 
-                shader->use();
-                shader->setMat4("projection", projection);
-                shader->setMat4("view", view);
-                shader->setMat4("model", model_matrix);
-                shader->setVec3("camPos", camera_pos);
-
-                model.Draw(*shader);
-            }
+            model.Draw(*shader);
         }
 
         void setRigidBody(btRigidBody *body)
@@ -51,9 +39,25 @@ namespace GL_TASK
             model_matrix = model;
         }
 
+        void set_origin_model_matrix(const glm::mat4 &model)
+        {
+            model_matrix = model;
+        }
+
         glm::mat4 get_model_matrix() const
         {
             return model_matrix;
+        }
+
+        glm::mat4 get_calculated_model_matrix() const
+        {
+            if (!rigidBody)
+                return model_matrix;
+            btTransform boatTransform;
+            rigidBody->getMotionState()->getWorldTransform(boatTransform);
+            glm::mat4 world_matrix = glm::mat4(1.0f);
+            boatTransform.getOpenGLMatrix(glm::value_ptr(world_matrix));
+            return world_matrix * model_matrix;
         }
 
     private:
