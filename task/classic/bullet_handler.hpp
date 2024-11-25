@@ -151,17 +151,16 @@ void applyFluidForces(std::shared_ptr<GL_TASK::Boat> boat, std::shared_ptr<GL_TA
             continue;
         }
         btVector3 particleVel = transformVelocity(particle.velocity, fluid_model_matrix);
-        //printf("particlePos: %f %f %f\n", particlePos.getX(), bparticlePos.getY(), particlePos.getZ());
         // 计算粒子压力
-        float fluid_density = 1000.0f;             // 水的密度 (kg/m^3)
-        float gravity = 9.8f;                      // 重力加速度 (m/s^2)
-        float depth = -70.f - particlePos.getX(); // 计算深度
-        float pressure = std::max(fluid_density * gravity * depth, 0.0f);
-        pressure = particle.pressure;
+        //float fluid_density = 1000.0f;             // 水的密度 (kg/m^3)
+        //float gravity = 9.8f;                      // 重力加速度 (m/s^2)
+        //float depth = -70.f - particlePos.getX(); // 计算深度
+        //float pressure = std::max(fluid_density * gravity * depth, 0.0f);
+        float pressure = particle.pressure / 1000.0 / p_scale * p_scale * p_scale / 100.0;
 
         // 计算浮力，划分区域
         float submergedDepth = std::max(0.0f, float(particlePos.getY() - minBounds.getY())); //minBounds.getY()
-        btVector3 buoyancyForce(0, pressure * submergedDepth / 100.0, 0);
+        btVector3 buoyancyForce(0, pressure * submergedDepth, 0);
         if (submergedDepth > 0) {
             //printf("postion: %f vs %f\n", particlePos.getY(), boatPos.getY());
             //printf("pressure: %f submergedDepth: %f\n", pressure, submergedDepth);
