@@ -18,6 +18,8 @@ Camera::Camera(GLFWwindow *window, float initialfov, glm::vec3 position, float h
     glfwGetWindowSize(window, &width, &height);
     _width = width;
     _height = height;
+    _width = width;
+    _height = height;
     glfwSetCursorPos(window, width / 2, height / 2);
     glfwSetScrollCallback(window, scroll_callback);
     calculate_view_and_projection_matrix();
@@ -42,8 +44,10 @@ void Camera::calculate_view_and_projection_matrix()
     view = glm::lookAt(_position, _position + _direction, _up);
 }
 
-void Camera::compute_matrices_from_inputs(GLFWwindow *window, glm::vec3 center)
+void Camera::compute_matrices_from_inputs(GLFWwindow *window, bool &userInteracted, glm::vec3 center)
 {
+    userInteracted = false; // 初始状态为无操作
+
     // 时间差
     static double lastTime = glfwGetTime();
     double currentTime = glfwGetTime();
@@ -70,6 +74,9 @@ void Camera::compute_matrices_from_inputs(GLFWwindow *window, glm::vec3 center)
     if (xpos < 0 || xpos > width || ypos < 0 || ypos > height)
         return;
 
+    if (xoffset != 0 || yoffset != 0)
+        userInteracted = true;
+
     // 更新角度
     // _horizontal_angle -= _mouse_speed * deltaTime * float(xoffset);
     // _vertical_angle -= _mouse_speed * deltaTime * float(yoffset);           ///???感觉不对不是在世界坐标系下旋转是camera坐标系下旋转
@@ -84,15 +91,30 @@ void Camera::compute_matrices_from_inputs(GLFWwindow *window, glm::vec3 center)
 
     // 处理键盘输入
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) // 相机右移，物体左移
+    {
         _position += _right * deltaTime * _speed;
+        userInteracted = true;
+    }
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) // 相机左移，物体右移
+    {
         _position -= _right * deltaTime * _speed;
+        userInteracted = true;
+    }
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) // 相机上移，物体下移
+    {
         _position += _up * deltaTime * _speed;
+        userInteracted = true;
+    }
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) // 相机下移，物体上移
+    {
         _position -= _up * deltaTime * _speed;
+        userInteracted = true;
+    }
     if (scrollYOffset >= 1e-6 || scrollYOffset <= -1e-6) // 滚轮滚动，相机前移后移
+    {
         _position += _direction * float(scrollYOffset) * _speed * 0.3f;
+        userInteracted = true;
+    }
     scrollYOffset = 0.0;
 
     calculate_view_and_projection_matrix();
@@ -109,15 +131,4 @@ void Camera::set_position(glm::vec3 position)
     calculate_view_and_projection_matrix();
 }
 
-glm::vec3 Camera::get_direction()
-{
-    return glm::vec3(
-        cos(_vertical_angle) * sin(_horizontal_angle),
-        sin(_vertical_angle),
-        cos(_vertical_angle) * cos(_horizontal_angle));
-}
-
-void Camera::set_fov(float fov)
-{
-    _initial_fov = fov;
-}
+glm::vec3 Camera::get_direction() { return _direction; }

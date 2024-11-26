@@ -46,8 +46,8 @@ add_subdirectory(include/imgui)
 add_executable(main src/main.cpp src/glad.c  ${FLUID_LIST} ${TASK_LIST} ${CLASSIC_LIST} ${COMMON_LIST} ${IMGUI_LIST})
 target_link_libraries(main glfw3 libassimpd imgui openvdb tbb12 zlib1 blosc)
 
-add_executable(offline_rendering src/main_offline.cpp src/glad.c ${FLUID_LIST}  ${TASK_LIST} ${CLASSIC_LIST} ${COMMON_LIST} ${IMGUI_LIST})
-target_link_libraries(offline_rendering glfw3 libassimpd imgui openvdb tbb12 zlib1 blosc)
+# add_executable(offline_rendering src/main_offline.cpp src/glad.c ${FLUID_LIST}  ${TASK_LIST} ${CLASSIC_LIST} ${COMMON_LIST} ${IMGUI_LIST})
+# target_link_libraries(offline_rendering glfw3 libassimpd imgui openvdb tbb12 zlib1 blosc)
 
 # add_executable(fluid_testbed src/fluid_testbed.cpp src/glad.c ${FLUID_LIST} ${COMMON_LIST})
 # target_compile_options(fluid_testbed PRIVATE -msse2)
@@ -68,3 +68,7 @@ target_link_libraries(offline_rendering glfw3 libassimpd imgui openvdb tbb12 zli
 # add_executable(bullet_test src/bullet_test.cpp src/glad.c ${COMMON_LIST} ${IMGUI_LIST})
 # target_link_libraries(bullet_test glfw3 libassimpd imgui openvdb  zlib1 blosc BulletDynamics BulletCollision LinearMath BulletSoftBody Bullet3Common Bullet3Geometry)
 
+# add_executable(imgui_test src/imgui_test.cpp src/glad.c ${COMMON_LIST} ${IMGUI_LIST})
+# target_link_libraries(imgui_test glfw3 libassimpd imgui)
+
+# add_executable(test_main src/test_main.cpp)

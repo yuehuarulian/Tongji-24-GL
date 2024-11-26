@@ -4,8 +4,13 @@
 #include "glad/glad.h"
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
+#include "stb_image.h"
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
 
 #include "shader.hpp"
+#include "BVH.hpp"
 
 #include <string>
 #include <vector>
@@ -34,192 +39,134 @@ struct Vertex
     float m_Weights[MAX_BONE_INFLUENCE];
 };
 
-struct Texture
+class Texture
 {
-    unsigned int id;
-    string type; // 例如: "texture_diffuse", "texture_specular", "texture_normal", "texture_metallic"
-    string path;
+    // ---------- 纹理图片数据 ---------- //
+    // 图片宽度: width
+    // 图片高度：height
+    // 图片通道：components
+    // 纹理数据：texData -- 根据 width height components 调整大小
+    // 纹理名称：texName -- 唯一标识符
+public:
+    Texture() : width(0), height(0), components(0) {};
+    Texture(std::string texName, unsigned char *data, int w, int h, int c) : texName(texName),
+                                                                             width(w),
+                                                                             height(h),
+                                                                             components(c)
+
+    {
+        texData.resize(width * height * components);
+        std::copy(data, data + width * height * components, texData.begin());
+    }
+    ~Texture() {}
+
+    bool LoadTexture(const std::string &filename)
+    {
+        texName = filename;
+        components = 4;
+        unsigned char *data = stbi_load(filename.c_str(), &width, &height, NULL, components);
+        if (data == nullptr)
+            return false;
+        texData.resize(width * height * components);
+        std::copy(data, data + width * height * components, texData.begin());
+        stbi_image_free(data);
+        return true;
+    }
+
+    int width;                          // 纹理的宽度
+    int height;                         // 纹理的高度
+    int components;                     // 纹理的通道数
+    std::vector<unsigned char> texData; // 纹理数据
+    std::string texName;                // 纹理名称
+};
+
+class Material
+{
+    // ---------- 材质数据 ---------- //
+    // 按照每四个float进行分类 -- 便于将数据传递至Shader中
+    // 对于无法补齐的部分可以使用 float padding_i 进行补齐(其中i是一个变量)
+public:
+    Material()
+        : baseColor(glm::vec3(0.8824, 0.0627, 0.0627)),
+          diffuseTexId(-1.0f),
+          specularTexId(-1.0f),
+          normalTexId(-1.0f),
+          heightTexId(-1.0f),
+          metalnessTexId(-1.0f),
+          diffuse_roughnessTexId(-1.0f),
+          ambient_occlusionTexId(-1.0f) {}
+
+    void updateTexId(const int offset)
+    {
+        diffuseTexId += offset;
+        specularTexId += offset;
+        normalTexId += offset;
+        heightTexId += offset;
+
+        metalnessTexId += offset;
+        diffuse_roughnessTexId += offset;
+        ambient_occlusionTexId += offset;
+    }
+
+    glm::vec3 baseColor; // 基础颜色
+    float padding_0;
+
+    float diffuseTexId;
+    float specularTexId;
+    float normalTexId;
+    float heightTexId;
+
+    float metalnessTexId;
+    float diffuse_roughnessTexId;
+    float ambient_occlusionTexId;
+    float padding_1;
 };
 
 class Mesh
 {
 public:
-    // mesh Data
-    vector<Vertex> vertices;
-    vector<unsigned int> indices;
-    vector<Texture> textures;
-    unsigned int VAO;
+    // 网格数据
+    vector<Vertex> vertices;      // 顶点位置、法线方向、纹理坐标
+    vector<unsigned int> indices; // 假设所有的面都为三角形 三个索引一个面 indices.size()/3表示三角形的数量
+    Material material;
+    BVH *bvh;
 
-    // constructor
-    Mesh(vector<Vertex> vertices, vector<unsigned int> indices, vector<Texture> textures)
-        : vertices(vertices), indices(indices), textures(textures)
-    {
-        setupMesh();
-    }
+    // 构造函数
+    Mesh() = default;
+    Mesh(vector<Vertex> vertices, vector<unsigned int> indices, const Material &material);
+    void BuildBVH();
+    void ProcessVertices(std::vector<glm::vec4> &verticesUVX, std::vector<glm::vec4> &normalsUVY);
 
-    void updateMesh()
-    {
-        needsUpdate = true;
-    }
+    void updateMesh();
 
-    unsigned int createDefaultTexture()
-    {
-        unsigned int textureID;
-        glGenTextures(1, &textureID);
-        glBindTexture(GL_TEXTURE_2D, textureID);
-
-        // 创建一个 1x1 的白色像素数据
-        unsigned char whitePixel[3] = {0, 0, 0};
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1, 1, 0, GL_RGB, GL_UNSIGNED_BYTE, whitePixel);
-
-        // 设置纹理参数
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-        return textureID;
-    }
-    // render the mesh
-    void Draw(Shader &shader)
-    {
-        // 如果需要更新，先更新网格
-        if (needsUpdate)
-        {
-            update();
-            needsUpdate = false;
-        }
-
-        // 确保所有 PBR 纹理都绑定到固定的纹理单元位置
-        unsigned int defaultTextureID = createDefaultTexture(); // 初始化时调用一次
-        unsigned int textureUnit = 0;
-
-        for (const auto &type : {"texture_diffuse", "texture_specular", "texture_normal",
-                                 "texture_height", "texture_metallic", "texture_roughness", "texture_ao", "texture_opacity"})
-        {
-            bool textureFound = false;
-
-            for (unsigned int i = 0; i < textures.size(); i++)
-            {
-                if (textures[i].type == type)
-                {
-                    // 激活指定的纹理单元并绑定
-                    glActiveTexture(GL_TEXTURE0 + textureUnit);
-                    glBindTexture(GL_TEXTURE_2D, textures[i].id);
-
-                    // 将对应 uniform 设置为这个纹理单元
-                    glUniform1i(glGetUniformLocation(shader.ID, (std::string(type) + "1").c_str()), textureUnit);
-                    // printf("name: %s, number: %d\n", (std::string(type) + "1").c_str(), textureUnit);
-
-                    textureFound = true;
-                    break; // 该类型找到就可以跳出循环
-                }
-            }
-
-            if (!textureFound)
-            {
-                glActiveTexture(GL_TEXTURE0 + textureUnit);
-                glBindTexture(GL_TEXTURE_2D, defaultTextureID); // 使用默认的白色纹理
-            }
-
-            textureUnit++;
-        }
-
-        // draw mesh
-        glBindVertexArray(VAO);
-        glDrawElements(GL_TRIANGLES, static_cast<unsigned int>(indices.size()), GL_UNSIGNED_INT, 0);
-        glBindVertexArray(0);
-
-        // always good practice to set everything back to defaults once configured.
-        glActiveTexture(GL_TEXTURE0);
-    }
+    // // render the mesh
+    // void Draw(Shader &shader);
 
 private:
     // render data
-    unsigned int VBO, EBO;
+    // unsigned int VBO, EBO;
     bool needsUpdate; // 标志变量，指示是否需要更新
 
     // initializes all the buffer objects/arrays
-    void setupMesh()
-    {
-        // create buffers/arrays
-        glGenVertexArrays(1, &VAO);
-        glGenBuffers(1, &VBO);
-        glGenBuffers(1, &EBO);
+    // void setupMesh();
 
-        glBindVertexArray(VAO);
-        // load data into vertex buffers
-        glBindBuffer(GL_ARRAY_BUFFER, VBO);
-        // A great thing about structs is that their memory layout is sequential for all its items.
-        // The effect is that we can simply pass a pointer to the struct and it translates perfectly to a glm::vec3/2 array which
-        // again translates to 3/2 floats which translates to a byte array.
-        glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), &vertices[0], GL_STATIC_DRAW);
+    // void update();
 
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), &indices[0], GL_STATIC_DRAW);
+    // unsigned int createDefaultTexture();
+};
 
-        // set the vertex attribute pointers
-        glEnableVertexAttribArray(0); // 位置
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)0);
+class MeshInstance
+{
+public:
+    MeshInstance(int mesh_id, int material_id, glm::mat4 xform)
+        : meshID(mesh_id),
+          materialID(material_id),
+          transform(xform) {}
+    ~MeshInstance() {}
 
-        glEnableVertexAttribArray(1); // 法线
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, Normal));
+    glm::mat4 transform; // 从局部坐标系转换到世界坐标系的转换矩阵
 
-        glEnableVertexAttribArray(2); // 纹理坐标
-        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, TexCoords));
-
-        glEnableVertexAttribArray(3); // 切线
-        glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, Tangent));
-
-        glEnableVertexAttribArray(4); // 副切线
-        glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, Bitangent));
-
-        glEnableVertexAttribArray(5); // 骨骼ID
-        glVertexAttribIPointer(5, 4, GL_INT, sizeof(Vertex), (void *)offsetof(Vertex, m_BoneIDs));
-
-        glEnableVertexAttribArray(6); // 骨骼权重
-        glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, m_Weights));
-
-        glBindVertexArray(0);
-    }
-
-    void update()
-    {
-        // 绑定VAO
-        glBindVertexArray(VAO);
-
-        // 更新顶点缓冲数据
-        glBindBuffer(GL_ARRAY_BUFFER, VBO);
-        glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), &vertices[0], GL_STATIC_DRAW);
-
-        // 更新索引缓冲数据
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), &indices[0], GL_STATIC_DRAW);
-
-        // 更新顶点属性指针设置
-        glEnableVertexAttribArray(0); // 位置
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)0);
-
-        glEnableVertexAttribArray(1); // 法线
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, Normal));
-
-        glEnableVertexAttribArray(2); // 纹理坐标
-        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, TexCoords));
-
-        glEnableVertexAttribArray(3); // 切线
-        glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, Tangent));
-
-        glEnableVertexAttribArray(4); // 副切线
-        glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, Bitangent));
-
-        glEnableVertexAttribArray(5); // 骨骼ID
-        glVertexAttribIPointer(5, 4, GL_INT, sizeof(Vertex), (void *)offsetof(Vertex, m_BoneIDs));
-
-        glEnableVertexAttribArray(6); // 骨骼权重
-        glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, m_Weights));
-
-        // 解绑VAO
-        glBindVertexArray(0);
-    }
+    int meshID;
+    int materialID;
 };
 #endif

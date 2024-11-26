@@ -10,9 +10,6 @@
 #include <GLFW/glfw3.h>
 #include "skybox.hpp"
 
-#include "fluid_scene.hpp"
-#include "fluid/fluid_simulator.h"
-
 class RenderManager
 {
 public:
@@ -29,7 +26,7 @@ private:
     void render_frame(int frame_number);
 
     GLFWwindow *window;
-    std::shared_ptr<Camera> camera;
+    Camera camera;
     ShaderManager shader_manager;
     LightManager light_manager;
     std::unique_ptr<Scene> scene;

@@ -12,7 +12,7 @@
 #include "gui_manager.hpp"
 #include "config.hpp"
 #include "skybox.hpp"
-#include "fluid/fluid_simulator.h"
+#include "scene.hpp"
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height)
 {
@@ -43,16 +43,13 @@ GLFWwindow *initialize_glfw_window()
 
 int main()
 {
+    // 创建窗口
     GLFWwindow *window = initialize_glfw_window();
 
     ShaderManager shader_manager;
     LightManager light_manager;
 
-    // fluid::FluidSimulator fluid_sim(precision);
-
-    GL_TASK::ClassicScene classic_scene(shader_manager, light_manager); // 调试在线渲染请注释掉水模型，否则会非常卡
-
-    // fluid_sim.BindMesh(&(classic_scene.models[1]->model.meshes[0])); // 绑定的1号模型的第0个mesh（水是一号）
+    GL_TASK::ClassicScene classic_scene(shader_manager, light_manager);
 
     Camera camera(window, 75 * D2R, glm::vec3(0.0f, -70.0f, 180.0f), glm::pi<float>(), 15. * D2R, 30.0f, 1.0f);
 
@@ -71,16 +68,20 @@ int main()
     glfwSwapInterval(1);                                                                            // 垂直同步，参数：在 glfwSwapBuffers 交换缓冲区之前要等待的最小屏幕更新数
     while (glfwWindowShouldClose(window) == 0 && glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS) // 窗口没有关闭，esc键没有按下
     {
-        camera.compute_matrices_from_inputs(window);
+        bool dirty = false;
+        camera.compute_matrices_from_inputs(window, dirty);
+        classic_scene.setDirty(dirty);
+        classic_scene.update();
 
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glDisable(GL_DEPTH_TEST);
 
-        auto camera_pos = camera.get_pos();
-        classic_scene.render(camera.projection, camera.view, camera_pos);
+        // skybox.render(camera.view, camera.projection);
 
-        skybox.render(camera.view, camera.projection);
-
+        classic_scene.render(camera);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        classic_scene.present(); // 渲染结果展示
         gui_manager.render();
 
         glfwSwapBuffers(window);
