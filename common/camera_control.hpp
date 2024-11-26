@@ -16,7 +16,7 @@ public:
     Camera(GLFWwindow *window, float initialfov = GLM_PI / 4, glm::vec3 position = glm::vec3(0, 0, 20), float horizontal_angle = GLM_PI, float vertical_angle = 0.f,
            float speed = 5.0f, float mouse_speed = 1.0f);
 
-    void compute_matrices_from_inputs(GLFWwindow *window, glm::vec3 center = glm::vec3(0, 0, 0));
+    void compute_matrices_from_inputs(GLFWwindow *window,  bool &userInteracted, glm::vec3 center = glm::vec3(0, 0, 0));
 
     // gets函数
     glm::vec3 get_pos() { return _position; }

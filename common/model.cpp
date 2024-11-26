@@ -118,9 +118,9 @@ Mesh *Model::processMesh(aiMesh *mesh, const aiScene *scene)
         // 2. 镜面反射纹理
         m_material.specularTexId = loadMaterialTextures(material, aiTextureType_SPECULAR);   
         // 3. 法线贴图
-        m_material.heightTexId = loadMaterialTextures(material, aiTextureType_HEIGHT);     
+        m_material.normalTexId = loadMaterialTextures(material, aiTextureType_NORMALS);     
         // 4. 高度贴图
-        m_material.ambientTexId = loadMaterialTextures(material, aiTextureType_AMBIENT);    
+        m_material.heightTexId = loadMaterialTextures(material, aiTextureType_HEIGHT);    
         // PBR 相关贴图
         // 5. 金属度贴图
         m_material.metalnessTexId = loadMaterialTextures(material, aiTextureType_METALNESS);    
@@ -133,8 +133,8 @@ Mesh *Model::processMesh(aiMesh *mesh, const aiScene *scene)
         printf("Material Texture ID INFO:\n");
         printf("diffuseTexId: #%f\n", m_material.diffuseTexId);
         printf("specularTexId: #%f\n", m_material.specularTexId);
+        printf("normalTexId: #%f\n", m_material.normalTexId);
         printf("heightTexId: #%f\n", m_material.heightTexId);
-        printf("ambientTexId: #%f\n", m_material.ambientTexId);
         printf("metalnessTexId: #%f\n", m_material.metalnessTexId);
         printf("diffuse_roughnessTexId: #%f\n", m_material.diffuse_roughnessTexId);
         printf("ambient_occlusionTexId: #%f\n", m_material.ambient_occlusionTexId);

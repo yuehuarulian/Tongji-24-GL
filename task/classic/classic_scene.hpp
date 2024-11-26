@@ -17,7 +17,10 @@ namespace GL_TASK
         ~ClassicScene() = default;
 
         void updateCameraInfo(Camera *camera);
-        void render() override; // 渲染函数
+
+        void update() override;  // 数据更新函数
+        void render() override;  // 渲染函数
+        void present() override; // 展示渲染结果函数
 
     private:
         void setup_scene() override; // 配置场景

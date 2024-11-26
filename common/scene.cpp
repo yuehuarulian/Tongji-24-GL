@@ -4,6 +4,7 @@
 #define STB_IMAGE_RESIZE_IMPLEMENTATION
 #include "stb_image_resize.h"
 
+// 添加模型
 bool Scene::AddModel(const std::string &modelfilePath, glm::mat4 transformMat)
 {
     Model *model = new Model();
@@ -41,14 +42,14 @@ bool Scene::AddModel(const std::string &modelfilePath, glm::mat4 transformMat)
     delete model;
     return true;
 }
-
+// 添加材质
 int Scene::AddMaterial(const Material &material)
 {
     int id = materials.size();
     materials.push_back(material);
     return id;
 }
-
+// 添加纹理
 int Scene::AddTexture(const std::string &filename)
 {
     //
@@ -135,7 +136,7 @@ void Scene::createTLAS()
     printf("\n*****************\n");
     sceneBounds = sceneBVH->getBounds();
 }
-
+// 处理数据
 void Scene::ProcessData()
 {
     // 将BVH的顶层节点和底层节点转换为适合传递给GPU的节点
@@ -202,6 +203,9 @@ void Scene::ProcessData()
     }
 }
 
+/*
+ * 将着色器所需要的数据转换为纹理数据
+ */
 void Scene::InitGPUData()
 {
     glPixelStorei(GL_PACK_ALIGNMENT, 1);
@@ -293,4 +297,71 @@ void Scene::InitGPUData()
     glBindTexture(GL_TEXTURE_2D, materialsTex);
     glActiveTexture(GL_TEXTURE7);
     glBindTexture(GL_TEXTURE_2D_ARRAY, textureMapsArrayTex);
+}
+
+/*
+ * 初始化帧缓冲数据
+ */
+void Scene::InitFBOs()
+{
+    // Path tracing FBO
+    glGenFramebuffers(1, &pathTraceFBO);
+    glBindFramebuffer(GL_FRAMEBUFFER, pathTraceFBO);
+
+    glGenTextures(1, &pathTraceTexture);
+    glBindTexture(GL_TEXTURE_2D, pathTraceTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, WINDOW_WIDTH, WINDOW_HEIGHT, 0, GL_RGBA, GL_FLOAT, nullptr);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, pathTraceTexture, 0);
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+        std::cerr << "Path trace FBO is not complete!" << std::endl;
+
+    // Accumulation FBO
+    glGenFramebuffers(1, &accumFBO);
+    glBindFramebuffer(GL_FRAMEBUFFER, accumFBO);
+
+    glGenTextures(1, &accumTexture);
+    glBindTexture(GL_TEXTURE_2D, accumTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, WINDOW_WIDTH, WINDOW_HEIGHT, 0, GL_RGBA, GL_FLOAT, nullptr);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, accumTexture, 0);
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+        std::cerr << "Accumulation FBO is not complete!" << std::endl;
+
+    // Output FBO
+    glGenFramebuffers(1, &outputFBO);
+    glBindFramebuffer(GL_FRAMEBUFFER, outputFBO);
+
+    glGenTextures(1, &outputTexture[0]);
+    glBindTexture(GL_TEXTURE_2D, outputTexture[0]);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, WINDOW_WIDTH, WINDOW_HEIGHT, 0, GL_RGBA, GL_FLOAT, nullptr);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+    glGenTextures(1, &outputTexture[1]);
+    glBindTexture(GL_TEXTURE_2D, outputTexture[1]);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, WINDOW_WIDTH, WINDOW_HEIGHT, 0, GL_RGBA, GL_FLOAT, 0);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, outputTexture[0], 0);
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+        std::cerr << "Output FBO is not complete!" << std::endl;
+
+    // Clear accumulation buffer
+    glBindFramebuffer(GL_FRAMEBUFFER, accumFBO);
+    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+    glClear(GL_COLOR_BUFFER_BIT);
 }

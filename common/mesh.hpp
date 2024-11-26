@@ -84,8 +84,8 @@ public:
         : baseColor(glm::vec3(0.8824, 0.0627, 0.0627)),
           diffuseTexId(-1.0f),
           specularTexId(-1.0f),
+          normalTexId(-1.0f),
           heightTexId(-1.0f),
-          ambientTexId(-1.0f),
           metalnessTexId(-1.0f),
           diffuse_roughnessTexId(-1.0f),
           ambient_occlusionTexId(-1.0f) {}
@@ -94,8 +94,8 @@ public:
     {
         diffuseTexId += offset;
         specularTexId += offset;
+        normalTexId += offset;
         heightTexId += offset;
-        ambientTexId += offset;
 
         metalnessTexId += offset;
         diffuse_roughnessTexId += offset;
@@ -107,8 +107,8 @@ public:
 
     float diffuseTexId;
     float specularTexId;
+    float normalTexId;
     float heightTexId;
-    float ambientTexId;
 
     float metalnessTexId;
     float diffuse_roughnessTexId;

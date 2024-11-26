@@ -42,8 +42,10 @@ void Camera::calculate_view_and_projection_matrix()
     view = glm::lookAt(_position, _position + _direction, _up);
 }
 
-void Camera::compute_matrices_from_inputs(GLFWwindow *window, glm::vec3 center)
+void Camera::compute_matrices_from_inputs(GLFWwindow *window, bool &userInteracted, glm::vec3 center)
 {
+    userInteracted = false; // 初始状态为无操作
+
     // 时间差
     static double lastTime = glfwGetTime();
     double currentTime = glfwGetTime();
@@ -67,6 +69,10 @@ void Camera::compute_matrices_from_inputs(GLFWwindow *window, glm::vec3 center)
     // 只识别window内的鼠标移动
     if (xpos < 0 || xpos > width || ypos < 0 || ypos > height)
         return;
+
+    // 如果鼠标偏移量非零，标记为用户操作
+    if (xoffset != 0 || yoffset != 0)
+        userInteracted = true;
 
     // 计算方向、右向量和上向量
     glm::vec3 direction(
@@ -93,15 +99,35 @@ void Camera::compute_matrices_from_inputs(GLFWwindow *window, glm::vec3 center)
 
     // 处理键盘输入
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) // 相机右移，物体左移
+    {
         _position += right * deltaTime * _speed;
+        userInteracted = true;
+    }
+
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) // 相机左移，物体右移
+    {
         _position -= right * deltaTime * _speed;
+        userInteracted = true;
+    }
+
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) // 相机上移，物体下移
+    {
         _position += up * deltaTime * _speed;
+        userInteracted = true;
+    }
+
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) // 相机下移，物体上移
+    {
         _position -= up * deltaTime * _speed;
+        userInteracted = true;
+    }
+
     if (scrollYOffset >= 1e-6 || scrollYOffset <= -1e-6) // 滚轮滚动，相机前移后移
+    {
         _position += direction * float(scrollYOffset) * _speed * 0.3f;
+        userInteracted = true;
+    }
+
     scrollYOffset = 0.0;
 
     // 更新投影和观察矩阵

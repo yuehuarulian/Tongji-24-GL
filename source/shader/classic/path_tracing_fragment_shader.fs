@@ -1,12 +1,12 @@
 #version 330
 
 #define PI 3.14159265358979323
-#define INV_PI 0.31830988618379067
+#define INV_PI .31830988618379067
 #define TWO_PI 6.28318530717958648
-#define INV_TWO_PI 0.15915494309189533
-#define INV_4_PI 0.07957747154594766
-#define EPS 0.0003
-#define INF 1000000000.0
+#define INV_TWO_PI .15915494309189533
+#define INV_4_PI .07957747154594766
+#define EPS .0003
+#define INF 1000000000.
 
 #define maxNumOfLights 10
 #define RECT_LIGHT 0
@@ -25,18 +25,18 @@ in vec2 TexCoords;
 // 摄像机
 struct Camera
 {
-    vec3 up;         // 相机的“上”方向（垂直方向），用于确定视图矩阵
-    vec3 right;      // 相机的“右”方向（水平方向），用于确定视图矩阵
-    vec3 forward;    // 相机的前进方向，决定相机的朝向
-    vec3 position;   // 相机的位置
-    float fov;       // 相机的视场角（field of view）
-    float focalDist; // 相机的焦距（影响景深效果）
-    float aperture;  // 相机的光圈大小（影响景深和模糊效果）
+    vec3 up;// 相机的“上”方向（垂直方向），用于确定视图矩阵
+    vec3 right;// 相机的“右”方向（水平方向），用于确定视图矩阵
+    vec3 forward;// 相机的前进方向，决定相机的朝向
+    vec3 position;// 相机的位置
+    float fov;// 相机的视场角（field of view）
+    float focalDist;// 相机的焦距（影响景深效果）
+    float aperture;// 相机的光圈大小（影响景深和模糊效果）
 };
 // 光线
 struct Ray
 {
-    vec3 origin;   // 光线的起点
+    vec3 origin;// 光线的起点
     vec3 direction;// 光线的方向
 };
 // 矩形光
@@ -65,73 +65,73 @@ struct DistantLight
 // 材质
 struct Material
 {
-    vec3 baseColor;  // 材质的基础颜色
-    float matellic;  // 金属度
-    float roughness; // 粗糙度
-    float ao;        // 环境光遮蔽
-    vec3 F0;         // 镜面反射的基础反射率
-    vec3 emission;   // 自发光颜色
+    vec3 baseColor;// 材质的基础颜色
+    float matellic;// 金属度
+    float roughness;// 粗糙度
+    float ao;// 环境光遮蔽
+    vec3 F0;// 镜面反射的基础反射率
+    vec3 emission;// 自发光颜色
 };
 // 击中点记录
 struct HitRec
 {
-    float eta;               // 当前介质的折射率，用于计算折射行为
+    float eta;// 当前介质的折射率，用于计算折射行为
     // 记录光线交点信息
-    bool isEmitter;          // 记录击中的物体属性 -- 是否为光源
-    vec3 emission;          // 记录击中物体的自发光属性
-    float HitDist;           // 光线与物体的交点距离（光线参数 t 值）
-    vec3 HitPoint;           // 记录光线与物品的交点
+    bool isEmitter;// 记录击中的物体属性 -- 是否为光源
+    vec3 emission;// 记录击中物体的自发光属性
+    float HitDist;// 光线与物体的交点距离（光线参数 t 值）
+    vec3 HitPoint;// 记录光线与物品的交点
     // 击中点三角形数据
-    vec2 texCoord;           // 纹理坐标 -- 通过重心坐标插值计算得到
-    vec3 normal;             // 表面法线 -- 通过重心坐标插值计算得到
-    vec3 ffnormal;           // 面向外部的法线 -- 与光线进入的方向相反
-    vec3 tangent;            // 切线方向
-    vec3 bitangent;          // 副切线方向
+    vec2 texCoord;// 纹理坐标 -- 通过重心坐标插值计算得到
+    vec3 normal;// 表面法线 -- 通过重心坐标插值计算得到
+    vec3 ffnormal;// 面向外部的法线 -- 与光线进入的方向相反
+    vec3 tangent;// 切线方向
+    vec3 bitangent;// 副切线方向
     // 击中点材质信息
-    int matID;               // 材质 ID
-    Material mat;            // 物体的材质属性，包含颜色、粗糙度等细节
+    int matID;// 材质 ID
+    Material mat;// 物体的材质属性，包含颜色、粗糙度等细节
 };
 // 记录光源采样的结果
 struct LightSampleRec
 {
-    vec3 normal;    // 光源表面的法向量
-    vec3 emission;  // 光源的辐射亮度值
-    vec3 direction; // 从交点指向光源的单位方向向量
-    float dist;     // 交点与光源之间的距离
-    float pdf;      // 采样到该光源的概率密度函数值
+    vec3 normal;// 光源表面的法向量
+    vec3 emission;// 光源的辐射亮度值
+    vec3 direction;// 从交点指向光源的单位方向向量
+    float dist;// 交点与光源之间的距离
+    float pdf;// 采样到该光源的概率密度函数值
 };
 
 // 路径追踪函数
-vec3 PathTrace(Ray r, int maxDepth, int RR_maxDepth);
+vec3 PathTrace(Ray r,int maxDepth,int RR_maxDepth);
 // 相交测试函数
-bool ClosestHit(Ray r,inout HitRec hit_record, inout LightSampleRec lightSample);
-bool AnyHit(Ray r, float maxDist);
-float RectIntersect(in vec3 pos, in vec3 u, in vec3 v, in vec4 plane, in Ray r);
-float SphereIntersect(float radius, vec3 center, in Ray r);
-float AABBIntersect(vec3 minCorner, vec3 maxCorner, in Ray r);
+bool ClosestHit(Ray r,inout HitRec hit_record,inout LightSampleRec lightSample);
+bool AnyHit(Ray r,float maxDist);
+float RectIntersect(in vec3 pos,in vec3 u,in vec3 v,in vec4 plane,in Ray r);
+float SphereIntersect(float radius,vec3 center,in Ray r);
+float AABBIntersect(vec3 minCorner,vec3 maxCorner,in Ray r);
 // 获取相交点材质函数
-void GetMaterial(inout HitRec hit_record, in Ray r);
+void GetMaterial(inout HitRec hit_record,in Ray r);
 // 光源采样函数
-void sampleLight(vec3 hitPoint, inout LightSampleRec lightSample);
-void SampleSphereLight(in SphereLight light, in vec3 hitPoint, inout LightSampleRec lightSample);
-void SampleRectLight(in RectLight light, in vec3 hitPoint, inout LightSampleRec lightSample);
-void SampleDistantLight(in DistantLight light, in vec3 hitPoint, inout LightSampleRec lightSample);
+void sampleLight(vec3 hitPoint,inout LightSampleRec lightSample);
+void SampleSphereLight(in SphereLight light,in vec3 hitPoint,inout LightSampleRec lightSample);
+void SampleRectLight(in RectLight light,in vec3 hitPoint,inout LightSampleRec lightSample);
+void SampleDistantLight(in DistantLight light,in vec3 hitPoint,inout LightSampleRec lightSample);
 // 随机散射光线方向生成函数
-vec3 SampleDirection(vec3 normal, bool useCosineWeighted);
-vec3 UniformSampleHemisphere(float r1, float r2);
-vec3 CosineSampleHemisphere(float r1, float r2);
+vec3 SampleDirection(vec3 normal,bool useCosineWeighted);
+vec3 UniformSampleHemisphere(float r1,float r2);
+vec3 CosineSampleHemisphere(float r1,float r2);
 // 随机光线方向生成辅助函数
-void GenerateTBN(in vec3 N, inout vec3 T, inout vec3 B);
-vec3 ToWorld(vec3 X, vec3 Y, vec3 Z, vec3 V);
-vec3 ToLocal(vec3 X, vec3 Y, vec3 Z, vec3 V);
-vec3 LocalToWorld(vec3 localDir, vec3 normal);
-vec3 WorldToLocal(vec3 globalDir, vec3 normal);
+void GenerateTBN(in vec3 N,inout vec3 T,inout vec3 B);
+vec3 ToWorld(vec3 X,vec3 Y,vec3 Z,vec3 V);
+vec3 ToLocal(vec3 X,vec3 Y,vec3 Z,vec3 V);
+vec3 LocalToWorld(vec3 localDir,vec3 normal);
+vec3 WorldToLocal(vec3 globalDir,vec3 normal);
 // PBR光源模型函数
-vec3 BRDF_PBR(vec3 N, vec3 V, vec3 L, vec3 radiance, vec3 albedo, float metallic, float roughness, vec3 F0);
-float DistributionGGX(vec3 N, vec3 H, float roughness);
-float GeometrySchlickGGX(float NdotV, float roughness);
-float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness);
-vec3 fresnelSchlick(float cosTheta, vec3 F0);
+vec3 BRDF_PBR(vec3 N,vec3 V,vec3 L,vec3 radiance,vec3 albedo,float metallic,float roughness,vec3 F0);
+float DistributionGGX(vec3 N,vec3 H,float roughness);
+float GeometrySchlickGGX(float NdotV,float roughness);
+float GeometrySmith(vec3 N,vec3 V,vec3 L,float roughness);
+vec3 fresnelSchlick(float cosTheta,vec3 F0);
 // 随机数函数
 uvec4 seed;
 ivec2 pixel;
@@ -140,6 +140,7 @@ void pcg4d(inout uvec4 v);
 float rand();
 
 uniform int topBVHIndex;
+uniform sampler2D accumTexture;
 uniform samplerBuffer BVH;
 uniform samplerBuffer verticesTex;
 uniform samplerBuffer normalsTex;
@@ -159,37 +160,38 @@ DistantLight distantLights[maxNumOfLights];
 
 uniform vec2 resolution;
 uniform Camera camera;
+uniform int frameNum;
 
 void main()
 {
     // 屏幕坐标直接映射生成光线
     // TODO: 添加扰动
+    InitRNG(gl_FragCoord.xy, frameNum);
     vec2 d = (TexCoords * 2.0 - 1.0); // 将坐标范围映射到 [-1, 1]
     float scale = tan(camera.fov * 0.5);
-    d.y *= resolution.y / resolution.x*scale;
+    d.y *= resolution.y / resolution.x * scale;
     d.x *= scale;
-
+    
     vec3 rayOrigin = camera.position;
-    vec3 rayDirection  = normalize(d.x * camera.right + d.y * camera.up + camera.forward);
+    vec3 rayDirection = normalize(d.x * camera.right + d.y * camera.up + camera.forward);
     float radius = 2.5;
-    sphereLights[0] = SphereLight(vec3(0.0, 50.0, 30.0), vec3(1.0), radius, 4 * PI * radius * radius);
-    sphereLights[1] = SphereLight(vec3(10.0, 20.0, -10.0), vec3(1.0), radius, 4 * PI * radius * radius);
-    sphereLights[2] = SphereLight(vec3(-10.0, 20.0, -10.0), vec3(1.0), radius, 4 * PI * radius * radius);
-    numOfSphereLights = 3;
-
-    Ray ray = Ray(rayOrigin, rayDirection); // 生成光线
-
+    sphereLights[0] = SphereLight(vec3(0.,50.,30.), vec3(.1), radius, 4 * PI * radius * radius);
+    // sphereLights[1] = SphereLight(vec3(10.0, 20.0, -10.0), vec3(0.1), radius, 4 * PI * radius * radius);
+    // sphereLights[2] = SphereLight(vec3(-10.0, 20.0, -10.0), vec3(0.1), radius, 4 * PI * radius * radius);
+    numOfSphereLights = 1;
+    
+    Ray ray = Ray(rayOrigin, rayDirection);// 生成光线
+    
     // 后面可以更改为 uniform 使用imgui进行调节
-    int maxDepth = 10;    // 光线弹射的最大深度
-    int RR_maxDepth = 4;  // 俄罗斯轮盘赌启动的最低深度
+    int maxDepth = 10;// 光线弹射的最大深度
+    int RR_maxDepth = 4;// 俄罗斯轮盘赌启动的最低深度
+    
+    vec4 accumColor = texture(accumTexture, TexCoords);
+    vec4 color = vec4(PathTrace(ray, maxDepth, RR_maxDepth), 1.0);
 
-    vec3 color = PathTrace(ray, maxDepth, RR_maxDepth);
-
-    // 曝光映射
-    color = color / (color + vec3(1.0));
-    color = pow(color, vec3(1.0 / 2.2));
-
-    FragColor = vec4(color, 1.0);
+    vec3 finalColor = accumColor.xyz + color.xyz;
+      
+    FragColor = vec4(finalColor, 1.0); 
 }
 
 /********************************/
@@ -199,9 +201,9 @@ vec3 PathTrace(Ray r, int maxDepth, int RR_maxDepth)
 {
     vec3 radiance = vec3(0.0);   // 最终的辐射贡献 -- 颜色
     vec3 throughput = vec3(1.0); // 路径的通量权重（每次交互更新光的贡献）
-
+    
     LightSampleRec lightSample;      // 光源采样记录
-        
+    
     for(int depth = 0; depth < maxDepth; depth++)
     {
         HitRec hit_record;  // 记录当前的击中状态
@@ -213,11 +215,11 @@ vec3 PathTrace(Ray r, int maxDepth, int RR_maxDepth)
             radiance += throughput * vec3(0.5, 0.7, 1.0); // 蓝天背景
             break;
         }
-
+        
         GetMaterial(hit_record, r); // 获取材质
-
+        
         // return hit_record.mat.baseColor;
-
+        
         // 如果击中了发光体，添加其辐射贡献
         if (hit_record.isEmitter) {
             radiance += throughput * lightSample.emission;
@@ -226,8 +228,8 @@ vec3 PathTrace(Ray r, int maxDepth, int RR_maxDepth)
         
         // 直接光照计算（光源采样）
         sampleLight(hit_record.HitPoint, lightSample); // 进行光源采样
-        vec3 V = -r.direction;          // 视线光线 -- 由交点指向外侧
-        vec3 L = lightSample.direction; // 光源光线 -- 由交点指向外侧
+        vec3 V = -r.direction;           // 视线光线 -- 由交点指向外侧
+        vec3 L = lightSample.direction;  // 光源光线 -- 由交点指向外侧
         vec3 N  = hit_record.normal;     // 交点法线
         vec3 albedo = hit_record.mat.baseColor;
         float metallic = hit_record.mat.matellic;
@@ -245,16 +247,16 @@ vec3 PathTrace(Ray r, int maxDepth, int RR_maxDepth)
         } else {
             
         }
-
+        
         // 间接光照计算（路径延续）
         // 俄罗斯轮盘赌优化
         float prob = 0.5; // 概率阈值
         if (depth > RR_maxDepth && rand() > prob) {
             break; // 停止追踪路径
         }
-
+        
         throughput /= prob; // 更新通量权重以考虑路径终止的概率
-
+        
         // 采样下一个方向
         bool useCosineWeighted = true;
         vec3 wi = SampleDirection(hit_record.normal, useCosineWeighted); // 在半球中随机采样
@@ -276,11 +278,11 @@ float DistributionGGX(vec3 N, vec3 H, float roughness)
     float a2 = a*a;
     float NdotH = max(dot(N, H), 0.0);
     float NdotH2 = NdotH*NdotH;
-
+    
     float nom   = a2;
     float denom = (NdotH2 * (a2 - 1.0) + 1.0);
     denom = PI * denom * denom;
-
+    
     return nom / denom;
 }
 // ----------------------------------------------------------------------------
@@ -288,10 +290,10 @@ float GeometrySchlickGGX(float NdotV, float roughness)
 {
     float r = (roughness + 1.0);
     float k = (r*r) / 8.0;
-
+    
     float nom   = NdotV;
     float denom = NdotV * (1.0 - k) + k;
-
+    
     return nom / denom;
 }
 // ----------------------------------------------------------------------------
@@ -301,7 +303,7 @@ float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness)
     float NdotL = max(dot(N, L), 0.0);
     float ggx2 = GeometrySchlickGGX(NdotV, roughness);
     float ggx1 = GeometrySchlickGGX(NdotL, roughness);
-
+    
     return ggx1 * ggx2;
 }
 // ----------------------------------------------------------------------------
@@ -313,23 +315,23 @@ vec3 fresnelSchlick(float cosTheta, vec3 F0)
 vec3 BRDF_PBR(vec3 N, vec3 V, vec3 L, vec3 radiance, vec3 albedo, float metallic, float roughness, vec3 F0)
 {
     vec3 H = normalize(V + L); // 半程向量
-
+    
     // Cook-Torrance BRDF
-    float NDF = DistributionGGX(N, H, roughness);   
-    float G   = GeometrySmith(N, V, L, roughness);      
+    float NDF = DistributionGGX(N, H, roughness);
+    float G   = GeometrySmith(N, V, L, roughness);
     vec3 F    = fresnelSchlick(clamp(dot(H, V), 0.0, 1.0), F0);
-
-    vec3 numerator    = NDF * G * F; 
-    float denominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 0.0001; 
+    
+    vec3 numerator    = NDF * G * F;
+    float denominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 0.0001;
     vec3 specular = numerator / denominator;
-
+    
     vec3 kS = F;
     vec3 kD = vec3(1.0) - kS;
-    kD *= 1.0 - metallic;	 
-
+    kD *= 1.0 - metallic;
+    
     // scale light by NdotL
-    float NdotL = max(dot(N, L), 0.0);   
-
+    float NdotL = max(dot(N, L), 0.0);
+    
     return (kD * albedo / PI + specular) * radiance * NdotL;
 }
 /********************************/
@@ -354,7 +356,7 @@ bool ClosestHit(Ray r, inout HitRec hit_record, inout LightSampleRec lightSample
         float area    = sphereLights[i].area;
         tTmp = SphereIntersect(radius, position, r);
         if (tTmp < 0.)
-            tTmp = INF;
+        tTmp = INF;
         if (tTmp < tMin)
         {
             tMin = tTmp;
@@ -386,9 +388,9 @@ bool ClosestHit(Ray r, inout HitRec hit_record, inout LightSampleRec lightSample
     Ray rTrans;
     rTrans.origin = r.origin;
     rTrans.direction = r.direction;
-
+    
     int currMatID; // 记录当前Mesh的材质ID值
-
+    
     // 使用栈的方式模仿递归
     while (index != -1)
     {
@@ -439,8 +441,8 @@ bool ClosestHit(Ray r, inout HitRec hit_record, inout LightSampleRec lightSample
                     transform = transMat;
                 }
             }
-        } 
-        else if(leaf < 0) 
+        }
+        else if(leaf < 0)
         {
             // 顶层加速数据结构的叶节点 TLAS
             // 提取变换矩阵的行数据
@@ -459,8 +461,8 @@ bool ClosestHit(Ray r, inout HitRec hit_record, inout LightSampleRec lightSample
             BLAS = true;
             currMatID = rightIndex;
             continue;
-        } 
-        else 
+        }
+        else
         {
             // 非叶节点
             leftHit  = AABBIntersect(texelFetch(BVH, leftIndex  * 3 + 0).xyz, texelFetch(BVH, leftIndex  * 3 + 1).xyz, rTrans);
@@ -497,7 +499,7 @@ bool ClosestHit(Ray r, inout HitRec hit_record, inout LightSampleRec lightSample
     
     // 没有相交点
     if (tMin == INF)
-        return false;
+    return false;
     
     hit_record.HitDist = tMin;                            // 记录光线击中物体的最近时间/距离
     hit_record.HitPoint = r.origin + r.direction * tMin;  // 记录光线与物体的交点
@@ -515,7 +517,7 @@ bool ClosestHit(Ray r, inout HitRec hit_record, inout LightSampleRec lightSample
         vec2 t1 = vec2(vert1.w, n1.w);
         vec2 t2 = vec2(vert2.w, n2.w);
         // 使用重心坐标插值计算交点的纹理坐标和法线
-        hit_record.texCoord = t0 * bary.x + t1 * bary.y + t2 * bary.z;                       // 纹理坐标
+        hit_record.texCoord = t0 * bary.x + t1 * bary.y + t2 * bary.z;                  // 纹理坐标
         vec3 normal = normalize(n0.xyz * bary.x + n1.xyz * bary.y + n2.xyz * bary.z);   // 法线向量
         hit_record.normal = normalize(transpose(inverse(mat3(transform))) * normal);
         hit_record.ffnormal = dot(hit_record.normal, r.direction) <= 0.0 ? hit_record.normal : -hit_record.normal;
@@ -530,6 +532,8 @@ bool ClosestHit(Ray r, inout HitRec hit_record, inout LightSampleRec lightSample
         // 将切线和副切线转换到世界坐标系并归一化
         hit_record.tangent = normalize(mat3(transform) * hit_record.tangent);
         hit_record.bitangent = normalize(mat3(transform) * hit_record.bitangent);
+        
+        GetMaterial(hit_record, r); // 获取材质
     }
     
     return true;
@@ -544,7 +548,7 @@ bool AnyHit(Ray r, float maxDist)
     for (int i = 0; i < numOfSphereLights; i++)
     {
     }
-
+    
     int stack[64];  // 用栈模拟递归
     int ptr = 0;
     stack[ptr++] = -1;
@@ -553,21 +557,21 @@ bool AnyHit(Ray r, float maxDist)
     float leftHit = 0.0;     // 记录光线与BVH左孩子节点的击中时间
     float rightHit = 0.0;    // 记录光线与BVH右孩子节点的击中时间
     bool BLAS = false;
-
+    
     Ray rTrans;
     rTrans.origin = r.origin;
     rTrans.direction = r.direction;
-
+    
     float currMatID;
-
+    
     while (index != -1)
     {
         ivec3 LRLeaf = ivec3(texelFetch(BVH, index * 3 + 2).xyz);
-
+        
         int leftIndex  = int(LRLeaf.x); // 左子节点索引
         int rightIndex = int(LRLeaf.y); // 右子节点索引
         int leaf       = int(LRLeaf.z); // 叶节点标志位
-
+        
         if (leaf > 0) // Leaf node of BLAS
         {
             // 底层加速数据结构的叶节点 BLAS
@@ -625,7 +629,7 @@ bool AnyHit(Ray r, float maxDist)
         {
             leftHit =  AABBIntersect(texelFetch(BVH, leftIndex  * 3 + 0).xyz, texelFetch(BVH, leftIndex  * 3 + 1).xyz, rTrans);
             rightHit = AABBIntersect(texelFetch(BVH, rightIndex * 3 + 0).xyz, texelFetch(BVH, rightIndex * 3 + 1).xyz, rTrans);
-
+            
             if (leftHit > 0.0 && rightHit > 0.0)
             {
                 index = (leftHit > rightHit) ? rightIndex : leftIndex;
@@ -643,9 +647,9 @@ bool AnyHit(Ray r, float maxDist)
                 continue;
             }
         }
-
+        
         index = stack[--ptr];
-
+        
         if(BLAS && index == -1)
         {
             BLAS = false;
@@ -654,7 +658,7 @@ bool AnyHit(Ray r, float maxDist)
             rTrans.direction = r.direction;
         }
     }
-
+    
     return false;
 }
 /********************************/
@@ -746,7 +750,7 @@ void GetMaterial(inout HitRec hit_record, in Ray r)
     // 获取材质信息
     // 并通过光线计算光照颜色
     // TODO: 这里需要根据实际的材质类包含的内容进行调整
-    int index = hit_record.matID * 3; 
+    int index = hit_record.matID * 3;
     Material mat;
     // 材质默认值
     // 灰色（默认非金属材质）
@@ -768,19 +772,19 @@ void GetMaterial(inout HitRec hit_record, in Ray r)
     mat.matellic = defaultMetallic;
     mat.roughness = defaultRoughness;
     mat.ao = defaultAO;
-
+    
     // 获取材质的信息
     vec4 param1 = texelFetch(materialsTex, ivec2(index + 0, 0), 0);
     vec4 param2 = texelFetch(materialsTex, ivec2(index + 1, 0), 0);
-    vec4 param3 = texelFetch(materialsTex, ivec2(index + 2, 0), 0); 
-
+    vec4 param3 = texelFetch(materialsTex, ivec2(index + 2, 0), 0);
+    
     // 获取材质的基本颜色
     mat.baseColor = param1.rgb;
     
     // 获取纹理相应的索引
     ivec4 texIDs_1  = ivec4(param2);
     ivec4 texIDs_2  = ivec4(param3);
-
+    
     // 根据纹理图片修正材质的数据
     if(texIDs_1.x >= 0)
     {
@@ -790,10 +794,12 @@ void GetMaterial(inout HitRec hit_record, in Ray r)
     if(texIDs_1.y >= 0) // specularTexId
     {
     }
-    if(texIDs_1.z >= 0) // heightTexId
+    if(texIDs_1.z >= 0) // normalTexId
     {
+        vec3 tangentNormal  = texture(textureMapsArrayTex, vec3(hit_record.texCoord, texIDs_1.z)).xyz * 2.0 - 1.0;
+        hit_record.normal = LocalToWorld(tangentNormal, hit_record.normal);
     }
-    if(texIDs_1.w >= 0) // ambientTexId
+    if(texIDs_1.w >= 0) // heightTexId
     {
     }
     if(texIDs_2.x >= 0) // metalnessTexId
@@ -811,7 +817,7 @@ void GetMaterial(inout HitRec hit_record, in Ray r)
         vec4 ao = texture(textureMapsArrayTex, vec3(hit_record.texCoord, texIDs_2.z));
         mat.ao = ao.r;
     }
-
+    
     hit_record.mat = mat;
 }
 /********************************/
@@ -851,10 +857,10 @@ vec3 WorldToLocal(vec3 globalDir, vec3 normal)
 vec3 SampleDirection(vec3 normal, bool useCosineWeighted)
 {
     vec3 localDir;
-
+    
     float r1 = rand();
     float r2 = rand();
-
+    
     // 基于是否加权采样选择采样方式
     if (useCosineWeighted) {
         // 使用余弦加权半球采样
@@ -863,12 +869,12 @@ vec3 SampleDirection(vec3 normal, bool useCosineWeighted)
         // 使用均匀半球采样
         localDir = UniformSampleHemisphere(r1, r2);
     }
-
+    
     return LocalToWorld(localDir, normal);
 }
 vec3 UniformSampleHemisphere(float r1, float r2)
 {
-     // --------------------- // 
+    // --------------------- //
     // 函数名称：Uniform_Sample_Hemisphere 均匀半球采样
     // 函数功能:
     // 根据给定的随机数生成一个单位半球上的随机方向
@@ -876,15 +882,15 @@ vec3 UniformSampleHemisphere(float r1, float r2)
     // 随机数 r1 控制 z
     // 随机数 r2 控制 x y
     // PDF = 1 / 2 * PI
-    // --------------------- // 
+    // --------------------- //
     float r = sqrt(max(0.0, 1.0 - r1 * r1));
     float phi = TWO_PI * r2;
-
+    
     return vec3(r * cos(phi), r * sin(phi), r1);
 }
 vec3 CosineSampleHemisphere(float r1, float r2)
 {
-    // --------------------- // 
+    // --------------------- //
     // 函数名称：Cosine_Sample_Hemisphere 余弦加权半球采样
     // 函数功能:
     // 根据给定的随机数生成一个单位半球上的随机方向
@@ -892,96 +898,94 @@ vec3 CosineSampleHemisphere(float r1, float r2)
     // 随机数 r1 控制 θ 角度
     // 随机数 r2 控制 ϕ 角度
     // PDF = cos(θ) / PI
-    // --------------------- // 
-
+    // --------------------- //
+    
     float r = sqrt(r1);
-    float phi = TWO_PI * r2; 
-
+    float phi = TWO_PI * r2;
+    
     float x = r * cos(phi);                         // x 分量
     float y = r * sin(phi);                         // y 分量
     float z = sqrt(max(0.0, 1.0 - x * x - y * y));  // z 分量
-
+    
     return vec3(x, y, z);
 }
 /********************************/
 // 采样函数 -- 光源方向
 /********************************/
-void sampleLight(vec3 hitPoint, inout LightSampleRec lightSample)
+void sampleLight(vec3 hitPoint,inout LightSampleRec lightSample)
 {
+    int lightIndex=int(rand()*float(numOfSphereLights));
+    SampleSphereLight(sphereLights[lightIndex],hitPoint,lightSample);
     
-
-    int lightIndex = int(rand() * float(numOfSphereLights));
-    SampleSphereLight(sphereLights[lightIndex], hitPoint, lightSample);
-
     // // 随机选择一种光源类型：平面光源、球面光源或远程光源
     // // 随机选择一个光源类型（0: QUAD_LIGHT, 1: SPHERE_LIGHT, 2: DISTANT_LIGHT）
-    // int lightType = int(rand() * 3.0); 
-
+    // int lightType = int(rand() * 3.0);
+    
     // // 根据光源类型确保选取正确的光源索引
     // if (lightType == 0 && numOfRectLights > 0) {
-    //     int lightIndex = int(rand() * float(numOfRectLights));
-    //     SampleRectLight(rectLights[lightIndex], hitPoint, lightSample);
+        //     int lightIndex = int(rand() * float(numOfRectLights));
+        //     SampleRectLight(rectLights[lightIndex], hitPoint, lightSample);
     // }
     // else if (lightType == 1 && numOfSphereLights > 0) {
-    //     int lightIndex = int(rand() * float(numOfSphereLights));
-    //     SampleSphereLight(sphereLights[lightIndex], hitPoint, lightSample);
+        //     int lightIndex = int(rand() * float(numOfSphereLights));
+        //     SampleSphereLight(sphereLights[lightIndex], hitPoint, lightSample);
     // }
     // else if (lightType == 2 && numOfDistantLights > 0) {
-    //     int lightIndex = int(rand() * float(numOfDistantLights));
-    //     SampleDistantLight(distantLights[lightIndex], hitPoint, lightSample);
+        //     int lightIndex = int(rand() * float(numOfDistantLights));
+        //     SampleDistantLight(distantLights[lightIndex], hitPoint, lightSample);
     // }
 }
-void SampleRectLight(in RectLight light, in vec3 hitPoint, inout LightSampleRec lightSample)
+void SampleRectLight(in RectLight light,in vec3 hitPoint,inout LightSampleRec lightSample)
 {
     // 矩形光源
-    float r1 = rand();
-    float r2 = rand();
-
-    vec3 lightSurfacePos = light.position + light.u * r1 + light.v * r2; // 在矩形上随机采样一个点
-    lightSample.direction = lightSurfacePos - hitPoint;
-    lightSample.dist = length(lightSample.direction);
-    float distSq = lightSample.dist * lightSample.dist;
-    lightSample.direction /= lightSample.dist;
-    lightSample.normal = normalize(cross(light.u, light.v));
-    lightSample.emission = light.emission * float(numOfRectLights);
-    lightSample.pdf = distSq / (light.area * abs(dot(lightSample.normal, lightSample.direction)));
+    float r1=rand();
+    float r2=rand();
+    
+    vec3 lightSurfacePos=light.position+light.u*r1+light.v*r2;// 在矩形上随机采样一个点
+    lightSample.direction=lightSurfacePos-hitPoint;
+    lightSample.dist=length(lightSample.direction);
+    float distSq=lightSample.dist*lightSample.dist;
+    lightSample.direction/=lightSample.dist;
+    lightSample.normal=normalize(cross(light.u,light.v));
+    lightSample.emission=light.emission*float(numOfRectLights);
+    lightSample.pdf=distSq/(light.area*abs(dot(lightSample.normal,lightSample.direction)));
 }
-void SampleSphereLight(in SphereLight light, in vec3 hitPoint, inout LightSampleRec lightSample)
+void SampleSphereLight(in SphereLight light,in vec3 hitPoint,inout LightSampleRec lightSample)
 {
     // 球形光源
-    float r1 = rand();
-    float r2 = rand();
-
-    vec3 sphereCentertoSurface = hitPoint - light.position;
-    float distToSphereCenter = length(sphereCentertoSurface);
+    float r1=rand();
+    float r2=rand();
+    
+    vec3 sphereCentertoSurface=hitPoint-light.position;
+    float distToSphereCenter=length(sphereCentertoSurface);
     vec3 sampledDir;
-
+    
     // TODO: Fix this. Currently assumes the light will be hit only from the outside
-    sphereCentertoSurface /= distToSphereCenter;
+    sphereCentertoSurface/=distToSphereCenter;
     // 在均匀球上随机采样一个点
-    sampledDir = UniformSampleHemisphere(r1, r2); 
+    sampledDir=UniformSampleHemisphere(r1,r2);
     // 通过 Onb 将半球采样结果从局部坐标系转换到球光源的方向
-    vec3 T, B;
-    GenerateTBN(sphereCentertoSurface, T, B);
-    sampledDir = T * sampledDir.x + B * sampledDir.y + sphereCentertoSurface * sampledDir.z;
-
-    vec3 lightSurfacePos = light.position + sampledDir * light.radius; // 计算采样点的位置
-
-    lightSample.direction = lightSurfacePos - hitPoint;
-    lightSample.dist = length(lightSample.direction);
-    float distSq = lightSample.dist * lightSample.dist;
-
-    lightSample.direction /= lightSample.dist;
-    lightSample.normal = normalize(lightSurfacePos - light.position);
-    lightSample.emission = light.emission * float(numOfSphereLights);
-    lightSample.pdf = distSq / (light.area * 0.5 * abs(dot(lightSample.normal, lightSample.direction)));
+    vec3 T,B;
+    GenerateTBN(sphereCentertoSurface,T,B);
+    sampledDir=T*sampledDir.x+B*sampledDir.y+sphereCentertoSurface*sampledDir.z;
+    
+    vec3 lightSurfacePos=light.position+sampledDir*light.radius;// 计算采样点的位置
+    
+    lightSample.direction=lightSurfacePos-hitPoint;
+    lightSample.dist=length(lightSample.direction);
+    float distSq=lightSample.dist*lightSample.dist;
+    
+    lightSample.direction/=lightSample.dist;
+    lightSample.normal=normalize(lightSurfacePos-light.position);
+    lightSample.emission=light.emission*float(numOfSphereLights);
+    lightSample.pdf=distSq/(light.area*.5*abs(dot(lightSample.normal,lightSample.direction)));
 }
-void SampleDistantLight(in DistantLight light, in vec3 hitPoint, inout LightSampleRec lightSample)
+void SampleDistantLight(in DistantLight light,in vec3 hitPoint,inout LightSampleRec lightSample)
 {
     // 平行光源
-    lightSample.direction = normalize(light.position - vec3(0.0));
-    lightSample.normal = normalize(hitPoint - light.position);
-    lightSample.emission = light.emission * float(numOfDistantLights);
-    lightSample.dist = INF;
-    lightSample.pdf = 1.0;
+    lightSample.direction=normalize(light.position-vec3(0.));
+    lightSample.normal=normalize(hitPoint-light.position);
+    lightSample.emission=light.emission*float(numOfDistantLights);
+    lightSample.dist=INF;
+    lightSample.pdf=1.;
 }

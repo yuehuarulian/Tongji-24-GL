@@ -9,6 +9,7 @@
 #include "light_manager.hpp"
 #include "BVHConverter.hpp"
 #include "Quad.hpp"
+#include "config.hpp"
 
 struct Indices
 {
@@ -20,16 +21,26 @@ class Scene
 public:
     Scene(ShaderManager &shader_manager, LightManager light_manager) : shader_manager(shader_manager), light_manager(light_manager)
     {
+        currentBuffer = 0;
+        dirty = false;
         sceneBVH = new BVH(10.0f, 64, false);
         quad = new Quad();
     }
 
     virtual ~Scene() = default;
 
-    virtual void render() = 0;
+    virtual void update() = 0;  // 进行数据更新
+    virtual void render() = 0;  // 进行画面渲染
+    virtual void present() = 0; // 展示渲染结果
+
+    void setDirty(bool isDirty) { this->dirty = isDirty; }
+    bool getDirty() const { return this->dirty; }
 
 protected:
     virtual void setup_scene() = 0;
+
+    // 脏位
+    bool dirty;
 
     // 存储所有的网格
     std::vector<Mesh *> meshes;
@@ -38,6 +49,16 @@ protected:
     ShaderManager &shader_manager; // 着色器管理者
     LightManager light_manager;    // 灯光管理者
     std::vector<std::shared_ptr<RenderableModel>> models;
+
+    // 帧缓冲对象
+    GLuint pathTraceFBO;
+    GLuint accumFBO;
+    GLuint outputFBO;
+    // 帧缓冲对应的纹理
+    GLuint pathTraceTexture;
+    GLuint accumTexture;
+    GLuint outputTexture[2];
+    int currentBuffer; // 表示当前渲染结果存储的位置
 
     // Quad
     Quad *quad;
@@ -87,11 +108,13 @@ protected:
 protected:
     const int texArrayHeight = 2048;
     const int texArrayWidth = 2048;
+    int frameNum = 0;
 
     void createBLAS(); // 建立低层次的BVH加速结构
     void createTLAS(); // 建立高层次的BVH加速结构
     void ProcessData();
     void InitGPUData();
+    void InitFBOs();
     virtual void InitShaders() = 0;
 };
 
