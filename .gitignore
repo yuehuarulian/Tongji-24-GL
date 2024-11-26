@@ -6,3 +6,4 @@ offline_rendering/
 source/model/
 *.mp4
 *.ini
+openvdb_bin/
