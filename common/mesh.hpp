@@ -105,17 +105,17 @@ public:
     }
 
     glm::vec3 baseColor; // 基础颜色
-    int padding_0;
+    float padding_0;
 
-    int diffuseTexId;
-    int specularTexId;
-    int normalTexId;
-    int heightTexId;
+    float diffuseTexId;
+    float specularTexId;
+    float normalTexId;
+    float heightTexId;
 
-    int metalnessTexId;
-    int diffuse_roughnessTexId;
-    int ambient_occlusionTexId;
-    int padding_1;
+    float metalnessTexId;
+    float diffuse_roughnessTexId;
+    float ambient_occlusionTexId;
+    float padding_1;
 };
 
 class Mesh
