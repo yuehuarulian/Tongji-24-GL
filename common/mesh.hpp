@@ -49,11 +49,7 @@ class Texture
     // 纹理名称：texName -- 唯一标识符
 public:
     Texture() : width(0), height(0), components(0) {};
-    Texture(std::string texName, unsigned char *data, int w, int h, int c) : texName(texName),
-                                                                             width(w),
-                                                                             height(h),
-                                                                             components(c)
-
+    Texture(std::string texName, unsigned char *data, int w, int h, int c) : texName(texName), width(w), height(h), components(c)
     {
         texData.resize(width * height * components);
         std::copy(data, data + width * height * components, texData.begin());
@@ -109,17 +105,17 @@ public:
     }
 
     glm::vec3 baseColor; // 基础颜色
-    float padding_0;
+    int padding_0;
 
-    float diffuseTexId;
-    float specularTexId;
-    float normalTexId;
-    float heightTexId;
+    int diffuseTexId;
+    int specularTexId;
+    int normalTexId;
+    int heightTexId;
 
-    float metalnessTexId;
-    float diffuse_roughnessTexId;
-    float ambient_occlusionTexId;
-    float padding_1;
+    int metalnessTexId;
+    int diffuse_roughnessTexId;
+    int ambient_occlusionTexId;
+    int padding_1;
 };
 
 class Mesh

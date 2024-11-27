@@ -43,8 +43,16 @@ protected:
     int add_material(const Material &material);
     int add_texture(const std::string &filename);
 
+    void createBLAS(); // 建立低层次的BVH加速结构
+    void createTLAS(); // 建立高层次的BVH加速结构
+    void process_data();
+    void init_GPU_data();
+    void init_FBOs();
+
     const int WINDOW_WIDTH, WINDOW_HEIGHT;
-    // 脏位
+    const int texArrayHeight = 2048;
+    const int texArrayWidth = 2048;
+    int frameNum = 0;
     bool dirty;
 
     // 存储所有的网格
@@ -104,17 +112,6 @@ protected:
     GLuint materialsTex;
     // ---------- 纹理数据 ---------- //
     GLuint textureMapsArrayTex;
-
-protected:
-    const int texArrayHeight = 2048;
-    const int texArrayWidth = 2048;
-    int frameNum = 0;
-
-    void createBLAS(); // 建立低层次的BVH加速结构
-    void createTLAS(); // 建立高层次的BVH加速结构
-    void process_data();
-    void init_GPU_data();
-    void init_FBOs();
 };
 
 #endif // SCENE_HPP

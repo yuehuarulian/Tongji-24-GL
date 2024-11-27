@@ -167,7 +167,7 @@ Mesh *Model::processMesh(aiMesh *mesh, const aiScene *scene)
         // 2. 镜面反射纹理
         m_material.specularTexId = loadMaterialTextures(material, aiTextureType_SPECULAR);
         // 3. 法线贴图
-        m_material.normalTexId = loadMaterialTextures(material, aiTextureType_NORMALS);
+        m_material.normalTexId = loadMaterialTextures(material, aiTextureType_HEIGHT);
         // 4. 高度贴图
         m_material.heightTexId = loadMaterialTextures(material, aiTextureType_HEIGHT);
         // PBR 相关贴图
