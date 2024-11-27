@@ -107,8 +107,10 @@ protected:
     GLuint normalsBuffer;
     GLuint normalsTex;
     // ---------- 转换矩阵数据 ---------- //
+    GLuint transformsBuffer;
     GLuint transformsTex;
     // ---------- 材质数据 ---------- //
+    GLuint materialsBuffer;
     GLuint materialsTex;
     // ---------- 纹理数据 ---------- //
     GLuint textureMapsArrayTex;

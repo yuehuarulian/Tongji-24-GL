@@ -257,20 +257,20 @@ void Scene::init_GPU_data()
     glTexBuffer(GL_TEXTURE_BUFFER, GL_RGBA32F, normalsBuffer);
     // ---------- 转换矩阵数据 ---------- //
     // 注释:
+    glGenBuffers(1, &transformsBuffer);
+    glBindBuffer(GL_TEXTURE_BUFFER, transformsBuffer);
+    glBufferData(GL_TEXTURE_BUFFER, sizeof(glm::mat4) * transforms.size(), &transforms[0], GL_STATIC_DRAW);
     glGenTextures(1, &transformsTex);
-    glBindTexture(GL_TEXTURE_2D, transformsTex);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, (sizeof(glm::mat4) / sizeof(glm::vec4)) * transforms.size(), 1, 0, GL_RGBA, GL_FLOAT, &transforms[0]);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glBindTexture(GL_TEXTURE_2D, 0);
+    glBindTexture(GL_TEXTURE_BUFFER, transformsTex);
+    glTexBuffer(GL_TEXTURE_BUFFER, GL_RGBA32F, transformsBuffer);
     // ---------- 材质数据 ---------- //
     // 注释：
+    glGenBuffers(1, &materialsBuffer);
+    glBindBuffer(GL_TEXTURE_BUFFER, materialsBuffer);
+    glBufferData(GL_TEXTURE_BUFFER, sizeof(Material) * materials.size(), &materials[0], GL_STATIC_DRAW);
     glGenTextures(1, &materialsTex);
-    glBindTexture(GL_TEXTURE_2D, materialsTex);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, (sizeof(Material) / sizeof(glm::vec4)) * materials.size(), 1, 0, GL_RGBA, GL_FLOAT, &materials[0]);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glBindTexture(GL_TEXTURE_2D, 0);
+    glBindTexture(GL_TEXTURE_BUFFER, materialsTex);
+    glTexBuffer(GL_TEXTURE_BUFFER, GL_RGBA32F, materialsBuffer);
     // ---------- 纹理数据 ---------- //
     // 注释：
     if (!textures.empty())
@@ -293,9 +293,9 @@ void Scene::init_GPU_data()
     glActiveTexture(GL_TEXTURE4);
     glBindTexture(GL_TEXTURE_BUFFER, normalsTex);
     glActiveTexture(GL_TEXTURE5);
-    glBindTexture(GL_TEXTURE_2D, transformsTex);
+    glBindTexture(GL_TEXTURE_BUFFER, transformsTex);
     glActiveTexture(GL_TEXTURE6);
-    glBindTexture(GL_TEXTURE_2D, materialsTex);
+    glBindTexture(GL_TEXTURE_BUFFER, materialsTex);
     glActiveTexture(GL_TEXTURE7);
     glBindTexture(GL_TEXTURE_2D_ARRAY, textureMapsArrayTex);
 }

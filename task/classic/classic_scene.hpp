@@ -36,7 +36,7 @@ namespace GL_TASK
 
         // 模型文件路径
         std::vector<std::string> modelPaths = {
-            // "./source/model/room/room2.obj",
+            // "./source/model/room1.0/overall.obj",
             "./source/model/nanosuit_reflection/nanosuit.obj",
         };
         // buttefly

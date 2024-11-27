@@ -146,9 +146,9 @@ uniform samplerBuffer BVHTex;
 uniform samplerBuffer verticesTex;
 uniform samplerBuffer normalsTex;
 uniform isamplerBuffer vertexIndicesTex;
-uniform sampler2D transformsTex;
-uniform sampler2D materialsTex;
-uniform sampler2D lightsTex;
+uniform samplerBuffer transformsTex;
+uniform samplerBuffer materialsTex;
+uniform samplerBuffer lightsTex;
 uniform sampler2DArray textureMapsArrayTex;
 
 // TODO:需要加入Uniform
@@ -167,7 +167,8 @@ void main()
 {
     // 屏幕坐标直接映射生成光线
     // TODO: 添加扰动
-    InitRNG(gl_FragCoord.xy, frameNum);
+    // InitRNG(gl_FragCoord.xy, frameNum);
+    InitRNG(gl_FragCoord.xy + vec2(rand(), rand()), frameNum);
     vec2 d = (TexCoords * 2.0 - 1.0); // 将坐标范围映射到 [-1, 1]
     float scale = tan(camera.fov * 0.5);
     d.y *= resolution.y / resolution.x * scale;
@@ -175,7 +176,7 @@ void main()
     
     vec3 rayOrigin = camera.position;
     vec3 rayDirection = normalize(d.x * camera.right + d.y * camera.up + camera.forward);
-    float radius = 2.5;
+    float radius = 5;
     sphereLights[0] = SphereLight(vec3(0.,0.,0.), vec3(300), radius, 4 * PI * radius * radius);
     sphereLights[1] = SphereLight(vec3(10.0, 20.0, -10.0), vec3(300), radius, 4 * PI * radius * radius);
     sphereLights[2] = SphereLight(vec3(-10.0, 20.0, -10.0), vec3(300), radius, 4 * PI * radius * radius);
@@ -184,9 +185,9 @@ void main()
     Ray ray = Ray(rayOrigin, rayDirection);// 生成光线
     
     // 后面可以更改为 uniform 使用imgui进行调节
-    int maxDepth = 10;// 光线弹射的最大深度
-    int RR_maxDepth = 4;// 俄罗斯轮盘赌启动的最低深度
-    
+    int maxDepth = 20;// 光线弹射的最大深度
+    int RR_maxDepth = 5;// 俄罗斯轮盘赌启动的最低深度
+
     vec4 accumColor = texture(accumTexture, TexCoords);
     vec4 color = vec4(PathTrace(ray, maxDepth, RR_maxDepth), 1.0);
 
@@ -216,9 +217,8 @@ vec3 PathTrace(Ray r, int maxDepth, int RR_maxDepth)
             // if (depth == 0) return vec3(1.0, 0.0, 0.0); // 第一次弹射
             // if (depth == 1) return vec3(0.0, 1.0, 0.0); // 第二次弹射
             // if (depth == 2) return vec3(0.0, 0.0, 1.0); // 第三次弹射
-            // else return vec3(1.0);
+            // else return vec3(1.0,1.0,1.0);
 
-            // return vec3(depth / 5.);
             // 如果没有交点，返回环境背景颜色
             radiance += throughput * vec3(0.5, 0.7, 1.0); // 蓝天背景
             break;
@@ -235,7 +235,6 @@ vec3 PathTrace(Ray r, int maxDepth, int RR_maxDepth)
         }
         
         // 直接光照计算（光源采样）
-        return hit_record.ffnormal;
         sampleLight(hit_record.HitPoint, lightSample); // 进行光源采样
         vec3 V = -r.direction;           // 视线光线 -- 由交点指向外侧
         vec3 L = lightSample.direction;  // 光源光线 -- 由交点指向外侧
@@ -259,7 +258,7 @@ vec3 PathTrace(Ray r, int maxDepth, int RR_maxDepth)
         
         // 间接光照计算（路径延续）
         // 俄罗斯轮盘赌优化
-        float prob = 0.5; // 概率阈值
+        float prob = 0.7; // 概率阈值
         if (depth > RR_maxDepth && rand() > prob) {
             break; // 停止追踪路径
         }
@@ -271,7 +270,9 @@ vec3 PathTrace(Ray r, int maxDepth, int RR_maxDepth)
         vec3 wi = SampleDirection(hit_record.normal, useCosineWeighted); // 在半球中随机采样
         float pdf = useCosineWeighted ?  (wi.z / PI) : (1.0 / (2.0 * PI));
         throughput *= BRDF_PBR(N, V, wi, vec3(1.0), albedo, metallic, roughness, F0) / pdf;
-        r = Ray(hit_record.HitPoint + 0.001 * hit_record.ffnormal, wi);      // 更新光线
+        r = Ray(hit_record.HitPoint + 0.001 * wi, wi);      // 更新光线
+        // r = Ray(vec3(0.0), wi);      // 更新光线
+        // return r.direction;
     }
     
     return radiance;
@@ -455,10 +456,15 @@ bool ClosestHit(Ray r, inout HitRec hit_record, inout LightSampleRec lightSample
         {
             // 顶层加速数据结构的叶节点 TLAS
             // 提取变换矩阵的行数据
-            vec4 r1 = texelFetch(transformsTex, ivec2((-leaf - 1) * 4 + 0, 0), 0).xyzw;
-            vec4 r2 = texelFetch(transformsTex, ivec2((-leaf - 1) * 4 + 1, 0), 0).xyzw;
-            vec4 r3 = texelFetch(transformsTex, ivec2((-leaf - 1) * 4 + 2, 0), 0).xyzw;
-            vec4 r4 = texelFetch(transformsTex, ivec2((-leaf - 1) * 4 + 3, 0), 0).xyzw;
+            // vec4 r1 = texelFetch(transformsTex, ivec2((-leaf - 1) * 4 + 0, 0), 0).xyzw;
+            // vec4 r2 = texelFetch(transformsTex, ivec2((-leaf - 1) * 4 + 1, 0), 0).xyzw;
+            // vec4 r3 = texelFetch(transformsTex, ivec2((-leaf - 1) * 4 + 2, 0), 0).xyzw;
+            // vec4 r4 = texelFetch(transformsTex, ivec2((-leaf - 1) * 4 + 3, 0), 0).xyzw;
+            vec4 r1 = texelFetch(transformsTex, (-leaf - 1) * 4 + 0);  // 获取变换矩阵的第一列
+            vec4 r2 = texelFetch(transformsTex, (-leaf - 1) * 4 + 1);  // 获取变换矩阵的第二列
+            vec4 r3 = texelFetch(transformsTex, (-leaf - 1) * 4 + 2);  // 获取变换矩阵的第三列
+            vec4 r4 = texelFetch(transformsTex, (-leaf - 1) * 4 + 3);  // 获取变换矩阵的第四列
+            
             // 构建变换矩阵 -- 将光线从世界坐标系转换到对象的局部坐标系
             transMat = mat4(r1, r2, r3, r4);
             
@@ -508,7 +514,7 @@ bool ClosestHit(Ray r, inout HitRec hit_record, inout LightSampleRec lightSample
     
     // 没有相交点
     if (tMin == INF)
-    return false;
+        return false;
     
     hit_record.HitDist = tMin;                            // 记录光线击中物体的最近时间/距离
     hit_record.HitPoint = r.origin + r.direction * tMin;  // 记录光线与物体的交点
@@ -547,15 +553,29 @@ bool ClosestHit(Ray r, inout HitRec hit_record, inout LightSampleRec lightSample
     
     return true;
 }
+
 bool AnyHit(Ray r, float maxDist)
 {
-    // 检查是否击中光源
+    // 检查是否击中光源SphereIntersect
     // TODO
-    for (int i = 0; i < numOfRectLights; i++)
-    {
-    }
+    // for (int i = 0; i < numOfRectLights; i++)
+    // {
+    //     // 与矩形光源相交测试，假设我们已经有矩形光源的属性
+    //     RectLight light = rectLights[i];
+    //     if (IntersectRectLight(r, light, maxDist))
+    //         return true;
+    // }
+    
     for (int i = 0; i < numOfSphereLights; i++)
     {
+        vec3 position = sphereLights[i].position;
+        vec3 emission = sphereLights[i].emission;
+        float radius  = sphereLights[i].radius;
+        float area    = sphereLights[i].area;
+
+        float intersectionDistance = SphereIntersect(radius, position, r);
+        if (intersectionDistance > 0.0 && intersectionDistance < maxDist)
+            return true;
     }
     
     int stack[64];  // 用栈模拟递归
@@ -618,10 +638,10 @@ bool AnyHit(Ray r, float maxDist)
         {
             // 顶层加速数据结构的叶节点 TLAS
             // 提取变换矩阵的行数据
-            vec4 r1 = texelFetch(transformsTex, ivec2((-leaf - 1) * 4 + 0, 0), 0).xyzw;
-            vec4 r2 = texelFetch(transformsTex, ivec2((-leaf - 1) * 4 + 1, 0), 0).xyzw;
-            vec4 r3 = texelFetch(transformsTex, ivec2((-leaf - 1) * 4 + 2, 0), 0).xyzw;
-            vec4 r4 = texelFetch(transformsTex, ivec2((-leaf - 1) * 4 + 3, 0), 0).xyzw;
+            vec4 r1 = texelFetch(transformsTex, (-leaf - 1) * 4 + 0);
+            vec4 r2 = texelFetch(transformsTex, (-leaf - 1) * 4 + 1);
+            vec4 r3 = texelFetch(transformsTex, (-leaf - 1) * 4 + 2);
+            vec4 r4 = texelFetch(transformsTex, (-leaf - 1) * 4 + 3);
             // 构建变换矩阵 -- 将光线从世界坐标系转换到对象的局部坐标系
             mat4 transform = mat4(r1, r2, r3, r4);
             
@@ -670,6 +690,7 @@ bool AnyHit(Ray r, float maxDist)
     
     return false;
 }
+
 /********************************/
 // 相交函数
 /********************************/
@@ -696,6 +717,7 @@ float RectIntersect(in vec3 pos, in vec3 u, in vec3 v, in vec4 plane, in Ray r)
     
     return INF;
 }
+
 float SphereIntersect(float radius, vec3 center, Ray r)
 {
     vec3 op = center - r.origin;
@@ -716,6 +738,7 @@ float SphereIntersect(float radius, vec3 center, Ray r)
     
     return INF;
 }
+
 float AABBIntersect(vec3 minCorner, vec3 maxCorner, Ray r)
 {
     vec3 invDir = 1.0 / r.direction;
@@ -781,14 +804,14 @@ void GetMaterial(inout HitRec hit_record, in Ray r)
     mat.matellic = defaultMetallic;
     mat.roughness = defaultRoughness;
     mat.ao = defaultAO;
-    
+    mat.normal = hit_record.normal;
     // 获取材质的信息
-    vec4 param1 = texelFetch(materialsTex, ivec2(index + 0, 0), 0);
-    vec4 param2 = texelFetch(materialsTex, ivec2(index + 1, 0), 0);
-    vec4 param3 = texelFetch(materialsTex, ivec2(index + 2, 0), 0);
-    
+    vec4 param1 = texelFetch(materialsTex, index + 0);  // 获取第一个材质参数
+    vec4 param2 = texelFetch(materialsTex, index + 1);  // 获取第二个材质参数
+    vec4 param3 = texelFetch(materialsTex, index + 2);  // 获取第三个材质参数
+
     // 获取材质的基本颜色
-    // mat.baseColor = param1.rgb;
+    mat.baseColor = param1.rgb;
     
     // 获取纹理相应的索引
     ivec4 texIDs_1  = ivec4(param2);
