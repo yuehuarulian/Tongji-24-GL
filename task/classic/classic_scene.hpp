@@ -9,45 +9,6 @@
 #include "camera_control.hpp"
 #include <memory>
 
-// namespace GL_TASK
-// {
-//     class ClassicScene : public Scene
-//     {
-//     public:
-//         ClassicScene(ShaderManager &shader_manager, LightManager &light_manager);
-//         ~ClassicScene() = default;
-
-//         void updateCameraInfo(Camera *camera);
-
-//         void update() override;  // 数据更新函数
-//         void render() override;  // 渲染函数
-//         void present() override; // 展示渲染结果函数
-
-//         void wait_until_next_frame(int frame_number) override;
-
-//     private:
-//         void setup_scene() override; // 配置场景
-//         void InitShaders() override;
-
-//         void LoadModels();
-//         void LoadLights();
-//         std::vector<std::shared_ptr<PointCloud>> point_clouds;
-
-//         std::vector<glm::mat4> butterfly_model_matrix_vec = {
-//             glm::mat4(1.0f),
-//             glm::mat4(1.0f),
-//             glm::mat4(1.0f),
-//             glm::mat4(1.0f),
-//             glm::mat4(1.0f),
-//             glm::mat4(1.0f),
-//             glm::mat4(1.0f),
-//             glm::mat4(1.0f),
-//             glm::mat4(1.0f),
-//             glm::mat4(1.0f),
-//         };
-//     };
-// }
-
 namespace GL_TASK
 {
     class ClassicScene : public Scene
@@ -75,7 +36,8 @@ namespace GL_TASK
 
         // 模型文件路径
         std::vector<std::string> modelPaths = {
-            "./source/model/room1.0/overall.obj",
+            // "./source/model/room/room2.obj",
+            "./source/model/nanosuit_reflection/nanosuit.obj",
         };
         // buttefly
         //         std::vector<glm::mat4> butterfly_model_matrix_vec = {

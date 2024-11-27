@@ -71,6 +71,7 @@ struct Material
     float ao;// 环境光遮蔽
     vec3 F0;// 镜面反射的基础反射率
     vec3 emission;// 自发光颜色
+    vec3 normal;// 表面法线贴图
 };
 // 击中点记录
 struct HitRec
@@ -141,7 +142,7 @@ float rand();
 
 uniform int topBVHIndex;
 uniform sampler2D accumTexture;
-uniform samplerBuffer BVH;
+uniform samplerBuffer BVHTex;
 uniform samplerBuffer verticesTex;
 uniform samplerBuffer normalsTex;
 uniform isamplerBuffer vertexIndicesTex;
@@ -175,22 +176,23 @@ void main()
     vec3 rayOrigin = camera.position;
     vec3 rayDirection = normalize(d.x * camera.right + d.y * camera.up + camera.forward);
     float radius = 2.5;
-    sphereLights[0] = SphereLight(vec3(0.,0.,0.), vec3(.1), radius, 4 * PI * radius * radius);
-    // sphereLights[1] = SphereLight(vec3(10.0, 20.0, -10.0), vec3(0.1), radius, 4 * PI * radius * radius);
-    // sphereLights[2] = SphereLight(vec3(-10.0, 20.0, -10.0), vec3(0.1), radius, 4 * PI * radius * radius);
-    numOfSphereLights = 1;
+    sphereLights[0] = SphereLight(vec3(0.,0.,0.), vec3(300), radius, 4 * PI * radius * radius);
+    sphereLights[1] = SphereLight(vec3(10.0, 20.0, -10.0), vec3(300), radius, 4 * PI * radius * radius);
+    sphereLights[2] = SphereLight(vec3(-10.0, 20.0, -10.0), vec3(300), radius, 4 * PI * radius * radius);
+    numOfSphereLights = 3;
     
     Ray ray = Ray(rayOrigin, rayDirection);// 生成光线
     
     // 后面可以更改为 uniform 使用imgui进行调节
-    int maxDepth = 20;// 光线弹射的最大深度
-    int RR_maxDepth = 8;// 俄罗斯轮盘赌启动的最低深度
+    int maxDepth = 10;// 光线弹射的最大深度
+    int RR_maxDepth = 4;// 俄罗斯轮盘赌启动的最低深度
     
     vec4 accumColor = texture(accumTexture, TexCoords);
     vec4 color = vec4(PathTrace(ray, maxDepth, RR_maxDepth), 1.0);
 
     vec3 finalColor = accumColor.xyz + color.xyz;
       
+    // vec3 finalColor = vec3(1.0);
     FragColor = vec4(finalColor, 1.0); 
 }
 
@@ -224,7 +226,7 @@ vec3 PathTrace(Ray r, int maxDepth, int RR_maxDepth)
         
         GetMaterial(hit_record, r); // 获取材质
         
-        // return hit_record.mat.baseColor;
+        // return hit_record.mat.normal;
         
         // 如果击中了发光体，添加其辐射贡献
         if (hit_record.isEmitter) {
@@ -233,6 +235,7 @@ vec3 PathTrace(Ray r, int maxDepth, int RR_maxDepth)
         }
         
         // 直接光照计算（光源采样）
+        return hit_record.ffnormal;
         sampleLight(hit_record.HitPoint, lightSample); // 进行光源采样
         vec3 V = -r.direction;           // 视线光线 -- 由交点指向外侧
         vec3 L = lightSample.direction;  // 光源光线 -- 由交点指向外侧
@@ -268,7 +271,7 @@ vec3 PathTrace(Ray r, int maxDepth, int RR_maxDepth)
         vec3 wi = SampleDirection(hit_record.normal, useCosineWeighted); // 在半球中随机采样
         float pdf = useCosineWeighted ?  (wi.z / PI) : (1.0 / (2.0 * PI));
         throughput *= BRDF_PBR(N, V, wi, vec3(1.0), albedo, metallic, roughness, F0) / pdf;
-        r = Ray(hit_record.HitPoint + 0.001 * wi, wi);      // 更新光线
+        r = Ray(hit_record.HitPoint + 0.001 * hit_record.ffnormal, wi);      // 更新光线
     }
     
     return radiance;
@@ -362,7 +365,7 @@ bool ClosestHit(Ray r, inout HitRec hit_record, inout LightSampleRec lightSample
         float area    = sphereLights[i].area;
         tTmp = SphereIntersect(radius, position, r);
         if (tTmp < 0.)
-        tTmp = INF;
+            tTmp = INF;
         if (tTmp < tMin)
         {
             tMin = tTmp;
@@ -400,7 +403,7 @@ bool ClosestHit(Ray r, inout HitRec hit_record, inout LightSampleRec lightSample
     // 使用栈的方式模仿递归
     while (index != -1)
     {
-        ivec3 LRLeaf = ivec3(texelFetch(BVH, index * 3 + 2).xyz);
+        ivec3 LRLeaf = ivec3(texelFetch(BVHTex, index * 3 + 2).xyz);
         
         int leftIndex  = int(LRLeaf.x);
         int rightIndex = int(LRLeaf.y);
@@ -471,8 +474,8 @@ bool ClosestHit(Ray r, inout HitRec hit_record, inout LightSampleRec lightSample
         else
         {
             // 非叶节点
-            leftHit  = AABBIntersect(texelFetch(BVH, leftIndex  * 3 + 0).xyz, texelFetch(BVH, leftIndex  * 3 + 1).xyz, rTrans);
-            rightHit = AABBIntersect(texelFetch(BVH, rightIndex * 3 + 0).xyz, texelFetch(BVH, rightIndex * 3 + 1).xyz, rTrans);
+            leftHit  = AABBIntersect(texelFetch(BVHTex, leftIndex  * 3 + 0).xyz, texelFetch(BVHTex, leftIndex  * 3 + 1).xyz, rTrans);
+            rightHit = AABBIntersect(texelFetch(BVHTex, rightIndex * 3 + 0).xyz, texelFetch(BVHTex, rightIndex * 3 + 1).xyz, rTrans);
             
             if (leftHit > 0.0 && rightHit > 0.0)
             {
@@ -539,7 +542,7 @@ bool ClosestHit(Ray r, inout HitRec hit_record, inout LightSampleRec lightSample
         hit_record.tangent = normalize(mat3(transform) * hit_record.tangent);
         hit_record.bitangent = normalize(mat3(transform) * hit_record.bitangent);
         
-        GetMaterial(hit_record, r); // 获取材质
+        // GetMaterial(hit_record, r); // 获取材质
     }
     
     return true;
@@ -572,7 +575,7 @@ bool AnyHit(Ray r, float maxDist)
     
     while (index != -1)
     {
-        ivec3 LRLeaf = ivec3(texelFetch(BVH, index * 3 + 2).xyz);
+        ivec3 LRLeaf = ivec3(texelFetch(BVHTex, index * 3 + 2).xyz);
         
         int leftIndex  = int(LRLeaf.x); // 左子节点索引
         int rightIndex = int(LRLeaf.y); // 右子节点索引
@@ -633,8 +636,8 @@ bool AnyHit(Ray r, float maxDist)
         }
         else
         {
-            leftHit =  AABBIntersect(texelFetch(BVH, leftIndex  * 3 + 0).xyz, texelFetch(BVH, leftIndex  * 3 + 1).xyz, rTrans);
-            rightHit = AABBIntersect(texelFetch(BVH, rightIndex * 3 + 0).xyz, texelFetch(BVH, rightIndex * 3 + 1).xyz, rTrans);
+            leftHit =  AABBIntersect(texelFetch(BVHTex, leftIndex  * 3 + 0).xyz, texelFetch(BVHTex, leftIndex  * 3 + 1).xyz, rTrans);
+            rightHit = AABBIntersect(texelFetch(BVHTex, rightIndex * 3 + 0).xyz, texelFetch(BVHTex, rightIndex * 3 + 1).xyz, rTrans);
             
             if (leftHit > 0.0 && rightHit > 0.0)
             {
@@ -785,7 +788,7 @@ void GetMaterial(inout HitRec hit_record, in Ray r)
     vec4 param3 = texelFetch(materialsTex, ivec2(index + 2, 0), 0);
     
     // 获取材质的基本颜色
-    mat.baseColor = param1.rgb;
+    // mat.baseColor = param1.rgb;
     
     // 获取纹理相应的索引
     ivec4 texIDs_1  = ivec4(param2);
@@ -803,7 +806,7 @@ void GetMaterial(inout HitRec hit_record, in Ray r)
     if(texIDs_1.z >= 0) // normalTexId
     {
         vec3 tangentNormal  = texture(textureMapsArrayTex, vec3(hit_record.texCoord, texIDs_1.z)).xyz * 2.0 - 1.0;
-        hit_record.normal = LocalToWorld(tangentNormal, hit_record.normal);
+        mat.normal = LocalToWorld(tangentNormal, hit_record.normal);
     }
     if(texIDs_1.w >= 0) // heightTexId
     {

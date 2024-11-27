@@ -9,18 +9,18 @@ namespace GL_TASK
     ClassicScene::ClassicScene(ShaderManager &shader_manager, LightManager &light_manager, const int WINDOW_WIDTH, const int WINDOW_HEIGHT)
         : Scene(shader_manager, light_manager, WINDOW_WIDTH, WINDOW_HEIGHT)
     {
-        setup_scene();
-        init_GPU_data(); // 将相关数据绑定到纹理中以便传递到GPU中
-        init_FBOs();     // 初始化帧缓冲对象
+        setup_scene(); // 配置场景
     }
 
     // 对场景进行设置
     void ClassicScene::setup_scene()
     {
         frameNum = 1;
-        load_shaders();
-        load_models();
         load_lights();
+        load_models();
+        init_GPU_data(); // 将相关数据绑定到纹理中以便传递到GPU中
+        init_FBOs();     // 初始化帧缓冲对象
+        load_shaders();
     }
 
     void ClassicScene::load_shaders()
@@ -38,7 +38,7 @@ namespace GL_TASK
         path_tracing_shader->setInt("topBVHIndex", bvhConverter.topLevelIndex);
         path_tracing_shader->setVec2("resolution", 1080, 720);
         path_tracing_shader->setInt("accumTexture", 0);
-        path_tracing_shader->setInt("BVH", 1);
+        path_tracing_shader->setInt("BVHTex", 1);
         path_tracing_shader->setInt("vertexIndicesTex", 2);
         path_tracing_shader->setInt("verticesTex", 3);
         path_tracing_shader->setInt("normalsTex", 4);
@@ -89,13 +89,13 @@ namespace GL_TASK
         // }
 
         // 点云
-        auto cloud_shader1 = shader_manager.get_shader("cloud");
-        auto point_cloud1 = std::make_shared<PointCloud>("source/model/point_cloud/Cumulonimbus_11.vdb", cloud_shader1);
-        glm::mat4 model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(0.0f, -20.0f, -30.0f));
-        model = glm::scale(model, glm::vec3(0.4f));
-        point_cloud1->set_model_matrix(model);
-        point_clouds.push_back(point_cloud1);
+        // auto cloud_shader1 = shader_manager.get_shader("cloud");
+        // auto point_cloud1 = std::make_shared<PointCloud>("source/model/point_cloud/Cumulonimbus_11.vdb", cloud_shader1);
+        // glm::mat4 model = glm::mat4(1.0f);
+        // model = glm::translate(model, glm::vec3(0.0f, -20.0f, -30.0f));
+        // model = glm::scale(model, glm::vec3(0.4f));
+        // point_cloud1->set_model_matrix(model);
+        // point_clouds.push_back(point_cloud1);
 
         // auto cloud_shader2 = shader_manager.get_shader("cloud");
         // auto point_cloud2 = std::make_shared<PointCloud>("source/model/point_cloud/Cumulonimbus_14.vdb", cloud_shader2);
@@ -133,6 +133,7 @@ namespace GL_TASK
     // 渲染
     void ClassicScene::render(Camera &camera)
     {
+        glActiveTexture(GL_TEXTURE0);
         render_path_tracing(camera);
         render_accumulation();
         render_post_processing();
@@ -143,18 +144,16 @@ namespace GL_TASK
     {
         auto path_tracing_shader = shader_manager.get_shader("pathTracingShader");
         path_tracing_shader->use();
-        path_tracing_shader->setInt("frameNum", frameNum);
         path_tracing_shader->setVec3("camera.position", camera.get_pos());
         path_tracing_shader->setVec3("camera.up", camera.get_up());
         path_tracing_shader->setVec3("camera.right", camera.get_right());
         path_tracing_shader->setVec3("camera.forward", camera.get_direction());
         path_tracing_shader->setFloat("camera.fov", camera.get_fov());
+        path_tracing_shader->setInt("frameNum", frameNum);
         path_tracing_shader->stopUsing();
 
-        path_tracing_shader->stopUsing();
         glBindFramebuffer(GL_FRAMEBUFFER, pathTraceFBO);
         glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
-        glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, accumTexture);
         quad->Draw(path_tracing_shader.get());
     }
@@ -164,7 +163,6 @@ namespace GL_TASK
         auto shader = shader_manager.get_shader("accumulationShader");
         glBindFramebuffer(GL_FRAMEBUFFER, accumFBO);
         glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
-        glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, pathTraceTexture);
         quad->Draw(shader.get());
     }
@@ -177,7 +175,6 @@ namespace GL_TASK
         post_process_shader->stopUsing();
         glBindFramebuffer(GL_FRAMEBUFFER, outputFBO);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, outputTexture[currentBuffer], 0);
-        glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, accumTexture);
         quad->Draw(post_process_shader.get());
     }

@@ -77,10 +77,10 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glDisable(GL_DEPTH_TEST);
 
-        // skybox.render(camera.view, camera.projection);
-
         classic_scene.render(camera);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+        glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
         classic_scene.present(); // 渲染结果展示
         gui_manager.render();
 
