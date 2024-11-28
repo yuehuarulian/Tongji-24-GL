@@ -7,6 +7,7 @@
 #include "renderable_model.hpp"
 #include "point_cloud.hpp"
 #include "camera_control.hpp"
+#include "fluid/fluid_simulator.h"
 #include <memory>
 
 namespace GL_TASK
@@ -22,6 +23,8 @@ namespace GL_TASK
         void update() override;  // 更新场景状态
         void wait_until_next_frame(int frame_number) override;
 
+        bool bvhDirty{ false }; // 脏位
+
     private:
         void setup_scene();                 // 场景初始化
         void load_shaders();                // 加载着色器
@@ -32,12 +35,13 @@ namespace GL_TASK
         void render_post_processing();      // 后处理阶段
         void render_point_clouds(Camera &); // 绘制点云
 
+        fluid::FluidSimulator fluid_sim;
         std::vector<std::shared_ptr<PointCloud>> point_clouds;
 
         // 模型文件路径
         std::vector<std::string> modelPaths = {
-            // "./source/model/room1.0/overall.obj",
-            "./source/model/nanosuit_reflection/nanosuit.obj",
+            "./source/model/room/overall.obj",
+            // "./source/model/nanosuit_reflection/nanosuit.obj",
         };
         // buttefly
         //         std::vector<glm::mat4> butterfly_model_matrix_vec = {

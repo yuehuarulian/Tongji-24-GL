@@ -55,12 +55,19 @@ namespace GL_TASK
         room_model_matrix = glm::rotate(room_model_matrix, glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
         room_model_matrix = glm::rotate(room_model_matrix, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
         room_model_matrix = glm::scale(room_model_matrix, glm::vec3(1.f, 1.f, 1.f) * 1.3f);
+        // 根据房间变换矩阵设置物体变换矩阵
+        glm::mat4 liquid_model_matrix = glm::scale(room_model_matrix, glm::vec3(1.f, 1.f, 1.f) * (0.5f / float(fluid_sim.get_scale())));
         // 先加载所有的模型文件 存储在meshes中
-        for (auto path : modelPaths)
-            add_model(path, room_model_matrix);
+        //for (auto path : modelPaths)
+            //add_model(path, room_model_matrix);
+        add_model("./source/model/fluid/mesh.obj", liquid_model_matrix);
+        fluid_sim.BindMesh(meshes[meshes.size() - 1]);
+        fluid_sim.BindMeshSignal(&bvhDirty);
+        fluid_sim.pause();
         this->createBLAS();   // 建立低层次的BVH加速结构
         this->createTLAS();   // 建立高层次的BVH加速结构
         this->process_data(); // 处理数据 将其转换成可供Shader使用的形式
+        fluid_sim.pause();
 
         // Liquid model  调试在线渲染请注释掉水模型，否则会非常卡
         // auto liquid_shader = shader_manager.get_shader("liquid_shader");
@@ -200,8 +207,23 @@ namespace GL_TASK
 
     void ClassicScene::update()
     {
+        if (bvhDirty) {
+            for (Mesh* mesh : meshes)
+                if (mesh->needsUpdate())
+                    bvhDirty = false;
+            if (!bvhDirty) {
+                this->createBLAS();   // 建立低层次的BVH加速结构
+                this->createTLAS();   // 建立高层次的BVH加速结构
+                this->process_data(); // 处理数据 将其转换成可供Shader使用的形式
+                this->update_GPU_data(); // 将相关数据绑定到纹理中以便传递到GPU中
+                this->update_FBOs();     // 初始化帧缓冲对象
+                //this->load_shaders();
+                printf("ClassicScene: A new scene is ready\n");
+            }
+        }
         if (dirty)
         {
+            //printf("Scene is dirty\n");
             frameNum = 1;
             glBindFramebuffer(GL_FRAMEBUFFER, accumFBO);
             glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
@@ -209,6 +231,7 @@ namespace GL_TASK
         }
         else
         {
+            //printf("Scene isn't dirty\n");
             frameNum++;
             currentBuffer = 1 - currentBuffer;
         }

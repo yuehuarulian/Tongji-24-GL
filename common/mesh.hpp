@@ -134,14 +134,14 @@ public:
     void ProcessVertices(std::vector<glm::vec4> &verticesUVX, std::vector<glm::vec4> &normalsUVY);
 
     void updateMesh();
-
+    bool needsUpdate();
     // // render the mesh
     // void Draw(Shader &shader);
 
 private:
     // render data
     // unsigned int VBO, EBO;
-    bool needsUpdate; // 标志变量，指示是否需要更新
+    bool dirty; // 标志变量，指示是否需要更新
 
     // initializes all the buffer objects/arrays
     // void setupMesh();

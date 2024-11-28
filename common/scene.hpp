@@ -48,12 +48,14 @@ protected:
     void process_data();
     void init_GPU_data();
     void init_FBOs();
+    void update_GPU_data();
+    void update_FBOs();
 
     const int WINDOW_WIDTH, WINDOW_HEIGHT;
     const int texArrayHeight = 2048;
     const int texArrayWidth = 2048;
     int frameNum = 0;
-    bool dirty;
+    bool dirty; // 脏位
 
     // 存储所有的网格
     std::vector<Mesh *> meshes;

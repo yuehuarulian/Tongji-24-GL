@@ -786,10 +786,15 @@ void GetMaterial(inout HitRec hit_record, in Ray r)
     Material mat;
     // 材质默认值
     // 灰色（默认非金属材质）
-    vec3 defaultAlbedo = vec3(0.8, 0.8, 0.8); // 默认反射率：灰色
-    float defaultMetallic = 0.0;                // 默认金属度：非金属
-    float defaultRoughness = 0.5;               // 默认粗糙度：中等
-    float defaultAO = 1.0;                      // 默认 AO 值：完全无遮蔽
+    //vec3 defaultAlbedo = vec3(0.8, 0.8, 0.8); // 默认反射率：灰色
+    //float defaultMetallic = 0.0;                // 默认金属度：非金属
+    //float defaultRoughness = 0.5;               // 默认粗糙度：中等
+    //float defaultAO = 1.0;                      // 默认 AO 值：完全无遮蔽
+    // 水体材质的参数设置
+    vec3 defaultAlbedo = vec3(0.1, 0.3, 0.5);  // 水的反射率：轻微蓝色
+    float defaultMetallic = 0.0;                // 水体是非金属
+    float defaultRoughness = 0.1;               // 水体表面非常平滑
+    float defaultAO = 1.0;                      // 水体的环境遮蔽值，假设水面平坦无遮挡
     // 铝材质（Metal）
     vec3 defaultAlbedoMetal = vec3(0.8, 0.85, 0.9);  // 默认铝的反射率（银白色）
     float defaultMetallicMetal = 1.0;                  // 完全金属
