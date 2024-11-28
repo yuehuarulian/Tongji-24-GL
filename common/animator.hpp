@@ -14,12 +14,32 @@
 class Animator
 {
 public:
-    Animator(Animation *animation)
+    Animator(Animation *animation, float translate_rand, float rotate_rand)
     {
         m_CurrentTime = 0.0;
         m_CurrentAnimation = animation;
+        path_x = (float)((rand() % (20 - (-20))) + (-20)) / 10;
         path_y = (float)((rand() % (20 - (-20))) + (-20)) / 10; //-2.0-2.0
-        path_z = (float)((rand() % (50 - (-50))) + (-50)) / 10; //-5.0-5.0
+        path_z = (float)((rand() % (200))) / 10;                // 0-20.0
+
+        // x方向的控制
+        float x = path_z;
+        if (translate_rand - path_z * sin(glm::radians(rotate_rand)) > 2.0f)
+            x = (translate_rand - 2.0f) / sin(glm::radians(rotate_rand));
+        if (translate_rand - path_z * sin(glm::radians(rotate_rand)) < -2.0f)
+            x = (translate_rand + 2.0f) / sin(glm::radians(rotate_rand));
+
+        // z方向控制
+        float z = path_z;
+        if ((translate_rand + path_z) > 5.0f)
+            z = 5.0 - translate_rand;
+        if ((translate_rand + path_z) < -25.0f)
+            z = -25.0 - translate_rand;
+
+        if (abs(x) > abs(z))
+            path_z = z;
+        else
+            path_z = x;
     }
 
     void UpdateAnimation(float dt)
@@ -27,17 +47,20 @@ public:
         m_DeltaTime = dt;
         if (m_CurrentAnimation)
         {
+            float duration = m_CurrentAnimation->GetDuration();
             m_CurrentTime += m_CurrentAnimation->GetTicksPerSecond() * dt;
-            m_CurrentTime = fmod(m_CurrentTime, m_CurrentAnimation->GetDuration());
+            m_CurrentTime = fmod(m_CurrentTime, duration);
+
             CalculateNodeTransform(&m_CurrentAnimation->GetRootNode(), glm::mat4(1.0f));
 
-            glm::vec3 pathtranslate(m_CurrentTime / 500, path_y, m_CurrentTime / 500 * path_z);
-            glm::vec4 translation_R = m_KeyframeTransforms["R"][3];
-            translation_R += glm::vec4(pathtranslate, 0.0f);
-            m_KeyframeTransforms["R"][3] = translation_R;
-            glm::vec4 translation_L = m_KeyframeTransforms["L"][3];
-            translation_L += glm::vec4(pathtranslate, 0.0f);
-            m_KeyframeTransforms["L"][3] = translation_L;
+            // 使用正弦函数而非线性插值计算路径变换
+            float t = m_CurrentTime / duration;
+            t = sin(t * glm::pi<float>());
+            m_CurrentTime_Cout = t * duration / 10000;                                                                     // 0~1左右
+            glm::mat4 pathtranslate = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, m_CurrentTime_Cout * path_z)); // 世界系中向右平移1单位
+
+            m_KeyframeTransforms["R"] = pathtranslate * m_KeyframeTransforms["R"];
+            m_KeyframeTransforms["L"] = pathtranslate * m_KeyframeTransforms["L"];
         }
     }
 
@@ -52,6 +75,9 @@ public:
             glm::vec3 position = InterpolatePosition(keyframes.positions, m_CurrentTime);
             glm::quat rotation = InterpolateRotation(keyframes.rotations, m_CurrentTime);
             glm::vec3 scale = InterpolateScale(keyframes.scales, m_CurrentTime);
+            // glm::vec3 position = InterpolatePosition(keyframes.positions, m_CurrentTime_Cout);
+            // glm::quat rotation = InterpolateRotation(keyframes.rotations, m_CurrentTime_Cout);
+            // glm::vec3 scale = InterpolateScale(keyframes.scales, m_CurrentTime_Cout);
 
             nodeTransform = glm::translate(glm::mat4(1.0f), position) * glm::mat4_cast(rotation) * glm::scale(glm::mat4(1.0f), scale);
         }
@@ -67,7 +93,9 @@ public:
 private:
     Animation *m_CurrentAnimation;
     float m_CurrentTime;
+    float m_CurrentTime_Cout;
     float m_DeltaTime;
+    float path_x;
     float path_y;
     float path_z;
 

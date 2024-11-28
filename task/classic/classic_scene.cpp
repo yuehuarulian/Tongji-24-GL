@@ -2,7 +2,7 @@
 #include "draw_base_model.hpp"
 #include "room.hpp"
 #include "fluid.hpp"
-// #include "butterfly.hpp"
+#include "butterfly.hpp"
 
 namespace GL_TASK
 {
@@ -56,8 +56,15 @@ namespace GL_TASK
         room_model_matrix = glm::rotate(room_model_matrix, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
         room_model_matrix = glm::scale(room_model_matrix, glm::vec3(1.f, 1.f, 1.f) * 1.3f);
         // 先加载所有的模型文件 存储在meshes中
-        for (auto path : modelPaths)
-            add_model(path, room_model_matrix);
+        // add_model("./source/model/room1.0/overall.obj", room_model_matrix);
+
+        for (auto &butterfly_model_matrix : butterfly_model_matrix_vec)
+        {
+            auto butterfly_model_single = std::make_shared<Butterfly>("source/model/butterfly/ok.dae");
+            butterfly_model_single->set_model_matrix(butterfly_model_matrix);
+            butterfly_model_single->add_model("source/model/butterfly/ok.dae", meshes, meshInstances, textures, materials);
+            butterflies.push_back(butterfly_model_single);
+        }
         this->createBLAS();   // 建立低层次的BVH加速结构
         this->createTLAS();   // 建立高层次的BVH加速结构
         this->process_data(); // 处理数据 将其转换成可供Shader使用的形式

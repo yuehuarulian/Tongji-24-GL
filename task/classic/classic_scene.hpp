@@ -7,6 +7,7 @@
 #include "renderable_model.hpp"
 #include "point_cloud.hpp"
 #include "camera_control.hpp"
+#include "butterfly.hpp"
 #include <memory>
 
 namespace GL_TASK
@@ -32,26 +33,21 @@ namespace GL_TASK
         void render_post_processing();      // 后处理阶段
         void render_point_clouds(Camera &); // 绘制点云
 
+        std::vector<std::shared_ptr<Butterfly>> butterflies;
         std::vector<std::shared_ptr<PointCloud>> point_clouds;
-
-        // 模型文件路径
-        std::vector<std::string> modelPaths = {
-            // "./source/model/room1.0/overall.obj",
-            "./source/model/nanosuit_reflection/nanosuit.obj",
-        };
         // buttefly
-        //         std::vector<glm::mat4> butterfly_model_matrix_vec = {
-        //             glm::mat4(1.0f),
-        //             glm::mat4(1.0f),
-        //             glm::mat4(1.0f),
-        //             glm::mat4(1.0f),
-        //             glm::mat4(1.0f),
-        //             glm::mat4(1.0f),
-        //             glm::mat4(1.0f),
-        //             glm::mat4(1.0f),
-        //             glm::mat4(1.0f),
-        //             glm::mat4(1.0f),
-        //         };
+        std::vector<glm::mat4> butterfly_model_matrix_vec = {
+            glm::mat4(1.0f),
+            glm::mat4(1.0f),
+            glm::mat4(1.0f),
+            glm::mat4(1.0f),
+            glm::mat4(1.0f),
+            glm::mat4(1.0f),
+            glm::mat4(1.0f),
+            glm::mat4(1.0f),
+            glm::mat4(1.0f),
+            glm::mat4(1.0f),
+        };
         // 光源
         std::vector<glm::vec3> area_lights_position = {
             glm::vec3(107.25, 33.9, -82.75),     // bulb.001
