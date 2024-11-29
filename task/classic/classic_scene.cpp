@@ -67,7 +67,7 @@ namespace GL_TASK
         this->createBLAS();   // 建立低层次的BVH加速结构
         this->createTLAS();   // 建立高层次的BVH加速结构
         this->process_data(); // 处理数据 将其转换成可供Shader使用的形式
-        fluid_sim.pause();
+        fluid_sim.start();
 
         // Liquid model  调试在线渲染请注释掉水模型，否则会非常卡
         // auto liquid_shader = shader_manager.get_shader("liquid_shader");

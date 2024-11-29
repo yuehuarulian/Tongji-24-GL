@@ -25,6 +25,7 @@ namespace fluid {
         void BindSimSignal(bool* const pSimSig);
         // ��������ͣ
         void reset();
+        void start();
         void pause();
         void advance();
         // ���ز���

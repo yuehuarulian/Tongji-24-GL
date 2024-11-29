@@ -43,7 +43,7 @@ FluidSimulator::FluidSimulator(const std::string& config_path) :
 	nlohmann::json config;
 	std::ifstream config_file(config_path);
 	if (!config_file.is_open()) {
-		throw std::runtime_error("Failed to open configuration file: " + config_path);
+		throw std::runtime_error("FluidSimulator: Failed to open configuration file: " + config_path);
 	}
 	config_file >> config;
 	std::cout << "Init fluid simulator by cfg_file: " << config_path << std::endl;
@@ -191,7 +191,7 @@ void FluidSimulator::simulation_thread() {
 	);
 
 	// ģ����ѭ��
-	sim_updater_sema.notify();
+	sim_updater_sema.notify();  // ����ģ������߳�
 	while (true) {
 		sim_updater_sema.wait();  // �ȴ��ź�����ȷ�������Ѿ�����
 		if (sim_reset) {  // �����Ҫ����
@@ -206,13 +206,14 @@ void FluidSimulator::simulation_thread() {
 			update_simulation(sim, sim_cfg);  // ����ģ��״̬
 		}
 		else if (sim_advance) {  // �������Ϊ����ǰ��
-			sim_advance = false;
-			sim.time_step();  // ����һ��ʱ�䲽��
+			std::cout << "update\n";
+			sim.time_step(sim_dt);  // ����һ��ʱ�䲽��
 			update_simulation(sim, sim_cfg);  // ����ģ��״̬
+			sim_advance = false;
 		}
 		else continue;
 		sim_time = sim.total_time; // ÿһʱ�䲽����ģ����ʱ��
-		std::cout << "One sim thread end. [total time = " << sim_time << "s]" << std::endl;
+		std::cout << "FluidSimulator: One sim thread end. [total time = " << sim_time << "s]" << std::endl;
 	}
 }
 
@@ -253,6 +254,8 @@ void FluidSimulator::mesher_thread() {
 			MeshFinSignal = true;
 			if (pMeshFinSignal) *pMeshFinSignal = true;
 		}
+
+		std::cout << "FluidSimulator: One mesher thread end." << std::endl;
 	}
 }
 
@@ -327,9 +330,23 @@ int FluidSimulator::updateBoundMesh() {
 }
 
 //=====================================================================================
-void FluidSimulator::pause() { sim_paused = !sim_paused; std::cout << (sim_paused ?  "Pause fluid simulation!" : "Continue fluid simulation!") << std::endl;}
-void FluidSimulator::reset() { sim_reset = true; std::cout << "Reset fluid simulation!" << std::endl;}
-void FluidSimulator::advance() { sim_advance = true; std::cout << "Excute fluid simulation one step!" << std::endl;}
+void FluidSimulator::start() { 
+	if (sim_paused) { 
+		sim_paused = false; 
+		std::cout << "FluidSimulator: Start fluid simulation!" << std::endl; 
+	} else 
+		std::cout << "FluidSimulator: Fluid Simulation Already Started!" << std::endl; 
+}
+void FluidSimulator::pause() { 
+	if (!sim_paused) { 
+		sim_paused = true; 
+		std::cout << "FluidSimulator: Pause fluid simulation!" << std::endl;
+	}
+	else 
+		std::cout << "FluidSimulator: Fluid Simulation Already Paused!" << std::endl;
+}
+void FluidSimulator::reset() { sim_reset = true; std::cout << "FluidSimulator: Reset fluid simulation!" << std::endl;}
+void FluidSimulator::advance() { sim_advance = true; std::cout << "FluidSimulator: Excute fluid simulation one step!" << std::endl;}
 
 void FluidSimulator::BindMesh(Mesh* const pm) {
 	if (pm) {
