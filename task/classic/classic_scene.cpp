@@ -10,6 +10,7 @@ namespace GL_TASK
         : Scene(shader_manager, light_manager, WINDOW_WIDTH, WINDOW_HEIGHT)
     {
         setup_scene(); // 配置场景
+        fluid->start();
     }
 
     // 对场景进行设置
@@ -56,8 +57,8 @@ namespace GL_TASK
         room_model_matrix = glm::rotate(room_model_matrix, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
         room_model_matrix = glm::scale(room_model_matrix, glm::vec3(1.f, 1.f, 1.f) * 1.3f);
         // 先加载所有的模型文件 存储在meshes中
-        //for (auto path : modelPaths)
-            //add_model(path, room_model_matrix);
+        for (auto path : modelPaths)
+            add_model(path, room_model_matrix);
 
         // liquid mofel
         fluid = std::make_shared<Fluid>("source/model/fluid/mesh.obj");
@@ -67,7 +68,7 @@ namespace GL_TASK
         this->createBLAS();   // 建立低层次的BVH加速结构
         this->createTLAS();   // 建立高层次的BVH加速结构
         this->process_data(); // 处理数据 将其转换成可供Shader使用的形式
-        fluid->start();
+        //fluid->start();
 
         // butterfly
         // auto b_shader = shader_manager.get_shader("butterfly_shader");
@@ -200,16 +201,18 @@ namespace GL_TASK
     void ClassicScene::update()
     {
         if (bvhDirty) {
-            for (Mesh* mesh : meshes)
-                if (mesh->needsUpdate())
+            for (int i = 0; i < meshes.size(); ++i) {
+                Mesh* mesh = meshes[i];
+                if (mesh->needsUpdate(i)) {
+                    std::cout << "Mesh " << i << " finish an update." << std::endl;
                     bvhDirty = false;
+                }
+            }
             if (!bvhDirty) {
-                this->createBLAS();   // 建立低层次的BVH加速结构
                 this->createTLAS();   // 建立高层次的BVH加速结构
                 this->process_data(); // 处理数据 将其转换成可供Shader使用的形式
                 this->update_GPU_data(); // 将相关数据绑定到纹理中以便传递到GPU中
                 this->update_FBOs();     // 初始化帧缓冲对象
-                //this->load_shaders();
                 printf("ClassicScene: A new scene is ready\n");
             }
         }

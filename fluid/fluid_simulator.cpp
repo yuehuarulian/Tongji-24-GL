@@ -193,16 +193,16 @@ void FluidSimulator::simulation_thread() {
 	// ģ����ѭ��
 	sim_updater_sema.notify();  // ����ģ������߳�
 	while (true) {
-		sim_updater_sema.wait();  // �ȴ��ź�����ȷ�������Ѿ�����
 		if (sim_reset) {  // �����Ҫ����
 			reset_simulation(sim_cfg);
-			update_simulation(sim, sim_cfg);  // ����ģ��״̬
+			//update_simulation(sim, sim_cfg);  // ����ģ��״̬
 			sim_reset = false;  // �������
 		}
 
 		if (!sim_paused) {  // ���δ��ͣ
 			std::cout << "update\n";
 			sim.update(sim_dt);  // ����һ��ʱ�䲽����ģ�����
+			sim_updater_sema.wait();  // �ȴ��ź�����ȷ�������Ѿ�����
 			update_simulation(sim, sim_cfg);  // ����ģ��״̬
 		}
 		else if (sim_advance) {  // �������Ϊ����ǰ��

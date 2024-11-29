@@ -55,9 +55,14 @@ void Mesh::updateMesh()
     dirty = true;
 }
 
-bool Mesh::needsUpdate() {
+bool Mesh::needsUpdate(int i) {
     if (!dirty)
         return false;
+    printf("\n*****************\n");
+    printf("REFRESH MESH #%d BVH INFO: \n", i);
+    BuildBVH();
+    bvh->PrintStatistics(std::cout);
+    printf("\n*****************\n");
     dirty = false;
     return true;
 }
