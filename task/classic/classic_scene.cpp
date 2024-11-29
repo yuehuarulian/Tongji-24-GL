@@ -10,7 +10,6 @@ namespace GL_TASK
         : Scene(shader_manager, light_manager, WINDOW_WIDTH, WINDOW_HEIGHT)
     {
         setup_scene(); // 配置场景
-        fluid->start();
     }
 
     // 对场景进行设置
@@ -60,15 +59,15 @@ namespace GL_TASK
         for (auto path : modelPaths)
             add_model(path, room_model_matrix);
 
-        // liquid mofel
+        // liquid model
         fluid = std::make_shared<Fluid>("source/model/fluid/mesh.obj");
         fluid->set_model_matrix(room_model_matrix);
-        fluid->add_model(bvhDirty, meshes, meshInstances, textures, materials);
+        fluid->add_model(BbvhDirty, meshes, meshInstances, textures, materials);
 
         this->createBLAS();   // 建立低层次的BVH加速结构
         this->createTLAS();   // 建立高层次的BVH加速结构
         this->process_data(); // 处理数据 将其转换成可供Shader使用的形式
-        //fluid->start();
+        fluid->start(); // 启动流体模拟
 
         // butterfly
         // auto b_shader = shader_manager.get_shader("butterfly_shader");
@@ -200,19 +199,22 @@ namespace GL_TASK
 
     void ClassicScene::update()
     {
-        if (bvhDirty) {
+        if (BbvhDirty || TbvhDirty) {
             for (int i = 0; i < meshes.size(); ++i) {
                 Mesh* mesh = meshes[i];
-                if (mesh->needsUpdate(i)) {
+                if (mesh->needsUpdate(i)) { // 刷新低层次的BVH加速结构
                     std::cout << "Mesh " << i << " finish an update." << std::endl;
-                    bvhDirty = false;
+                    BbvhDirty = false;
                 }
             }
-            if (!bvhDirty) {
-                this->createTLAS();   // 建立高层次的BVH加速结构
+            if (!BbvhDirty || TbvhDirty) {
+                if (TbvhDirty) {
+                    this->createTLAS();   // 重建高层次的BVH加速结构
+                    TbvhDirty = false;
+                }
                 this->process_data(); // 处理数据 将其转换成可供Shader使用的形式
                 this->update_GPU_data(); // 将相关数据绑定到纹理中以便传递到GPU中
-                this->update_FBOs();     // 初始化帧缓冲对象
+                this->update_FBOs();     // 重置帧缓冲对象
                 printf("ClassicScene: A new scene is ready\n");
             }
         }

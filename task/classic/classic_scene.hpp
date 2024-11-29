@@ -23,7 +23,8 @@ namespace GL_TASK
         void update() override;  // 更新场景状态
         void wait_until_next_frame(int frame_number) override;
 
-        bool bvhDirty{ false }; // 脏位
+        bool BbvhDirty{ false }; // 底层bvh树脏位
+        bool TbvhDirty{ false }; // 顶层bvh树脏位
 
     private:
         void setup_scene();                 // 场景初始化
