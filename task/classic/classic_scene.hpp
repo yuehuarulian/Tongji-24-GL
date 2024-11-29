@@ -7,7 +7,7 @@
 #include "renderable_model.hpp"
 #include "point_cloud.hpp"
 #include "camera_control.hpp"
-#include "fluid/fluid_simulator.h"
+#include "fluid.hpp"
 #include <memory>
 
 namespace GL_TASK
@@ -35,7 +35,7 @@ namespace GL_TASK
         void render_post_processing();      // 后处理阶段
         void render_point_clouds(Camera &); // 绘制点云
 
-        fluid::FluidSimulator fluid_sim;
+        std::shared_ptr<Fluid> fluid;
         std::vector<std::shared_ptr<PointCloud>> point_clouds;
 
         // 模型文件路径

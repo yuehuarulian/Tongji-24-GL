@@ -55,27 +55,19 @@ namespace GL_TASK
         room_model_matrix = glm::rotate(room_model_matrix, glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
         room_model_matrix = glm::rotate(room_model_matrix, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
         room_model_matrix = glm::scale(room_model_matrix, glm::vec3(1.f, 1.f, 1.f) * 1.3f);
-        // 根据房间变换矩阵设置物体变换矩阵
-        glm::mat4 liquid_model_matrix = glm::scale(room_model_matrix, glm::vec3(1.f, 1.f, 1.f) * (0.5f / float(fluid_sim.get_scale())));
         // 先加载所有的模型文件 存储在meshes中
         //for (auto path : modelPaths)
             //add_model(path, room_model_matrix);
-        add_model("./source/model/fluid/mesh.obj", liquid_model_matrix);
-        fluid_sim.BindMesh(meshes[meshes.size() - 1]);
-        fluid_sim.BindMeshSignal(&bvhDirty);
-        fluid_sim.pause();
+
+        // liquid mofel
+        fluid = std::make_shared<Fluid>("source/model/fluid/mesh.obj");
+        fluid->set_model_matrix(room_model_matrix);
+        fluid->add_model(bvhDirty, meshes, meshInstances, textures, materials);
+
         this->createBLAS();   // 建立低层次的BVH加速结构
         this->createTLAS();   // 建立高层次的BVH加速结构
         this->process_data(); // 处理数据 将其转换成可供Shader使用的形式
-        fluid_sim.start();
-
-        // Liquid model  调试在线渲染请注释掉水模型，否则会非常卡
-        // auto liquid_shader = shader_manager.get_shader("liquid_shader");
-        // light_manager.apply_lights(liquid_shader);
-        // // glm::mat4 liquid_model_matrix = glm::scale(room_model_matrix, glm::vec3(1.f, 1.f, 1.f) * (1.f / precision)); // Adjust scale
-        // auto liquid_model = std::make_shared<Fluid>("source/model/fluid/mesh.obj", liquid_shader, true);
-        // liquid_model->set_model_matrix(room_model_matrix);
-        // models.push_back(liquid_model);
+        fluid->start();
 
         // butterfly
         // auto b_shader = shader_manager.get_shader("butterfly_shader");
