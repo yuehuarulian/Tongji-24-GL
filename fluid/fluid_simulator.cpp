@@ -367,6 +367,9 @@ double FluidSimulator::get_scale() const {
 double FluidSimulator::get_time() const {
 	return sim_time;
 }
+double FluidSimulator::get_time_step() const {
+	return sim_dt;
+}
 vec3d FluidSimulator::get_grid_offset() const {
 	return sim_grid_offset;
 }

@@ -12,9 +12,9 @@ namespace GL_TASK
     class Fluid
     {
     public:
-        Fluid(const std::string &model_path); // 默认初始化后先暂停模拟
+        Fluid(bool &bvhDirty); // 默认初始化后先暂停模拟
 
-        bool add_model(bool &bvhDirty, std::vector<Mesh *> &meshes, std::vector<MeshInstance *> &meshInstances, std::vector<Texture *> &textures, std::vector<Material> &materials);
+        bool add_model(const std::string &modelfilePath, std::vector<Mesh *> &meshes, std::vector<MeshInstance *> &meshInstances, std::vector<Texture *> &textures, std::vector<Material> &materials);
 
         void update();
 

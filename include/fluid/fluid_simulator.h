@@ -31,6 +31,7 @@ namespace fluid {
         // ���ز���
         double get_scale() const;
         double get_time() const;
+        double get_time_step() const;
         vec3d get_grid_offset() const;
         vec3s get_grid_size() const;
         vec3d get_grid_center() const;

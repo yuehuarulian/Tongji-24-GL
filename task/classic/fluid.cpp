@@ -1,12 +1,13 @@
 #include "fluid.hpp"
 #include "glm/gtx/transform.hpp"
 
-GL_TASK::Fluid::Fluid(const std::string &model_path) : modelfilePath(model_path) {
+GL_TASK::Fluid::Fluid(bool &bvhDirty) {
+    fluid_sim.BindMeshSignal(&bvhDirty);
     fluid_sim.pause(); // 初始先暂停
 }
 
 // 添加模型
-bool GL_TASK::Fluid::add_model(bool &bvhDirty, std::vector<Mesh *> &meshes, std::vector<MeshInstance *> &meshInstances,
+bool GL_TASK::Fluid::add_model(const std::string &modelfilePath, std::vector<Mesh *> &meshes, std::vector<MeshInstance *> &meshInstances,
                                    std::vector<Texture *> &textures, std::vector<Material> &materials)
 {
     Model *model = new Model();
@@ -43,7 +44,6 @@ bool GL_TASK::Fluid::add_model(bool &bvhDirty, std::vector<Mesh *> &meshes, std:
     delete model;
     // 绑定mesh和更新信号
     fluid_sim.BindMesh(meshes[meshes.size() - 1]);
-    fluid_sim.BindMeshSignal(&bvhDirty);
     return true;
 }
 

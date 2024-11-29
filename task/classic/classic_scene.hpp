@@ -8,6 +8,7 @@
 #include "point_cloud.hpp"
 #include "camera_control.hpp"
 #include "fluid.hpp"
+#include "bullet_world.hpp"
 #include <memory>
 
 namespace GL_TASK
@@ -37,6 +38,7 @@ namespace GL_TASK
         void render_point_clouds(Camera &); // 绘制点云
 
         std::shared_ptr<Fluid> fluid;
+        std::shared_ptr<BulletWorld> bulletWorld;
         std::vector<std::shared_ptr<PointCloud>> point_clouds;
 
         // 模型文件路径
