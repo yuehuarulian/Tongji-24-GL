@@ -190,10 +190,10 @@ namespace GL_TASK
                 butterfly->update();
             if (butterflies.size() > 0)
             {
-                this->createTLAS();   // 建立高层次的BVH加速结构
-                this->process_data(); // 处理数据 将其转换成可供Shader使用的形式
-                init_GPU_data();      // 将相关数据绑定到纹理中以便传递到GPU中
-                init_FBOs();          // 初始化帧缓冲对象
+                createTLAS();    // 建立高层次的BVH加速结构
+                process_data();  // 处理数据 将其转换成可供Shader使用的形式
+                init_GPU_data(); // 将相关数据绑定到纹理中以便传递到GPU中
+                // init_FBOs();     // 初始化帧缓冲对象
                 dirty = true;
             }
         }

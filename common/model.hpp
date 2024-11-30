@@ -27,17 +27,15 @@ class Model
 public:
     // constructor, expects a filepath to a 3D model.
     Model() = default;
+
     Model(string const &path, bool gamma = false);
 
     bool LoadFromFile(const std::string &filePath) { return loadModel(filePath); }
+
     std::vector<Mesh *> getMeshes() const { return meshes; }
+
     std::vector<Texture *> getTextures() const { return textures_loaded; }
-    // void Draw(Shader &shader);
-    // model data
-    // vector<Texture> textures_loaded; // stores all the textures loaded so far, optimization to make sure textures aren't loaded more than once.
-    // vector<Mesh> meshes;
-    // string directory;
-    // bool gammaCorrection;
+
     vector<Mesh *> meshes; // 存储模型中的所有网格
 
 private:

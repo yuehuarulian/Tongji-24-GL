@@ -52,7 +52,6 @@ bool GL_TASK::Room::add_model(const std::string &model_path)
 void GL_TASK::Room::set_model_matrix()
 {
     model_matrix = glm::mat4(1.0f);
-    model_matrix = glm::rotate(model_matrix, glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-    model_matrix = glm::rotate(model_matrix, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+    model_matrix = glm::rotate(model_matrix, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
     model_matrix = glm::scale(model_matrix, glm::vec3(1.f, 1.f, 1.f) * 1.3f);
 }

@@ -66,6 +66,12 @@ public:
         texData.resize(width * height * components);
         std::copy(data, data + width * height * components, texData.begin());
         stbi_image_free(data);
+        if (texData.empty())
+        {
+            std::cout << "Failed to load texture: " << filename << std::endl;
+            return false;
+        }
+        std::cout << "Texture loaded: " << filename << std::endl;
         return true;
     }
 
@@ -121,34 +127,23 @@ public:
 class Mesh
 {
 public:
-    // 网格数据
+    Mesh() = default;
+
+    Mesh(vector<Vertex> vertices, vector<unsigned int> indices, const Material &material);
+
+    void BuildBVH();
+
+    void ProcessVertices(std::vector<glm::vec4> &verticesUVX, std::vector<glm::vec4> &normalsUVY);
+
+    void updateMesh();
+
     vector<Vertex> vertices;      // 顶点位置、法线方向、纹理坐标
     vector<unsigned int> indices; // 假设所有的面都为三角形 三个索引一个面 indices.size()/3表示三角形的数量
     Material material;
     BVH *bvh;
 
-    // 构造函数
-    Mesh() = default;
-    Mesh(vector<Vertex> vertices, vector<unsigned int> indices, const Material &material);
-    void BuildBVH();
-    void ProcessVertices(std::vector<glm::vec4> &verticesUVX, std::vector<glm::vec4> &normalsUVY);
-
-    void updateMesh();
-
-    // // render the mesh
-    // void Draw(Shader &shader);
-
 private:
-    // render data
-    // unsigned int VBO, EBO;
     bool needsUpdate; // 标志变量，指示是否需要更新
-
-    // initializes all the buffer objects/arrays
-    // void setupMesh();
-
-    // void update();
-
-    // unsigned int createDefaultTexture();
 };
 
 class MeshInstance

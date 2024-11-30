@@ -143,6 +143,11 @@ void Scene::createTLAS()
 // 处理数据
 void Scene::process_data()
 {
+    vertIndices.clear();
+    verticesUVX.clear();
+    normalsUVY.clear();
+    transforms.clear();
+    textureMapsArray.clear();
     // 将BVH的顶层节点和底层节点转换为适合传递给GPU的节点
     // bvhConverter.nodes即我们所需要的数据
     bvhConverter.Process(sceneBVH, meshes, meshInstances);

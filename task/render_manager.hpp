@@ -36,6 +36,7 @@ private:
     unsigned int resolve_fbo, resolve_texture;
     int window_width, window_height, frames;
     bool offscreen;
+    bool dirty = false;
 };
 
 #endif // RENDER_MANAGER_H
