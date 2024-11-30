@@ -42,6 +42,7 @@ bool Scene::add_model(const std::string &modelfilePath, glm::mat4 transformMat)
     delete model;
     return true;
 }
+
 // 添加材质
 int Scene::add_material(const Material &material)
 {
