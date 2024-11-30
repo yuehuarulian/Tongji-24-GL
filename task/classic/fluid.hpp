@@ -1,32 +1,32 @@
-#ifndef FLUID_HPP
-#define FLUID_HPP
+// #ifndef FLUID_HPP
+// #define FLUID_HPP
 
-#include "shader.hpp"
-#include "renderable_model.hpp"
-#define GLM_ENABLE_EXPERIMENTAL
-#include "glm/glm.hpp"
-#include "fluid/fluid_simulator.h"
+// #include "shader.hpp"
+// #include "old/renderable_model.hpp"
+// #define GLM_ENABLE_EXPERIMENTAL
+// #include "glm/glm.hpp"
+// #include "fluid/fluid_simulator.h"
 
-namespace GL_TASK
-{
-    class Fluid : public RenderableModel
-    {
-    public:
-        Fluid(const std::string &model_path, std::shared_ptr<Shader> shader, bool gamma = false);
+// namespace GL_TASK
+// {
+//     class Fluid : public RenderableModel
+//     {
+//     public:
+//         Fluid(const std::string &model_path, std::shared_ptr<Shader> shader, bool gamma = false);
 
-        void draw(const glm::mat4 &projection, const glm::mat4 &view, const glm::vec3 &camera_pos) override;
+//         void draw(const glm::mat4 &projection, const glm::mat4 &view, const glm::vec3 &camera_pos) override;
 
-        void set_model_matrix(const glm::mat4 &model);
+//         void set_model_matrix(const glm::mat4 &model);
 
-        glm::mat4 get_model_matrix() const;
+//         glm::mat4 get_model_matrix() const;
 
-        void wait_until_next_frame(int frame = -1);
+//         void wait_until_next_frame(int frame = -1);
 
-        fluid::FluidSimulator fluid_sim;
+//         fluid::FluidSimulator fluid_sim;
 
-    private:
-        glm::mat4 model_matrix = glm::mat4(1.0f);
-    };
-}
+//     private:
+//         glm::mat4 model_matrix = glm::mat4(1.0f);
+//     };
+// }
 
-#endif // ROOM_HPP
+// #endif // ROOM_HPP

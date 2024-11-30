@@ -58,7 +58,7 @@ bool Model::loadModel(string const &path)
     // 使用Assimp库进行加载
     //
     Assimp::Importer importer;
-    const aiScene *scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
+    const aiScene *scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs); // aiProcess_CalcTangentSpace
 
     // 检查是否加载成功
     if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
@@ -178,16 +178,16 @@ Mesh *Model::processMesh(aiMesh *mesh, const aiScene *scene)
         // 7. 环境光遮蔽贴图
         m_material.ambient_occlusionTexId = loadMaterialTextures(material, aiTextureType_AMBIENT_OCCLUSION);
 
-        printf("/******************************/\n");
-        printf("Material Texture ID INFO:\n");
-        printf("diffuseTexId: #%f\n", m_material.diffuseTexId);
-        printf("specularTexId: #%f\n", m_material.specularTexId);
-        printf("normalTexId: #%f\n", m_material.normalTexId);
-        printf("heightTexId: #%f\n", m_material.heightTexId);
-        printf("metalnessTexId: #%f\n", m_material.metalnessTexId);
-        printf("diffuse_roughnessTexId: #%f\n", m_material.diffuse_roughnessTexId);
-        printf("ambient_occlusionTexId: #%f\n", m_material.ambient_occlusionTexId);
-        printf("/******************************/\n");
+        // printf("/******************************/\n");
+        // printf("Material Texture ID INFO:\n");
+        // printf("diffuseTexId: #%f\n", m_material.diffuseTexId);
+        // printf("specularTexId: #%f\n", m_material.specularTexId);
+        // printf("normalTexId: #%f\n", m_material.normalTexId);
+        // printf("heightTexId: #%f\n", m_material.heightTexId);
+        // printf("metalnessTexId: #%f\n", m_material.metalnessTexId);
+        // printf("diffuse_roughnessTexId: #%f\n", m_material.diffuse_roughnessTexId);
+        // printf("ambient_occlusionTexId: #%f\n", m_material.ambient_occlusionTexId);
+        // printf("/******************************/\n");
     }
 
     // 使用提取的数据创建并返回 Mesh 对象

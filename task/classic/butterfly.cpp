@@ -1,20 +1,30 @@
 #include "butterfly.hpp"
 #include "glm/gtx/transform.hpp"
-#include "error.hpp"
 
 GL_TASK::Butterfly::Butterfly(const std::string &model_path, std::vector<Mesh *> &meshes, std::vector<MeshInstance *> &meshInstances, std::vector<Texture *> &textures, std::vector<Material> &materials)
-    : danceAnimation(model_path), animator(&danceAnimation, translate_rand, rotate_rand), meshes(meshes), meshInstances(meshInstances), textures(textures), materials(materials)
+    : danceAnimation(model_path), animator(&danceAnimation, translate_rand, rotate_rand), RenderableModel(model_path, meshes, meshInstances, textures, materials)
 {
+
     set_model_matrix();
     update_matrix();
     add_model(model_path);
 }
 
+void GL_TASK::Butterfly::update()
+{
+    update_matrix();
+    for (int i = start_meshInstance_id_l; i < end_meshInstance_id_l; i++)
+        meshInstances[i]->transform = keyframe_transforms_l;
+
+    for (int i = start_meshInstance_id_r; i < end_meshInstance_id_r; i++)
+        meshInstances[i]->transform = keyframe_transforms_r;
+}
+
 // 添加模型
-bool GL_TASK::Butterfly::add_model(const std::string &modelfilePath)
+bool GL_TASK::Butterfly::add_model(const std::string &model_path)
 {
     Model *model = new Model();
-    if (model->LoadFromFile(modelfilePath))
+    if (model->LoadFromFile(model_path))
     {
         // 1. 将model中的纹理数据导入scene中
         int textureStartId = textures.size();
@@ -55,7 +65,7 @@ bool GL_TASK::Butterfly::add_model(const std::string &modelfilePath)
     }
     else
     {
-        std::cout << "ERROR::UNABLE TO LOAD MESH::" << modelfilePath << std::endl;
+        std::cout << "ERROR::UNABLE TO LOAD MESH::" << model_path << std::endl;
         delete model;
         return false;
     }
@@ -82,15 +92,4 @@ void GL_TASK::Butterfly::update_matrix()
 
     keyframe_transforms_r = model_matrix * animator.m_KeyframeTransforms["R"];
     keyframe_transforms_l = model_matrix * animator.m_KeyframeTransforms["L"];
-}
-
-void GL_TASK::Butterfly::update()
-{
-    update_matrix();
-    printf("keyframe_transforms_l: %f %f %f\n", keyframe_transforms_l[3][0], keyframe_transforms_l[3][1], keyframe_transforms_l[3][2]);
-    for (int i = start_meshInstance_id_l; i < end_meshInstance_id_l; i++)
-        meshInstances[i]->transform = keyframe_transforms_l;
-
-    for (int i = start_meshInstance_id_r; i < end_meshInstance_id_r; i++)
-        meshInstances[i]->transform = keyframe_transforms_r;
 }

@@ -8,6 +8,7 @@
 #include "point_cloud.hpp"
 #include "camera_control.hpp"
 #include "butterfly.hpp"
+#include "room.hpp"
 #include <memory>
 
 namespace GL_TASK
@@ -33,9 +34,14 @@ namespace GL_TASK
         void render_post_processing();      // 后处理阶段
         void render_point_clouds(Camera &); // 绘制点云
 
+        // room
+        std::shared_ptr<Room> room;
+
         // buttefly
         const int butterfly_count = 10;
         std::vector<std::shared_ptr<Butterfly>> butterflies;
+
+        // point cloud
         std::vector<std::shared_ptr<PointCloud>> point_clouds;
 
         // 光源

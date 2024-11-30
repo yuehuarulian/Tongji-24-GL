@@ -1,8 +1,6 @@
 #include "classic_scene.hpp"
 #include "draw_base_model.hpp"
-#include "room.hpp"
 #include "fluid.hpp"
-#include "butterfly.hpp"
 
 namespace GL_TASK
 {
@@ -51,12 +49,8 @@ namespace GL_TASK
     void ClassicScene::load_models()
     {
         // Room model
-        glm::mat4 room_model_matrix = glm::mat4(1.0f);
-        room_model_matrix = glm::rotate(room_model_matrix, glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-        room_model_matrix = glm::rotate(room_model_matrix, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-        room_model_matrix = glm::scale(room_model_matrix, glm::vec3(1.f, 1.f, 1.f) * 1.3f);
         // 先加载所有的模型文件 存储在meshes中
-        add_model("./source/model/room1.0/overall.obj", room_model_matrix);
+        room = std::make_shared<Room>("source/model/room2/room2.obj", meshes, meshInstances, textures, materials);
 
         for (int i = 0; i < butterfly_count; i++)
         {
@@ -194,11 +188,14 @@ namespace GL_TASK
         {
             for (auto &butterfly : butterflies)
                 butterfly->update();
-            this->createTLAS();   // 建立高层次的BVH加速结构
-            this->process_data(); // 处理数据 将其转换成可供Shader使用的形式
-            init_GPU_data();      // 将相关数据绑定到纹理中以便传递到GPU中
-            init_FBOs();          // 初始化帧缓冲对象
-            dirty = true;
+            if (butterflies.size() > 0)
+            {
+                this->createTLAS();   // 建立高层次的BVH加速结构
+                this->process_data(); // 处理数据 将其转换成可供Shader使用的形式
+                init_GPU_data();      // 将相关数据绑定到纹理中以便传递到GPU中
+                init_FBOs();          // 初始化帧缓冲对象
+                dirty = true;
+            }
         }
         if (dirty)
         {

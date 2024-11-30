@@ -90,11 +90,11 @@ void Scene::createBLAS()
 #pragma omp parallel for
     for (int i = 0; i < meshes.size(); i++)
     {
-        printf("\n*****************\n");
-        printf("MESH #%d BVH INFO: \n", i);
+        // printf("\n*****************\n");
+        // printf("MESH #%d BVH INFO: \n", i);
         meshes[i]->BuildBVH();
         meshes[i]->bvh->PrintStatistics(std::cout);
-        printf("\n*****************\n");
+        // printf("\n*****************\n");
     }
 }
 
