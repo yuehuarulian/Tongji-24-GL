@@ -22,7 +22,7 @@ FluidSimulator::FluidSimulator(bool def) :
 	sim_cell_size(1.0), // ����Ԫ��С
 	sim_method(fluid::simulation::method::apic), // ʹ��apicģ��
 	sim_blending_factor(1.0),  // �������
-	sim_gravity(vec3d(-981.0, 0.0, 0.0)),  // ��������
+	sim_gravity(vec3d(-981.0, 0.0, 0.0) * _scale),  // ��������
 	sim_dt(1 / 60.0), // ʱ�䲽��
 	sim_time(0.0), // ��ʱ��0��ʼģ��
 	// ��mesh
@@ -43,7 +43,7 @@ FluidSimulator::FluidSimulator(const std::string& config_path) :
 	nlohmann::json config;
 	std::ifstream config_file(config_path);
 	if (!config_file.is_open()) {
-		throw std::runtime_error("Failed to open configuration file: " + config_path);
+		throw std::runtime_error("FluidSimulator: Failed to open configuration file: " + config_path);
 	}
 	config_file >> config;
 	std::cout << "Init fluid simulator by cfg_file: " << config_path << std::endl;
@@ -52,9 +52,9 @@ FluidSimulator::FluidSimulator(const std::string& config_path) :
 	std::string model_path = config["model_path"];
 	_scale = config.value("scale", 1.0);
 	vec3d model_offset = vec3d(
-		config["model_offset"][0],
-		config["model_offset"][1],
-		config["model_offset"][2]
+		config["model_offset"][0].get<double>() * _scale,
+		config["model_offset"][1].get<double>() * _scale,
+		config["model_offset"][2].get<double>() * _scale
 	);
 	roomModel = LoadModel(model_path, _scale, model_offset); // ���뷿��ģ��
 	sim_grid_offset = roomModel.get_offset() - vec3d(1.0, 1.0, 1.0);  // ����ƫ����
@@ -68,9 +68,9 @@ FluidSimulator::FluidSimulator(const std::string& config_path) :
 					fluid::simulation::method::apic))); // ʹ��apicģ��
 	sim_blending_factor = config.value("sim_blending_factor", 1.0);  // �������
 	sim_gravity = vec3d(
-		config["sim_gravity"][0],
-		config["sim_gravity"][1],
-		config["sim_gravity"][2]
+		config["sim_gravity"][0].get<double>() * _scale,
+		config["sim_gravity"][1].get<double>() * _scale,
+		config["sim_gravity"][2].get<double>() * _scale
 	);  // ��������
 	sim_dt = config.value("sim_dt", 1.0 / 60.0); // ʱ�䲽��
 	sim_time = config.value("sim_time", 0.0); // ��ʱ��0��ʼģ��
@@ -126,8 +126,10 @@ void FluidSimulator::update_simulation(const fluid::simulation& sim, FluidConfig
 		sim_grid_occupation = std::move(grid);  // ��������ռ�����
 		sim_grid_velocities = std::move(grid_vels);  // ���������ٶ�
 		sim_mesh_valid = false;  // �������Ϊ��Ч
+		// �����ź�
 		sim_mesher_sema.notify();  // ֪ͨ���������߳�
 		SimFinSignal = true;
+		if (pSimFinSignal) *pSimFinSignal = true;
 	}
 }
 
@@ -181,31 +183,37 @@ void FluidSimulator::simulation_thread() {
 		// ��ʶ����Դ�뾮����
 		[&](vec3s pos) {return roomObstacle.is_cell_inside(pos); },
 		// ��ʶ�����Ե����
+		[&](vec3d pos) {return roomObstacle.is_cell_on_surface(pos); },
+		// ��ʶ�����Ե����
 		[&](vec3s pos) {return roomObstacle.is_cell_on_surface(pos); },
 		// �����ļ�·��
 		_cfgfile
 	);
 
 	// ģ����ѭ��
+	sim_updater_sema.notify();  // ����ģ������߳�
 	while (true) {
 		if (sim_reset) {  // �����Ҫ����
 			reset_simulation(sim_cfg);
-			update_simulation(sim, sim_cfg);  // ����ģ��״̬
+			//update_simulation(sim, sim_cfg);  // ����ģ��״̬
 			sim_reset = false;  // �������
 		}
 
 		if (!sim_paused) {  // ���δ��ͣ
 			std::cout << "update\n";
 			sim.update(sim_dt);  // ����һ��ʱ�䲽����ģ�����
+			sim_updater_sema.wait();  // �ȴ��ź�����ȷ�������Ѿ�����
 			update_simulation(sim, sim_cfg);  // ����ģ��״̬
 		}
 		else if (sim_advance) {  // �������Ϊ����ǰ��
-			sim_advance = false;
-			sim.time_step();  // ����һ��ʱ�䲽��
+			std::cout << "update\n";
+			sim.time_step(sim_dt);  // ����һ��ʱ�䲽��
 			update_simulation(sim, sim_cfg);  // ����ģ��״̬
+			sim_advance = false;
 		}
+		else continue;
 		sim_time = sim.total_time; // ÿһʱ�䲽����ģ����ʱ��
-		std::cout << "One sim thread end. [total time = " << sim_time << "s]" << std::endl;
+		std::cout << "FluidSimulator: One sim thread end. [total time = " << sim_time << "s]" << std::endl;
 	}
 }
 
@@ -238,12 +246,16 @@ void FluidSimulator::mesher_thread() {
 			std::lock_guard<std::mutex> lock(sim_mesh_lock);  // �����Ա�����������
 			sim_mesh = std::move(mesh);  // ������������
 			// ���°�mesh��ʵ��
-			if (!updateBoundMesh()) {
-				MeshFinSignal = true;
-			}
-			std::ofstream fout("fluid_mesh.obj");
-			sim_mesh.save_obj(fout);  // ��������Ϊ .obj �ļ�
+			updateBoundMesh();
+			//std::ofstream fout("fluid_mesh.obj");
+			//sim_mesh.save_obj(fout);  // ��������Ϊ .obj �ļ�
+			// �����ź�
+			sim_updater_sema.notify();  // ֪ͨģ������߳�
+			MeshFinSignal = true;
+			if (pMeshFinSignal) *pMeshFinSignal = true;
 		}
+
+		std::cout << "FluidSimulator: One mesher thread end." << std::endl;
 	}
 }
 
@@ -254,7 +266,7 @@ int FluidSimulator::updateBoundMesh() {
 		return -1;
 	}
 
-	std::cout << "FluidSimulator:: update mesh." << endl;
+	std::cout << "FluidSimulator:: update mesh start." << endl;
 	std::cout << "	Before: " << pMesh->vertices.size() << " vertices and " << pMesh->indices.size() << " indices." << endl;
 	// ��վɵĶ������������
 	pMesh->vertices.clear();
@@ -313,14 +325,28 @@ int FluidSimulator::updateBoundMesh() {
 	// ���� setupMesh ���� VAO/VBO/EBO
 	pMesh->updateMesh();
 	std::cout << "	After: " << pMesh->vertices.size() << " vertices and " << pMesh->indices.size() << " indices." << endl;
-	std::cout << "FluidSimulator:: update mesh." << endl;
+	std::cout << "FluidSimulator:: update mesh end." << endl;
 	return 0;
 }
 
 //=====================================================================================
-void FluidSimulator::pause() { sim_paused = !sim_paused; std::cout << (sim_paused ?  "Pause fluid simulation!" : "Continue fluid simulation!") << std::endl;}
-void FluidSimulator::reset() { sim_reset = true; std::cout << "Reset fluid simulation!" << std::endl;}
-void FluidSimulator::advance() { sim_advance = true; std::cout << "Excute fluid simulation one step!" << std::endl;}
+void FluidSimulator::start() { 
+	if (sim_paused) { 
+		sim_paused = false; 
+		std::cout << "FluidSimulator: Start fluid simulation!" << std::endl; 
+	} else 
+		std::cout << "FluidSimulator: Fluid Simulation Already Started!" << std::endl; 
+}
+void FluidSimulator::pause() { 
+	if (!sim_paused) { 
+		sim_paused = true; 
+		std::cout << "FluidSimulator: Pause fluid simulation!" << std::endl;
+	}
+	else 
+		std::cout << "FluidSimulator: Fluid Simulation Already Paused!" << std::endl;
+}
+void FluidSimulator::reset() { sim_reset = true; std::cout << "FluidSimulator: Reset fluid simulation!" << std::endl;}
+void FluidSimulator::advance() { sim_advance = true; std::cout << "FluidSimulator: Excute fluid simulation one step!" << std::endl;}
 
 void FluidSimulator::BindMesh(Mesh* const pm) {
 	if (pm) {
@@ -332,12 +358,17 @@ void FluidSimulator::BindMesh(Mesh* const pm) {
 		std::cout << "FluidSimulator:: Fail to bind Mesh!" << std::endl;
 	return;
 }
+void FluidSimulator::BindMeshSignal(bool* const ps) { if (ps) pMeshFinSignal = ps; }
+void FluidSimulator::BindSimSignal(bool* const ps) { if (ps) pSimFinSignal = ps; }
 
 double FluidSimulator::get_scale() const {
 	return _scale;
 }
 double FluidSimulator::get_time() const {
 	return sim_time;
+}
+double FluidSimulator::get_time_step() const {
+	return sim_dt;
 }
 vec3d FluidSimulator::get_grid_offset() const {
 	return sim_grid_offset;

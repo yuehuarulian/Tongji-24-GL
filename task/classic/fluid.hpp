@@ -1,32 +1,40 @@
-// #ifndef FLUID_HPP
-// #define FLUID_HPP
+#ifndef FLUID_HPP
+#define FLUID_HPP
 
-// #include "shader.hpp"
-// #include "old/renderable_model.hpp"
-// #define GLM_ENABLE_EXPERIMENTAL
-// #include "glm/glm.hpp"
-// #include "fluid/fluid_simulator.h"
+#include "shader.hpp"
+#include "renderable_model.hpp"
+#define GLM_ENABLE_EXPERIMENTAL
+#include "glm/glm.hpp"
+#include "fluid/fluid_simulator.h"
 
-// namespace GL_TASK
-// {
-//     class Fluid : public RenderableModel
-//     {
-//     public:
-//         Fluid(const std::string &model_path, std::shared_ptr<Shader> shader, bool gamma = false);
+namespace GL_TASK
+{
+    class Fluid
+    {
+    public:
+        Fluid(bool &bvhDirty); // 默认初始化后先暂停模拟
 
-//         void draw(const glm::mat4 &projection, const glm::mat4 &view, const glm::vec3 &camera_pos) override;
+        bool add_model(const std::string &modelfilePath, std::vector<Mesh *> &meshes, std::vector<MeshInstance *> &meshInstances, std::vector<Texture *> &textures, std::vector<Material> &materials);
 
-//         void set_model_matrix(const glm::mat4 &model);
+        void update();
 
-//         glm::mat4 get_model_matrix() const;
+        void set_model_matrix(const glm::mat4 &room_model);
 
-//         void wait_until_next_frame(int frame = -1);
+        glm::mat4 get_model_matrix() const;
+        
+        void start(); // 继续模拟
+        
+        void pause(); // 暂停模拟
+        
+        void advance(); // 模拟一帧（需要先暂停）
 
-//         fluid::FluidSimulator fluid_sim;
+        void wait_until_next_frame(int frame);
 
-//     private:
-//         glm::mat4 model_matrix = glm::mat4(1.0f);
-//     };
-// }
+        fluid::FluidSimulator fluid_sim;
+    private:
+        const std::string modelfilePath;
+        glm::mat4 model_matrix = glm::mat4(1.0f);
+    };
+}
 
-// #endif // ROOM_HPP
+#endif // ROOM_HPP

@@ -9,6 +9,8 @@
 #include "camera_control.hpp"
 #include "butterfly.hpp"
 #include "room.hpp"
+#include "fluid.hpp"
+#include "bullet_world.hpp"
 #include <memory>
 
 namespace GL_TASK
@@ -23,6 +25,9 @@ namespace GL_TASK
         void present() override; // 显示结果到屏幕
         void update() override;  // 更新场景状态
         void wait_until_next_frame(int frame_number) override;
+
+        bool BbvhDirty{ false }; // 底层bvh树脏位
+        bool TbvhDirty{ false }; // 顶层bvh树脏位
 
     private:
         void setup_scene();                 // 场景初始化
@@ -41,9 +46,15 @@ namespace GL_TASK
         const int butterfly_count = 10;
         std::vector<std::shared_ptr<Butterfly>> butterflies;
 
+        // fluid
+        std::shared_ptr<Fluid> fluid;
+
+        // bullet world
+        std::shared_ptr<BulletWorld> bulletWorld;
+        
         // point cloud
         std::vector<std::shared_ptr<PointCloud>> point_clouds;
-
+        
         // 光源
         std::vector<glm::vec3> area_lights_position = {
             glm::vec3(107.25, 33.9, -82.75),     // bulb.001

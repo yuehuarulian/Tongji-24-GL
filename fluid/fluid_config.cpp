@@ -10,10 +10,11 @@ constexpr double PI = 3.141592653589793;
 using namespace fluid;
 
 // ������������ʼ������
-FluidConfig::FluidConfig(fluid::simulation& simulation, const double scale, const std::function<bool(const vec3d&)>& basin, const std::function<bool(const vec3s&)>& buoy, const std::function<bool(const vec3s&)>& bathtub, const std::string& config_path)
+FluidConfig::FluidConfig(fluid::simulation& simulation, const double scale, const std::function<bool(const vec3d&)>& basin, const std::function<bool(const vec3s&)>& buoy, const std::function<bool(const vec3d&)>& batht, const std::function<bool(const vec3s&)>& bathtub, const std::string& config_path)
     : _sim(simulation), _scale(scale),
 	_basin(basin ? basin : [](const vec3d&) { return false; }), 
 	_buoy(buoy ? buoy : [](const vec3s&) { return false; }),
+	_batht(batht ? batht : [](const vec3d&) { return false; }),
 	_bathtub(bathtub ? bathtub : [](const vec3s&) { return false; }),
     grid_offset(_sim.grid_offset),
 	grid_size(_sim.grid().grid().get_size()),
@@ -77,7 +78,7 @@ void FluidConfig::clear() {
 	std::cout << "Seting solid cells..." << std::endl;
 	std::cout << "  Grid size: (" << grid_size.x << ", " << grid_size.y << ", " << grid_size.z << ")" << std::endl;
 	unsigned int total_cells = static_cast<unsigned int>(grid_size.x * grid_size.y * grid_size.z);
-	unsigned int solid_cells = 0;
+	unsigned int solid_cells = 0, inner_cells = 0;
 	// ��ʼ����СֵΪһ���ܴ���������ֵΪһ����С����
 	_sim.grid().grid().for_each(
 		[&](vec3s cell, fluid::mac_grid::cell& c) {
@@ -86,8 +87,12 @@ void FluidConfig::clear() {
 				++solid_cells;
 				//std::cout << "solid cell " << solid_cells << " :(" << cell.x << ' ' << cell.y << ' ' << cell.z << ')' << std::endl
 			}
+			if (_buoy(cell)) {
+				++inner_cells;
+				//std::cout << "solid cell " << solid_cells << " :(" << cell.x << ' ' << cell.y << ' ' << cell.z << ')' << std::endl
+			}
 		});
-	std::cout << "  solid cells: " << solid_cells << " in " << total_cells << "." << std::endl;
+	std::cout << "  solid cells: " << solid_cells << " inner cells: " << inner_cells << " in " << total_cells << "." << std::endl;
 	// ��������Դ�����微
 	_sim.sources.clear();
 	_sim.drains.clear();
@@ -98,8 +103,10 @@ void FluidConfig::fill_basin() {
 	_sim.seed_area(grid_offset, vec3d(grid_size),
 		[&](vec3d pos) {
 			return
-				pos.x <= grid_offset.x + double(grid_size.x) * _water_level + _wave_amplitude * _scale * simulate_pond_wave(pos.y, pos.z, 0.0) &&
-				_basin(pos);
+				_basin(pos) && // �ж������ڷ����ڲ�
+				//!_batht(pos) && // �ж������ڷ����Ե
+				// ȷ��ˮ��߶�
+				pos.x <= grid_offset.x + double(grid_size.x) * _water_level + _wave_amplitude * _scale * simulate_pond_wave(pos.y, pos.z, 0.0);
 		},
 		vec3d(0.0, 0.0, 0.0)
 	);

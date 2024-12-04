@@ -2,17 +2,18 @@
 
 #include <vector>
 #include <functional>
-#include <fluid/simulation.h>  // Á÷ÌåÄ£ÄâÏà¹ØµÄÍ·ÎÄ¼þ
+#include <fluid/simulation.h>  // ï¿½ï¿½ï¿½ï¿½Ä£ï¿½ï¿½ï¿½ï¿½Øµï¿½Í·ï¿½Ä¼ï¿½
 
 namespace fluid {
 
     class FluidConfig {
     public:
         FluidConfig(simulation& simulation, const double scale,
-            const std::function<bool(const vec3d&)>& basin = nullptr, // ±êÊ¶Á÷ÌåÄÚ²¿ÇøÓò
-            const std::function<bool(const vec3s&)>& buoy = nullptr, // ±êÊ¶Á÷ÌåÔ´Óë¾®ÇøÓò
-            const std::function<bool(const vec3s&)>& bathtub = nullptr, // ±êÊ¶Á÷Ìå±ßÔµÇøÓò
-            const std::string& config_path = "" // Ä¬ÈÏÎÞÅäÖÃÎÄ¼þ
+            const std::function<bool(const vec3d&)>& basin = nullptr, // ï¿½ï¿½Ê¶ï¿½ï¿½ï¿½ï¿½ï¿½Ú²ï¿½ï¿½ï¿½ï¿½ï¿½
+            const std::function<bool(const vec3s&)>& buoy = nullptr, // ï¿½ï¿½Ê¶ï¿½ï¿½ï¿½ï¿½Ô´ï¿½ë¾®ï¿½ï¿½ï¿½ï¿½
+            const std::function<bool(const vec3d&)>& batht = nullptr, // ï¿½ï¿½Ê¶ï¿½ï¿½ï¿½ï¿½ï¿½Ôµï¿½ï¿½ï¿½ï¿½
+            const std::function<bool(const vec3s&)>& bathtub = nullptr, // ï¿½ï¿½Ê¶ï¿½ï¿½ï¿½ï¿½ï¿½Ôµï¿½ï¿½ï¿½ï¿½
+            const std::string& config_path = "" // Ä¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½
         );
         void apply();
         void update(double t);
@@ -21,18 +22,19 @@ namespace fluid {
         simulation& _sim;
         const std::function<bool(const vec3d&)> _basin;
         const std::function<bool(const vec3s&)> _buoy;
+        const std::function<bool(const vec3d&)> _batht;
         const std::function<bool(const vec3s&)> _bathtub;
         const double _scale;
         const vec3d grid_offset;
         const vec3s grid_size;
         const vec3d grid_center;
 
-        // ÅäÖÃÎÄ¼þ
+        // ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½
         std::string _cfgfile;
         double _water_level;
         double _wave_amplitude;
 
-        // ²¨ÎÆ²ÎÊý
+        // ï¿½ï¿½ï¿½Æ²ï¿½ï¿½ï¿½
         struct Wave {
             double amplitude;
             double frequency;
@@ -41,16 +43,16 @@ namespace fluid {
             double direction_y;
         };
         std::vector<Wave> waves;
-        double damping; // ×èÄáÏµÊý
+        double damping; // ï¿½ï¿½ï¿½ï¿½Ïµï¿½ï¿½
 
-        // ÅäÖÃº¯Êý
+        // ï¿½ï¿½ï¿½Ãºï¿½ï¿½ï¿½
         void init_cfg();
         void clear();
         void fill_basin();
         void set_sources();
         void set_drains();
 
-        // ¹¦ÄÜÅäÖÃº¯Êý
+        // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ãºï¿½ï¿½ï¿½
         double simulate_pond_wave(double x, double y, double time);
         double random_double(double min, double max);
         void initialize_waves();

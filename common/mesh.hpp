@@ -142,8 +142,28 @@ public:
     Material material;
     BVH *bvh;
 
+    // 构造函数
+    Mesh() = default;
+    Mesh(vector<Vertex> vertices, vector<unsigned int> indices, const Material &material);
+    void BuildBVH();
+    void ProcessVertices(std::vector<glm::vec4> &verticesUVX, std::vector<glm::vec4> &normalsUVY);
+
+    void updateMesh();
+    bool needsUpdate(int i);
+    // // render the mesh
+    // void Draw(Shader &shader);
+
 private:
-    bool needsUpdate; // 标志变量，指示是否需要更新
+    // render data
+    // unsigned int VBO, EBO;
+    bool dirty {false}; // 标志变量，指示是否需要更新
+
+    // initializes all the buffer objects/arrays
+    // void setupMesh();
+
+    // void update();
+
+    // unsigned int createDefaultTexture();
 };
 
 class MeshInstance

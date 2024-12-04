@@ -36,6 +36,8 @@ void Mesh::ProcessVertices(std::vector<glm::vec4> &verticesUVX, std::vector<glm:
     //
     // 将节点数据转换成可以传送给Shader的类型
     //
+    verticesUVX.clear();
+    normalsUVY.clear();
     for (const auto &vertex : vertices)
     {
         // 组合位置和纹理坐标 u/s，存入 verticesUVX
@@ -48,5 +50,19 @@ void Mesh::ProcessVertices(std::vector<glm::vec4> &verticesUVX, std::vector<glm:
 
 void Mesh::updateMesh()
 {
-    needsUpdate = true;
+    delete bvh;
+    bvh = new BVH(2.0);
+    dirty = true;
+}
+
+bool Mesh::needsUpdate(int i) {
+    if (!dirty)
+        return false;
+    printf("\n*****************\n");
+    printf("REFRESH MESH #%d BVH INFO: \n", i);
+    BuildBVH();
+    bvh->PrintStatistics(std::cout);
+    printf("\n*****************\n");
+    dirty = false;
+    return true;
 }

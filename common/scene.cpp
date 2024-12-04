@@ -134,6 +134,10 @@ void Scene::createTLAS()
     }
     printf("\n*****************\n");
     printf("SCENE MESH BVH:\n");
+    if (sceneBVH) {
+        delete sceneBVH;
+        sceneBVH = new BVH(10.0f, 64, false);
+    }
     sceneBVH->Build(&bounds[0], bounds.size());
     sceneBVH->PrintStatistics(std::cout);
     printf("\n*****************\n");
@@ -154,6 +158,9 @@ void Scene::process_data()
 
     // 随后将顶点数据、法线数据、UV纹理坐标数据转换为适合传递给GPU的数据
     int verticesCnt = 0;
+    vertIndices.clear();
+    verticesUVX.clear();
+    normalsUVY.clear();
     for (const auto &mesh : meshes) // 遍历所有的网格
     {
         // 获取 BVH 的索引数量和索引数据
@@ -366,6 +373,109 @@ void Scene::init_FBOs()
         std::cerr << "Output FBO is not complete!" << std::endl;
 
     // Clear accumulation buffer
+    glBindFramebuffer(GL_FRAMEBUFFER, accumFBO);
+    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+    glClear(GL_COLOR_BUFFER_BIT);
+}
+
+void Scene::update_GPU_data()
+{
+    glPixelStorei(GL_PACK_ALIGNMENT, 1);
+
+    // ---------- 更新 BVH树节点数据 ---------- //
+    glBindBuffer(GL_TEXTURE_BUFFER, BVHBuffer);
+    glBufferSubData(GL_TEXTURE_BUFFER, 0, sizeof(BVHConverter::Node) * bvhConverter.nodes.size(), &bvhConverter.nodes[0]);
+    glBindTexture(GL_TEXTURE_BUFFER, BVHTex);
+    glTexBuffer(GL_TEXTURE_BUFFER, GL_RGB32F, BVHBuffer);
+
+    // ---------- 更新顶点索引数据 ---------- //
+    glBindBuffer(GL_TEXTURE_BUFFER, vertexIndicesBuffer);
+    glBufferSubData(GL_TEXTURE_BUFFER, 0, sizeof(Indices) * vertIndices.size(), &vertIndices[0]);
+    glBindTexture(GL_TEXTURE_BUFFER, vertexIndicesTex);
+    glTexBuffer(GL_TEXTURE_BUFFER, GL_RGB32I, vertexIndicesBuffer);
+
+    // ---------- 更新顶点/UV数据 ---------- //
+    glBindBuffer(GL_TEXTURE_BUFFER, verticesBuffer);
+    glBufferSubData(GL_TEXTURE_BUFFER, 0, sizeof(glm::vec4) * verticesUVX.size(), &verticesUVX[0]);
+    glBindTexture(GL_TEXTURE_BUFFER, verticesTex);
+    glTexBuffer(GL_TEXTURE_BUFFER, GL_RGBA32F, verticesBuffer);
+
+    // ---------- 更新法线/UV数据 ---------- //
+    glBindBuffer(GL_TEXTURE_BUFFER, normalsBuffer);
+    glBufferSubData(GL_TEXTURE_BUFFER, 0, sizeof(glm::vec4) * normalsUVY.size(), &normalsUVY[0]);
+    glBindTexture(GL_TEXTURE_BUFFER, normalsTex);
+    glTexBuffer(GL_TEXTURE_BUFFER, GL_RGBA32F, normalsBuffer);
+
+    // ---------- 更新转换矩阵数据 ---------- //
+    glBindBuffer(GL_TEXTURE_BUFFER, transformsBuffer);
+    glBufferSubData(GL_TEXTURE_BUFFER, 0, sizeof(glm::mat4) * transforms.size(), &transforms[0]);
+    glBindTexture(GL_TEXTURE_BUFFER, transformsTex);
+    glTexBuffer(GL_TEXTURE_BUFFER, GL_RGBA32F, transformsBuffer);
+
+    // ---------- 更新材质数据 ---------- //
+    glBindBuffer(GL_TEXTURE_BUFFER, materialsBuffer);
+    glBufferSubData(GL_TEXTURE_BUFFER, 0, sizeof(Material) * materials.size(), &materials[0]);
+    glBindTexture(GL_TEXTURE_BUFFER, materialsTex);
+    glTexBuffer(GL_TEXTURE_BUFFER, GL_RGBA32F, materialsBuffer);
+
+    // ---------- 更新纹理数据 ---------- //
+    if (!textures.empty())
+    {
+        glBindTexture(GL_TEXTURE_2D_ARRAY, textureMapsArrayTex);
+        glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, 0, texArrayWidth, texArrayHeight, textures.size(), GL_RGBA, GL_UNSIGNED_BYTE, &textureMapsArray[0]);
+        glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
+    }
+}
+
+void Scene::update_FBOs()
+{
+    // 更新 Path tracing FBO
+    glBindFramebuffer(GL_FRAMEBUFFER, pathTraceFBO);
+    glBindTexture(GL_TEXTURE_2D, pathTraceTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, WINDOW_WIDTH, WINDOW_HEIGHT, 0, GL_RGBA, GL_FLOAT, nullptr);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, pathTraceTexture, 0);
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+        std::cerr << "Path trace FBO is not complete!" << std::endl;
+
+    // 更新 Accumulation FBO
+    glBindFramebuffer(GL_FRAMEBUFFER, accumFBO);
+    glBindTexture(GL_TEXTURE_2D, accumTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, WINDOW_WIDTH, WINDOW_HEIGHT, 0, GL_RGBA, GL_FLOAT, nullptr);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, accumTexture, 0);
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+        std::cerr << "Accumulation FBO is not complete!" << std::endl;
+
+    // 更新 Output FBO
+    glBindFramebuffer(GL_FRAMEBUFFER, outputFBO);
+    glBindTexture(GL_TEXTURE_2D, outputTexture[0]);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, WINDOW_WIDTH, WINDOW_HEIGHT, 0, GL_RGBA, GL_FLOAT, nullptr);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+    glBindTexture(GL_TEXTURE_2D, outputTexture[1]);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, WINDOW_WIDTH, WINDOW_HEIGHT, 0, GL_RGBA, GL_FLOAT, 0);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, outputTexture[0], 0);
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+        std::cerr << "Output FBO is not complete!" << std::endl;
+
+    // 清除积累缓冲区
     glBindFramebuffer(GL_FRAMEBUFFER, accumFBO);
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
     glClear(GL_COLOR_BUFFER_BIT);
