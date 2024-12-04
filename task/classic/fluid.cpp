@@ -1,14 +1,14 @@
-// #include "fluid.hpp"
-// #include "glm/gtx/transform.hpp"
+#include "fluid.hpp"
+#include "glm/gtx/transform.hpp"
 
-GL_TASK::Fluid::Fluid(bool &bvhDirty) {
-    fluid_sim.BindMeshSignal(&bvhDirty);
+GL_TASK::Fluid::Fluid(std::vector<Mesh *> &meshes, std::vector<MeshInstance *> &meshInstances,
+                    std::vector<Texture *> &textures, std::vector<Material> &materials)
+    : RenderableModel(meshes, meshInstances, textures, materials) {
     fluid_sim.pause(); // 初始先暂停
 }
 
 // 添加模型
-bool GL_TASK::Fluid::add_model(const std::string &modelfilePath, std::vector<Mesh *> &meshes, std::vector<MeshInstance *> &meshInstances,
-                                   std::vector<Texture *> &textures, std::vector<Material> &materials)
+bool GL_TASK::Fluid::add_model(const std::string &modelfilePath)
 {
     Model *model = new Model();
     if (model->LoadFromFile(modelfilePath))
@@ -47,15 +47,15 @@ bool GL_TASK::Fluid::add_model(const std::string &modelfilePath, std::vector<Mes
     return true;
 }
 
-// void GL_TASK::Fluid::set_model_matrix(const glm::mat4 &model)
-// {
-//     model_matrix = glm::scale(model, glm::vec3(1.f, 1.f, 1.f) * (1.f / float(fluid_sim.get_scale()))); // Adjust scale
-// }
+void GL_TASK::Fluid::set_model_matrix(const glm::mat4 &model)
+{
+    model_matrix = glm::scale(model, glm::vec3(1.f, 1.f, 1.f) * (1.f / float(fluid_sim.get_scale()))); // Adjust scale
+}
 
-// glm::mat4 GL_TASK::Fluid::get_model_matrix() const
-// {
-//     return model_matrix;
-// }
+glm::mat4 GL_TASK::Fluid::get_model_matrix() const
+{
+    return model_matrix;
+}
 
 // 模拟控制函数
 void GL_TASK::Fluid::start()

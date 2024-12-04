@@ -2,7 +2,7 @@
 #include "glm/gtx/transform.hpp"
 
 GL_TASK::Butterfly::Butterfly(const std::string &model_path, std::vector<Mesh *> &meshes, std::vector<MeshInstance *> &meshInstances, std::vector<Texture *> &textures, std::vector<Material> &materials)
-    : danceAnimation(model_path), animator(&danceAnimation, translate_rand, rotate_rand), RenderableModel(model_path, meshes, meshInstances, textures, materials)
+    : danceAnimation(model_path), animator(&danceAnimation, translate_rand, rotate_rand), RenderableModel(meshes, meshInstances, textures, materials)
 {
 
     set_model_matrix();

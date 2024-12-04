@@ -3,8 +3,8 @@
 
 namespace GL_TASK {
 
-BulletWorld::BulletWorld()
-    : roomMin(-200, -180, -90), roomMax(150, 240, 90) {
+BulletWorld::BulletWorld(std::vector<Mesh *> &meshes, std::vector<MeshInstance *> &meshInstances, std::vector<Texture *> &textures, std::vector<Material> &materials)
+    : roomMin(-200, -180, -90), roomMax(150, 240, 90), RenderableModel(meshes, meshInstances, textures, materials) {
     init();
 }
 
@@ -49,10 +49,11 @@ void BulletWorld::BindFluid(std::shared_ptr<Fluid> fluidPtr) {
 
 bool BulletWorld::bind_model(const std::string &modelfilePath, const ObjectType &bodyType, const glm::mat4 &model_base_matrix) {
     // 删除当前绑定的模型信息
-    if (model)
+    if (model) {
         delete model;
+        model = nullptr;  // 避免悬空指针
+    }
     // 开始绑定新模型
-    std::cout << "BulletWorld::BIND a new " << rigidBodyInfo.typeName() << " model." << std::endl;
     model = new Model();
     if (!model) {
         std::cout << "ERROR::UNABLE TO ALLOCATE MEMORY FOR NEW MODEL" << std::endl;
@@ -66,13 +67,21 @@ bool BulletWorld::bind_model(const std::string &modelfilePath, const ObjectType 
     }
     rigidBodyInfo.chooseType(bodyType);
     modelBaseMatrix = model_base_matrix;
+    std::cout << "BulletWorld::BIND a new " << rigidBodyInfo.typeName() << " model." << std::endl;
     return true;
 }
-bool BulletWorld::add_model(const glm::vec3 &world_position, std::vector<Mesh *> &meshes, std::vector<MeshInstance *> &meshInstances, std::vector<Texture *> &textures, std::vector<Material> &materials) {
-    glm::mat4 world_matrix = glm::translate(glm::mat4(1.0f), world_position);
-    return add_model(world_matrix, meshes, meshInstances, textures, materials);
+bool BulletWorld::add_model() {
+    float x = rand() % int(roomMax.getX() - roomMin.getX()) + roomMin.getX();
+    float y = rand() % int(roomMax.getY() - roomMin.getY()) + roomMin.getY();
+    float z = rand() % int(roomMax.getZ() - roomMin.getZ()) + roomMin.getZ();
+    glm::vec3 world_position = glm::vec3(x, y, z);
+    return add_model(world_position);
 }
-bool BulletWorld::add_model(const glm::mat4 &world_matrix, std::vector<Mesh *> &meshes, std::vector<MeshInstance *> &meshInstances, std::vector<Texture *> &textures, std::vector<Material> &materials) {
+bool BulletWorld::add_model(const glm::vec3 &world_position) {
+    glm::mat4 world_matrix = glm::translate(glm::mat4(1.0f), world_position);
+    return add_model(world_matrix);
+}
+bool BulletWorld::add_model(const glm::mat4 &world_matrix) {
     if (model == nullptr) {
         std::cout << "ERROR::MODEL IS NOT LOADED" << std::endl;
         return false;

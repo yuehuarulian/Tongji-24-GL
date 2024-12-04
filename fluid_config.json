@@ -8,8 +8,8 @@
   ],
   "sim_cell_size": 1.0,
   "sim_gravity": [
-    -981.0,
     0.0,
+    -981.0,
     0.0
   ],
   "sim_method": "apic",

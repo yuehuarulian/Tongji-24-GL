@@ -13,6 +13,8 @@ namespace GL_TASK
 
         void update() override;
 
+        glm::mat4 get_model_matrix() const;
+
     private:
         void set_model_matrix() override;
 

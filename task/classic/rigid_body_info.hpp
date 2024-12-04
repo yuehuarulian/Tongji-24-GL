@@ -55,7 +55,7 @@ public:
         objectType = ObjectType::NONE;
         dimensions = btVector3(1.0f, 1.0f, 1.0f);  // 默认尺寸
         mass = 1.0f;                               // 默认质量
-        if (collisionShape) delete collisionShape;
+        if (collisionShape) { delete collisionShape; collisionShape = nullptr; }
         collisionShape = new btSphereShape(dimensions.length()); // 默认使用球体形状
         position = glm::vec3(0.0f, 0.0f, 0.0f);      // 初始位置
         friction = restitution = 0.5f;
@@ -67,7 +67,7 @@ public:
         objectType = ObjectType::BOAT;
         dimensions = btVector3(10.0f, 6.0f, 10.0f);  // 船体尺寸
         mass = 100.0f;                               // 船的质量
-        if (collisionShape) delete collisionShape;
+        if (collisionShape) { delete collisionShape; collisionShape = nullptr; }
         collisionShape = new btBoxShape(dimensions); // 船体使用盒子形状
         position = glm::vec3(0.0f, 5.0f, 0.0f);      // 初始位置
         friction = 0.3f;                             // 船体摩擦力
@@ -80,15 +80,25 @@ public:
         objectType = ObjectType::FLOWER;
         dimensions = btVector3(1.0f, 3.0f, 1.0f);  // 花朵尺寸（可以是椭圆）
         mass = 1.0f;                               // 花朵的质量
-        if (collisionShape) delete collisionShape;
+        if (collisionShape) { delete collisionShape; collisionShape = nullptr; }
         collisionShape = new btCylinderShape(dimensions); // 花朵使用圆柱形状
         position = glm::vec3(0.0f, 3.0f, 0.0f);    // 初始位置
         friction = 0.1f;                           // 花朵摩擦力
         restitution = 0.0f;                        // 花朵不反弹
     }
 
-    // 返回刚体碰撞形状
-    btCollisionShape* getCollisionShape() const { return collisionShape; }
+    // 返回刚体碰撞形状(新副本)
+    btCollisionShape* getCollisionShape() const {
+        switch(objectType) {
+            case ObjectType::BOAT:
+                return new btBoxShape(dimensions);
+            case ObjectType::FLOWER:
+                return new btCylinderShape(dimensions);
+            default:
+                return new btSphereShape(dimensions.length());
+        }
+        return nullptr;
+    }
 
     // 返回刚体质量
     btScalar getMass() const { return mass; }

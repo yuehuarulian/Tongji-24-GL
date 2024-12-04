@@ -9,15 +9,18 @@
 
 namespace GL_TASK
 {
-    class Fluid
+    class Fluid : public RenderableModel
     {
     public:
-        Fluid(bool &bvhDirty); // 默认初始化后先暂停模拟
+        Fluid(std::vector<Mesh *> &meshes, std::vector<MeshInstance *> &meshInstances, std::vector<Texture *> &textures, std::vector<Material> &materials); // 默认初始化后先暂停模拟
 
-        bool add_model(const std::string &modelfilePath, std::vector<Mesh *> &meshes, std::vector<MeshInstance *> &meshInstances, std::vector<Texture *> &textures, std::vector<Material> &materials);
+        bool add_model(const std::string &modelfilePath);
 
-        void update();
+        void BindDirty(bool* dirtyPtr) {fluid_sim.BindMeshSignal(dirtyPtr);}
+        
+        void update() override {};
 
+        void set_model_matrix() override {};
         void set_model_matrix(const glm::mat4 &room_model);
 
         glm::mat4 get_model_matrix() const;

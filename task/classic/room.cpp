@@ -2,7 +2,7 @@
 #include "glm/gtx/transform.hpp"
 
 GL_TASK::Room::Room(const std::string &model_path, std::vector<Mesh *> &meshes, std::vector<MeshInstance *> &meshInstances, std::vector<Texture *> &textures, std::vector<Material> &materials)
-    : RenderableModel(model_path, meshes, meshInstances, textures, materials)
+    : RenderableModel(meshes, meshInstances, textures, materials)
 {
 
     set_model_matrix();
@@ -54,4 +54,9 @@ void GL_TASK::Room::set_model_matrix()
     model_matrix = glm::mat4(1.0f);
     model_matrix = glm::rotate(model_matrix, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
     model_matrix = glm::scale(model_matrix, glm::vec3(1.f, 1.f, 1.f) * 1.3f);
+}
+
+glm::mat4 GL_TASK::Room::get_model_matrix() const
+{
+    return model_matrix;
 }

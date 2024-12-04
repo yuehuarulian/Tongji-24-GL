@@ -55,12 +55,13 @@ namespace GL_TASK
         room = std::make_shared<Room>("source/model/room2/room2.obj", meshes, meshInstances, textures, materials);
 
         // liquid model
-        fluid = std::make_shared<Fluid>(BbvhDirty);
+        fluid = std::make_shared<Fluid>(meshes, meshInstances, textures, materials);
+        fluid->BindDirty(&BbvhDirty);
         fluid->set_model_matrix(room->get_model_matrix());
-        fluid->add_model("source/model/fluid/mesh.obj", meshes, meshInstances, textures, materials);
+        fluid->add_model("source/model/fluid/mesh.obj");
 
         // bullet world
-        bulletWorld = std::make_shared<BulletWorld>();
+        bulletWorld = std::make_shared<BulletWorld>(meshes, meshInstances, textures, materials);
         bulletWorld->BindDirty(&TbvhDirty);
         bulletWorld->BindFluid(fluid);
 
@@ -68,15 +69,15 @@ namespace GL_TASK
         glm::mat4 boat_model_matrix = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f));
         boat_model_matrix = glm::scale(boat_model_matrix, glm::vec3(5.f));
         bulletWorld->bind_model("source/model/boat/boat_obj.obj", ObjectType::BOAT, boat_model_matrix);
-        bulletWorld->add_model(glm::vec3(15.0f, -77.0f, -25.0f), meshes, meshInstances, textures, materials);
-        bulletWorld->add_model(glm::vec3(-15.0f, -77.0f, 25.0f), meshes, meshInstances, textures, materials);
+        bulletWorld->add_model(glm::vec3(15.0f, -77.0f, -25.0f));
+        bulletWorld->add_model(glm::vec3(-15.0f, -77.0f, 25.0f));
 
         // flower model
         glm::mat4 flower_model_matrix = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f));
         flower_model_matrix = glm::scale(flower_model_matrix, glm::vec3(3.f));
         bulletWorld->bind_model("source/model/flower/flower.obj", ObjectType::FLOWER, flower_model_matrix);
-        bulletWorld->add_model(glm::vec3(-20.0f, -77.0f, -50.0f), meshes, meshInstances, textures, materials);
-        bulletWorld->add_model(glm::vec3(20.0f, -77.0f, 50.0f), meshes, meshInstances, textures, materials);
+        bulletWorld->add_model(glm::vec3(-20.0f, -77.0f, -50.0f));
+        bulletWorld->add_model(glm::vec3(20.0f, -77.0f, 50.0f));
 
         // butterfly model  
         for (int i = 0; i < butterfly_count; i++)
@@ -250,7 +251,6 @@ namespace GL_TASK
 
     void ClassicScene::wait_until_next_frame(int frame_number)
     {
-        //     auto fluid = std::dynamic_pointer_cast<Fluid>(models[1]);
-        //     fluid->wait_until_next_frame(frame_number);
+        fluid->wait_until_next_frame(frame_number);
     }
 }

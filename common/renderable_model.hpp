@@ -9,7 +9,7 @@
 class RenderableModel
 {
 public:
-    RenderableModel(const std::string &model_path, std::vector<Mesh *> &meshes, std::vector<MeshInstance *> &meshInstances, std::vector<Texture *> &textures, std::vector<Material> &materials)
+    RenderableModel(std::vector<Mesh *> &meshes, std::vector<MeshInstance *> &meshInstances, std::vector<Texture *> &textures, std::vector<Material> &materials)
         : meshes(meshes), meshInstances(meshInstances), textures(textures), materials(materials) {}
 
     virtual void update() = 0;

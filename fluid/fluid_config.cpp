@@ -106,7 +106,7 @@ void FluidConfig::fill_basin() {
 				_basin(pos) && // �ж������ڷ����ڲ�
 				//!_batht(pos) && // �ж������ڷ����Ե
 				// ȷ��ˮ��߶�
-				pos.x <= grid_offset.x + double(grid_size.x) * _water_level + _wave_amplitude * _scale * simulate_pond_wave(pos.y, pos.z, 0.0);
+				pos.y <= grid_offset.y + double(grid_size.y) * _water_level + _wave_amplitude * _scale * simulate_pond_wave(pos.x, pos.z, 0.0);
 		},
 		vec3d(0.0, 0.0, 0.0)
 	);
