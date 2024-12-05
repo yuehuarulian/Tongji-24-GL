@@ -54,43 +54,43 @@ namespace GL_TASK
         // 先加载所有的模型文件 存储在meshes中
         room = std::make_shared<Room>("source/model/room2/room2.obj", meshes, meshInstances, textures, materials);
 
-        // liquid model
-        fluid = std::make_shared<Fluid>(meshes, meshInstances, textures, materials);
-        fluid->BindDirty(&BbvhDirty);
-        fluid->set_model_matrix(room->get_model_matrix());
-        fluid->add_model("source/model/fluid/mesh.obj");
+        // // liquid model
+        // fluid = std::make_shared<Fluid>(meshes, meshInstances, textures, materials);
+        // fluid->BindDirty(&BbvhDirty);
+        // fluid->set_model_matrix(room->get_model_matrix());
+        // fluid->add_model("source/model/fluid/mesh.obj");
 
-        // bullet world
-        bulletWorld = std::make_shared<BulletWorld>(meshes, meshInstances, textures, materials);
-        bulletWorld->BindDirty(&TbvhDirty);
-        bulletWorld->BindFluid(fluid);
+        // // bullet world
+        // bulletWorld = std::make_shared<BulletWorld>(meshes, meshInstances, textures, materials);
+        // bulletWorld->BindDirty(&TbvhDirty);
+        // bulletWorld->BindFluid(fluid);
 
-        // boat model
-        glm::mat4 boat_model_matrix = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f));
-        boat_model_matrix = glm::scale(boat_model_matrix, glm::vec3(5.f));
-        bulletWorld->bind_model("source/model/boat/boat_obj.obj", ObjectType::BOAT, boat_model_matrix);
-        bulletWorld->add_model(glm::vec3(15.0f, -77.0f, -25.0f));
-        bulletWorld->add_model(glm::vec3(-15.0f, -77.0f, 25.0f));
+        // // boat model
+        // glm::mat4 boat_model_matrix = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f));
+        // boat_model_matrix = glm::scale(boat_model_matrix, glm::vec3(5.f));
+        // bulletWorld->bind_model("source/model/boat/boat_obj.obj", ObjectType::BOAT, boat_model_matrix);
+        // bulletWorld->add_model(glm::vec3(15.0f, -77.0f, -25.0f));
+        // bulletWorld->add_model(glm::vec3(-15.0f, -77.0f, 25.0f));
 
-        // flower model
-        glm::mat4 flower_model_matrix = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f));
-        flower_model_matrix = glm::scale(flower_model_matrix, glm::vec3(3.f));
-        bulletWorld->bind_model("source/model/flower/flower.obj", ObjectType::FLOWER, flower_model_matrix);
-        bulletWorld->add_model(glm::vec3(-20.0f, -77.0f, -50.0f));
-        bulletWorld->add_model(glm::vec3(20.0f, -77.0f, 50.0f));
+        // // flower model
+        // glm::mat4 flower_model_matrix = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f));
+        // flower_model_matrix = glm::scale(flower_model_matrix, glm::vec3(3.f));
+        // bulletWorld->bind_model("source/model/flower/flower.obj", ObjectType::FLOWER, flower_model_matrix);
+        // bulletWorld->add_model(glm::vec3(-20.0f, -77.0f, -50.0f));
+        // bulletWorld->add_model(glm::vec3(20.0f, -77.0f, 50.0f));
 
         // butterfly model
-        for (int i = 0; i < butterfly_count; i++)
-        {
-            auto butterfly_model_single = std::make_shared<Butterfly>("source/model/butterfly/ok.dae", meshes, meshInstances, textures, materials);
-            butterflies.push_back(butterfly_model_single);
-        }
+        // for (int i = 0; i < butterfly_count; i++)
+        // {
+        //     auto butterfly_model_single = std::make_shared<Butterfly>("source/model/butterfly/ok.dae", meshes, meshInstances, textures, materials);
+        //     butterflies.push_back(butterfly_model_single);
+        // }
 
         this->createBLAS();   // 建立低层次的BVH加速结构
         this->createTLAS();   // 建立高层次的BVH加速结构
         this->process_data(); // 处理数据 将其转换成可供Shader使用的形式
-        fluid->start();       // 启动流体模拟
-        bulletWorld->start(); // 启动物理模拟
+        // fluid->start();       // 启动流体模拟
+        // bulletWorld->start(); // 启动物理模拟
 
         // 点云
         // auto cloud_shader1 = shader_manager.get_shader("cloud");
@@ -141,7 +141,7 @@ namespace GL_TASK
         render_path_tracing(camera);
         render_accumulation();
         render_post_processing();
-        render_point_clouds(camera);
+        // render_point_clouds(camera);
     }
 
     void ClassicScene::render_path_tracing(Camera &camera)

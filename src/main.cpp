@@ -79,7 +79,6 @@ int main()
 
         classic_scene.render(camera);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
         glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
         classic_scene.present(); // 渲染结果展示
         gui_manager.render();

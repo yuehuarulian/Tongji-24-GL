@@ -177,15 +177,15 @@ void main()
     vec3 rayOrigin = camera.position;
     vec3 rayDirection = normalize(d.x * camera.right + d.y * camera.up + camera.forward);
     float radius = 5;
-    sphereLights[0] = SphereLight(vec3(0.,0.,0.), vec3(300), radius, 4 * PI * radius * radius);
-    sphereLights[1] = SphereLight(vec3(10.0, 20.0, -10.0), vec3(300), radius, 4 * PI * radius * radius);
-    sphereLights[2] = SphereLight(vec3(-10.0, 20.0, -10.0), vec3(300), radius, 4 * PI * radius * radius);
-    numOfSphereLights = 3;
+    sphereLights[0] = SphereLight(vec3(0.,0.,0.), vec3(120), radius, 4 * PI * radius * radius);
+    // sphereLights[1] = SphereLight(vec3(10.0, 20.0, -10.0), vec3(300), radius, 4 * PI * radius * radius);
+    // sphereLights[2] = SphereLight(vec3(-10.0, 20.0, -10.0), vec3(300), radius, 4 * PI * radius * radius);
+    numOfSphereLights = 1;
     
     Ray ray = Ray(rayOrigin, rayDirection);// 生成光线
     
     // 后面可以更改为 uniform 使用imgui进行调节
-    int maxDepth = 20;// 光线弹射的最大深度
+    int maxDepth = 3;// 光线弹射的最大深度
     int RR_maxDepth = 5;// 俄罗斯轮盘赌启动的最低深度
 
     vec4 accumColor = texture(accumTexture, TexCoords);
@@ -193,7 +193,6 @@ void main()
 
     vec3 finalColor = accumColor.xyz + color.xyz;
       
-    // vec3 finalColor = vec3(1.0);
     FragColor = vec4(finalColor, 1.0); 
 }
 
@@ -214,26 +213,19 @@ vec3 PathTrace(Ray r, int maxDepth, int RR_maxDepth)
         // 判断光线是否与场景相交
         if(!ClosestHit(r, hit_record, lightSample))
         {
-            // if (depth == 0) return vec3(1.0, 0.0, 0.0); // 第一次弹射
-            // if (depth == 1) return vec3(0.0, 1.0, 0.0); // 第二次弹射
-            // if (depth == 2) return vec3(0.0, 0.0, 1.0); // 第三次弹射
-            // else return vec3(1.0,1.0,1.0);
-
             // 如果没有交点，返回环境背景颜色
-            radiance += throughput * vec3(0.5, 0.7, 1.0); // 蓝天背景
+            radiance += throughput * vec3(0.0, 0.0, 0.0); // 纯黑色
             break;
         }
-        
-        GetMaterial(hit_record, r); // 获取材质
-        // return hit_record.mat.baseColor;
-        
-        // return hit_record.mat.normal;
         
         // 如果击中了发光体，添加其辐射贡献
         if (hit_record.isEmitter) {
             radiance += throughput * lightSample.emission;
             break;
         }
+
+        // return hit_record.mat.baseColor; // 直接返回基础颜色
+        // return hit_record.mat.normal; // 直接返回向法线向量
         
         // 直接光照计算（光源采样）
         sampleLight(hit_record.HitPoint, lightSample); // 进行光源采样
@@ -249,12 +241,12 @@ vec3 PathTrace(Ray r, int maxDepth, int RR_maxDepth)
         bool isShadow = AnyHit(r2light, lightSample.dist - EPS); // 判断阴影
         if (!isShadow) {
             float invDistances2 = 1 / (lightSample.dist * lightSample.dist);
-            vec3 Li = lightSample.emission * invDistances2; // 光源的辐射亮度 -- 随距离衰减
+            // vec3 Li = lightSample.emission * invDistances2; // 光源的辐射亮度 -- 随距离衰减
+            vec3 Li = lightSample.emission;
             vec3 Lo = BRDF_PBR(N, V, L, Li, albedo, metallic, roughness, F0);
+            return Lo;
             Lo = Lo / lightSample.pdf;
             radiance += throughput * Lo;
-        } else {
-            
         }
         
         // 间接光照计算（路径延续）
@@ -272,8 +264,6 @@ vec3 PathTrace(Ray r, int maxDepth, int RR_maxDepth)
         float pdf = useCosineWeighted ?  (wi.z / PI) : (1.0 / (2.0 * PI));
         throughput *= BRDF_PBR(N, V, wi, vec3(1.0), albedo, metallic, roughness, F0) / pdf;
         r = Ray(hit_record.HitPoint + 0.001 * wi, wi);      // 更新光线
-        // r = Ray(vec3(0.0), wi);      // 更新光线
-        // return r.direction;
     }
     
     return radiance;
@@ -342,6 +332,7 @@ vec3 BRDF_PBR(vec3 N, vec3 V, vec3 L, vec3 radiance, vec3 albedo, float metallic
     
     // scale light by NdotL
     float NdotL = max(dot(N, L), 0.0);
+    return kD * albedo;
     
     return (kD * albedo / PI + specular) * radiance * NdotL;
 }
@@ -549,7 +540,7 @@ bool ClosestHit(Ray r, inout HitRec hit_record, inout LightSampleRec lightSample
         hit_record.tangent = normalize(mat3(transform) * hit_record.tangent);
         hit_record.bitangent = normalize(mat3(transform) * hit_record.bitangent);
         
-        // GetMaterial(hit_record, r); // 获取材质
+        GetMaterial(hit_record, r); // 获取材质
     }
     
     return true;
@@ -787,7 +778,7 @@ void GetMaterial(inout HitRec hit_record, in Ray r)
     Material mat;
     // 材质默认值
     // 灰色（默认非金属材质）
-    vec3 defaultAlbedo = vec3(0.8, 0.8, 0.8); // 默认反射率：灰色
+    vec3 defaultAlbedo = vec3(0.0824, 0.8706, 0.251); // 默认反射率：灰色
     float defaultMetallic = 0.0;                // 默认金属度：非金属
     float defaultRoughness = 0.5;               // 默认粗糙度：中等
     float defaultAO = 1.0;                      // 默认 AO 值：完全无遮蔽
