@@ -84,6 +84,7 @@ struct HitRec
     // 击中点三角形数据
     vec2 texCoord;// 纹理坐标 -- 通过重心坐标插值计算得到
     vec3 normal;// 表面法线 -- 通过重心坐标插值计算得到
+    vec3 normal_tex; // 纹理法线
     vec3 ffnormal;// 面向外部的法线 -- 与光线进入的方向相反
     vec3 tangent;// 切线方向
     vec3 bitangent;// 副切线方向
@@ -175,7 +176,7 @@ void main()
     vec3 rayOrigin = camera.position;
     vec3 rayDirection = normalize(d.x * camera.right + d.y * camera.up + camera.forward);
     float radius = 2.5;
-    sphereLights[0] = SphereLight(vec3(0.,50.,30.), vec3(.1), radius, 4 * PI * radius * radius);
+    sphereLights[0] = SphereLight(vec3(0.,50.,30.), vec3(0.6941, 0.6941, 0.6941), radius, 4 * PI * radius * radius);
     // sphereLights[1] = SphereLight(vec3(10.0, 20.0, -10.0), vec3(0.1), radius, 4 * PI * radius * radius);
     // sphereLights[2] = SphereLight(vec3(-10.0, 20.0, -10.0), vec3(0.1), radius, 4 * PI * radius * radius);
     numOfSphereLights = 1;
@@ -212,13 +213,15 @@ vec3 PathTrace(Ray r, int maxDepth, int RR_maxDepth)
         if(!ClosestHit(r, hit_record, lightSample))
         {
             // 如果没有交点，返回环境背景颜色
-            radiance += throughput * vec3(0.5, 0.7, 1.0); // 蓝天背景
+            radiance += throughput * vec3(0.1059, 0.8784, 0.1059); // 蓝天背景
             break;
         }
+
+        // if(depth == 3) return vec3(0.0824, 0.0706, 0.8706);
+        // return hit_record.ffnormal;
+        // return hit_record.mat.baseColor;
         
         GetMaterial(hit_record, r); // 获取材质
-        
-        // return hit_record.mat.baseColor;
         
         // 如果击中了发光体，添加其辐射贡献
         if (hit_record.isEmitter) {
@@ -240,12 +243,11 @@ vec3 PathTrace(Ray r, int maxDepth, int RR_maxDepth)
         bool isShadow = AnyHit(r2light, lightSample.dist - EPS); // 判断阴影
         if (!isShadow) {
             float invDistances2 = 1 / (lightSample.dist * lightSample.dist);
-            vec3 Li = lightSample.emission * invDistances2; // 光源的辐射亮度 -- 随距离衰减
+            // vec3 Li = lightSample.emission * invDistances2; // 光源的辐射亮度 -- 随距离衰减
+            vec3 Li = lightSample.emission;
             vec3 Lo = BRDF_PBR(N, V, L, Li, albedo, metallic, roughness, F0);
             Lo = Lo / lightSample.pdf;
             radiance += throughput * Lo;
-        } else {
-            
         }
         
         // 间接光照计算（路径延续）
@@ -262,7 +264,7 @@ vec3 PathTrace(Ray r, int maxDepth, int RR_maxDepth)
         vec3 wi = SampleDirection(hit_record.normal, useCosineWeighted); // 在半球中随机采样
         float pdf = useCosineWeighted ?  (wi.z / PI) : (1.0 / (2.0 * PI));
         throughput *= BRDF_PBR(N, V, wi, vec3(1.0), albedo, metallic, roughness, F0) / pdf;
-        r = Ray(hit_record.HitPoint + 0.001 * wi, wi);      // 更新光线
+        r = Ray(hit_record.HitPoint + 0.001 * hit_record.normal, wi);      // 更新光线
     }
     
     return radiance;
@@ -797,7 +799,7 @@ void GetMaterial(inout HitRec hit_record, in Ray r)
     if(texIDs_1.z >= 0) // normalTexId
     {
         vec3 tangentNormal  = texture(textureMapsArrayTex, vec3(hit_record.texCoord, texIDs_1.z)).xyz * 2.0 - 1.0;
-        hit_record.normal = LocalToWorld(tangentNormal, hit_record.normal);
+        hit_record.normal_tex = LocalToWorld(tangentNormal, hit_record.normal);
     }
     if(texIDs_1.w >= 0) // heightTexId
     {

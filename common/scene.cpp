@@ -14,6 +14,7 @@ bool Scene::AddModel(const std::string &modelfilePath, glm::mat4 transformMat)
         int textureStartId = this->textures.size();
         for (auto texture : model->getTextures())
             this->textures.push_back(texture);
+        printf("Add Textures\n");
 
         // 2. 将model中的网格数据导入scene中
         for (auto mesh : model->getMeshes())
@@ -31,6 +32,7 @@ bool Scene::AddModel(const std::string &modelfilePath, glm::mat4 transformMat)
             this->meshes.push_back(mesh);
             this->meshInstances.push_back(instance);
         }
+        printf("Add Mesh Data\n");
     }
     else
     {

@@ -15,6 +15,7 @@ bool Model::loadModel(string const &path)
     // 加载模型文件(.obj)
     // 使用Assimp库进行加载
     //
+    printf("Load Model\n");
     Assimp::Importer importer;
     const aiScene *scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
 
@@ -24,7 +25,10 @@ bool Model::loadModel(string const &path)
         cout << "ERROR::ASSIMP:: " << importer.GetErrorString() << endl;
         return false;
     }
-
+    else
+    {
+        printf("Load Model Success\n");
+    }
     // 提取文件路径的目录部分，用于后续加载纹理
     directory = path.substr(0, path.find_last_of('/'));
 
@@ -36,6 +40,7 @@ bool Model::loadModel(string const &path)
 
 void Model::processNode(aiNode *node, const aiScene *scene)
 {
+    printf("Process Mesh Node\n");
     for (unsigned int i = 0; i < node->mNumMeshes; i++)
     {
         aiMesh *mesh = scene->mMeshes[node->mMeshes[i]];

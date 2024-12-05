@@ -57,16 +57,22 @@ namespace GL_TASK
         // 模型文件路径
         std::vector<std::string> modelPaths = {
             // "./source/model/shark.obj",
-            "./source/model/room/overall.obj",
+            "./source/model/room2/room2.obj",
+            // "./source/model/room/overall.obj",
             // "./source/model/nanosuit/nanosuit.obj"
         };
         glm::mat4 room_model_matrix = glm::mat4(1.0f);
         room_model_matrix = glm::rotate(room_model_matrix, glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
         room_model_matrix = glm::rotate(room_model_matrix, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
         room_model_matrix = glm::scale(room_model_matrix, glm::vec3(1.f, 1.f, 1.f) * 1.3f);
+        glm::mat4 shark_model_matrix = glm::mat4(1.0f);
+        shark_model_matrix = glm::scale(shark_model_matrix, glm::vec3(0.1f));
         // 先加载所有的模型文件 存储在meshes中
+        // AddModel("./source/model/shark.obj", shark_model_matrix);
+        printf("Load Models\n");
         for (auto path : modelPaths)
             AddModel(path, room_model_matrix);
+        printf("Finish Load Models\n");
 
         this->createBLAS();  // 建立低层次的BVH加速结构
         this->createTLAS();  // 建立高层次的BVH加速结构
@@ -194,6 +200,8 @@ namespace GL_TASK
             glBindFramebuffer(GL_FRAMEBUFFER, accumFBO);
             glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
             glClear(GL_COLOR_BUFFER_BIT);
+
+            // TODO: 数据修改与传输
         }
         else
         {

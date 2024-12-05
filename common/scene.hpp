@@ -35,6 +35,7 @@ public:
 
     void setDirty(bool isDirty) { this->dirty = isDirty; }
     bool getDirty() const { return this->dirty; }
+    int getFrameNum() const { return this->frameNum; }
 
 protected:
     virtual void setup_scene() = 0;
