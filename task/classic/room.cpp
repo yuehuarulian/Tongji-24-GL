@@ -16,6 +16,10 @@ bool GL_TASK::Room::add_model(const std::string &model_path)
     Model *model = new Model();
     if (model->LoadFromFile(model_path))
     {
+        // 初始化边界信息
+        min_bound = glm::vec3(std::numeric_limits<float>::max());
+        max_bound = glm::vec3(std::numeric_limits<float>::lowest());
+
         // 1. 将model中的纹理数据导入scene中
         int textureStartId = this->textures.size();
         for (auto texture : model->getTextures())
@@ -36,6 +40,14 @@ bool GL_TASK::Room::add_model(const std::string &model_path)
 
             this->meshes.push_back(mesh);
             this->meshInstances.push_back(instance);
+
+            // 5. 更新边界信息
+            for (const auto &vertex : mesh->vertices)
+            {
+                glm::vec3 pos = glm::vec3(model_matrix * glm::vec4(vertex.Position, 1.0f));
+                min_bound = glm::min(min_bound, pos);
+                max_bound = glm::max(max_bound, pos);
+            }
         }
     }
     else
@@ -59,4 +71,10 @@ void GL_TASK::Room::set_model_matrix()
 glm::mat4 GL_TASK::Room::get_model_matrix() const
 {
     return model_matrix;
+}
+
+void GL_TASK::Room::getBoundingBox(glm::vec3 &min, glm::vec3 &max)
+{
+    min = min_bound;
+    max = max_bound;
 }

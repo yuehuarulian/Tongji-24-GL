@@ -1,29 +1,29 @@
 {
   "default": {
     "name": "default",
-    "mass": 1.0,
+    "mass": 10.0,
     "dimensions": [10.0, 10.0, 10.0],
     "friction": 0.5,
     "restitution": 0.5,
-    "scale": 1.0,
-    "offset": [0.0, 0.0, 0.0]
+    "offset": [0.0, 0.0, 0.0],
+    "scale": 1.0
   },
   "boat": {
     "name": "boat",
     "mass": 100.0,
-    "dimensions": [10.0, 10.0, 10.0],
+    "dimensions": [ 4.38177, 7.62693, 7.44805 ],
     "friction": 0.3,
     "restitution": 0.1,
-    "scale": 7.0,
-    "offset": [0.0, 0.0, 0.0]
+    "offset": [ -0.784495, -2.65133, 0.311525 ],
+    "scale": 5.0
   },
   "flower": {
     "name": "flower",
-    "mass": 10.0,
-    "dimensions": [10.0, 10.0, 10.0],
+    "mass": 1.0,
+    "dimensions": [ 9.62522, 3.28684, 9.62522],
     "friction": 0.1,
     "restitution": 0.0,
-    "scale": 2.0,
-    "offset": [0.0, 0.0, 0.0]
+    "offset": [ 0.0, -1.534479, 0.0 ],
+    "scale": 2.0
   }
 }

@@ -50,11 +50,16 @@ namespace GL_TASK
 
     void ClassicScene::load_models()
     {
-        // Room model
         // 先加载所有的模型文件 存储在meshes中
+        // Room model
+        glm::vec3 roomMin, roomMax;
         room = std::make_shared<Room>("source/model/room2/room2.obj", meshes, meshInstances, textures, materials);
+        room->getBoundingBox(roomMin, roomMax);
 
         // liquid model
+        //glm::mat4 room_model_matrix = glm::mat4(1.0f);
+        //room_model_matrix = glm::rotate(room_model_matrix, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+        //room_model_matrix = glm::scale(room_model_matrix, glm::vec3(1.f, 1.f, 1.f) * 1.3f);
         fluid = std::make_shared<Fluid>(meshes, meshInstances, textures, materials);
         fluid->BindDirty(&BbvhDirty);
         fluid->set_model_matrix(room->get_model_matrix());
@@ -64,23 +69,25 @@ namespace GL_TASK
         bulletWorld = std::make_shared<BulletWorld>(meshes, meshInstances, textures, materials);
         bulletWorld->BindDirty(&TbvhDirty);
         bulletWorld->BindFluid(fluid);
+        bulletWorld->setRoomBounds(roomMin, roomMax);
+        double water_level = fluid->get_water_level(roomMin, roomMax);
 
         // boat model
         bulletWorld->bind_model("source/model/boat/boat_obj.obj", ObjectType::BOAT);
-        bulletWorld->add_model(glm::vec3(15.0f, -210.0f, -25.0f));
-        bulletWorld->add_model(glm::vec3(-15.0f, -210.0f, 25.0f));
+        bulletWorld->add_model(glm::vec3(15.0, water_level + 17.0, -25.0));
+        bulletWorld->add_model(glm::vec3(-15.0, water_level + 17.0, 25.0));
 
         // flower model
         bulletWorld->bind_model("source/model/flower/flower.obj", ObjectType::FLOWER);
-        bulletWorld->add_model(glm::vec3(-20.0f, -210.0f, -50.0f));
-        bulletWorld->add_model(glm::vec3(20.0f, -210.0f, 50.0f));
+        bulletWorld->add_model(glm::vec3(-20.0, water_level + 6.0, -50.0));
+        bulletWorld->add_model(glm::vec3(20.0, water_level + 6.0, 50.0));
 
         // butterfly model  
-        for (int i = 0; i < butterfly_count; i++)
-        {
-            auto butterfly_model_single = std::make_shared<Butterfly>("source/model/butterfly/ok.dae", meshes, meshInstances, textures, materials);
-            butterflies.push_back(butterfly_model_single);
-        }
+        //for (int i = 0; i < butterfly_count; i++)
+        //{
+            //auto butterfly_model_single = std::make_shared<Butterfly>("source/model/butterfly/ok.dae", meshes, meshInstances, textures, materials);
+            //butterflies.push_back(butterfly_model_single);
+        //}
 
         this->createBLAS();   // 建立低层次的BVH加速结构
         this->createTLAS();   // 建立高层次的BVH加速结构

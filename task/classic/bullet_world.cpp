@@ -4,7 +4,7 @@
 namespace GL_TASK {
 
 BulletWorld::BulletWorld(std::vector<Mesh *> &meshes, std::vector<MeshInstance *> &meshInstances, std::vector<Texture *> &textures, std::vector<Material> &materials)
-    : roomMin(-200, -180, -90), roomMax(150, 240, 90), RenderableModel(meshes, meshInstances, textures, materials) {
+    : roomMin(-400, -400, -400), roomMax(100, 100, 100), RenderableModel(meshes, meshInstances, textures, materials) {
     init();
 }
 

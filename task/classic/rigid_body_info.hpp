@@ -60,11 +60,11 @@ public:
     btCollisionShape* getCollisionShape() const {
         switch(info.objectType) {
             case ObjectType::BOAT:
-                return new btBoxShape(info.dimensions);
+                return new btBoxShape(info.dimensions * 0.5f);
             case ObjectType::FLOWER:
-                return new btCylinderShape(info.dimensions);
+                return new btCylinderShape(info.dimensions * 0.5f);
             default:
-                return new btSphereShape(info.dimensions.length());
+                return new btSphereShape(info.dimensions.length() * 0.5f);
         }
         return nullptr;
     }
@@ -128,16 +128,16 @@ private:
         RigidBodyInfo info;
         info.name = config.value("name", "default");
         info.mass = config.value("mass", 10.0f);
+        double scale = config.value("scale", 1.0);
         info.dimensions = btVector3(
-            config["dimensions"][0].get<float>(), 
-            config["dimensions"][1].get<float>(), 
-            config["dimensions"][2].get<float>()
+            config["dimensions"][0].get<float>() * float(scale), 
+            config["dimensions"][1].get<float>() * float(scale), 
+            config["dimensions"][2].get<float>() * float(scale)
             );
         info.friction = config.value("friction", 0.0f);
         info.restitution = config.value("restitution", 0.0f);;
 
         // 配置初始变换矩阵
-        double scale = config.value("scale", 1.0);
         glm::vec3 offset = glm::vec3(
 	        config["offset"][0].get<double>(),
 	        config["offset"][1].get<double>(),
