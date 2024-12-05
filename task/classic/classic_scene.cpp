@@ -52,12 +52,15 @@ namespace GL_TASK
     {
         // Room model
         // 先加载所有的模型文件 存储在meshes中
-        room = std::make_shared<Room>("source/model/room2/room2.obj", meshes, meshInstances, textures, materials);
+        //room = std::make_shared<Room>("source/model/room2/room2.obj", meshes, meshInstances, textures, materials);
 
         // liquid model
+        glm::mat4 room_model_matrix = glm::mat4(1.0f);
+        room_model_matrix = glm::rotate(room_model_matrix, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+        room_model_matrix = glm::scale(room_model_matrix, glm::vec3(1.f, 1.f, 1.f) * 1.3f);
         fluid = std::make_shared<Fluid>(meshes, meshInstances, textures, materials);
         fluid->BindDirty(&BbvhDirty);
-        fluid->set_model_matrix(room->get_model_matrix());
+        fluid->set_model_matrix(room_model_matrix);//(room->get_model_matrix());
         fluid->add_model("source/model/fluid/mesh.obj");
 
         // bullet world
@@ -66,25 +69,21 @@ namespace GL_TASK
         bulletWorld->BindFluid(fluid);
 
         // boat model
-        glm::mat4 boat_model_matrix = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f));
-        boat_model_matrix = glm::scale(boat_model_matrix, glm::vec3(5.f));
-        bulletWorld->bind_model("source/model/boat/boat_obj.obj", ObjectType::BOAT, boat_model_matrix);
-        bulletWorld->add_model(glm::vec3(15.0f, -77.0f, -25.0f));
-        bulletWorld->add_model(glm::vec3(-15.0f, -77.0f, 25.0f));
+        bulletWorld->bind_model("source/model/boat/boat_obj.obj", ObjectType::BOAT);
+        bulletWorld->add_model(glm::vec3(15.0f, -210.0f, -25.0f));
+        bulletWorld->add_model(glm::vec3(-15.0f, -210.0f, 25.0f));
 
         // flower model
-        glm::mat4 flower_model_matrix = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f));
-        flower_model_matrix = glm::scale(flower_model_matrix, glm::vec3(3.f));
-        bulletWorld->bind_model("source/model/flower/flower.obj", ObjectType::FLOWER, flower_model_matrix);
-        bulletWorld->add_model(glm::vec3(-20.0f, -77.0f, -50.0f));
-        bulletWorld->add_model(glm::vec3(20.0f, -77.0f, 50.0f));
+        bulletWorld->bind_model("source/model/flower/flower.obj", ObjectType::FLOWER);
+        bulletWorld->add_model(glm::vec3(-20.0f, -210.0f, -50.0f));
+        bulletWorld->add_model(glm::vec3(20.0f, -210.0f, 50.0f));
 
         // butterfly model  
-        for (int i = 0; i < butterfly_count; i++)
-        {
-            auto butterfly_model_single = std::make_shared<Butterfly>("source/model/butterfly/ok.dae", meshes, meshInstances, textures, materials);
-            butterflies.push_back(butterfly_model_single);
-        }
+        //for (int i = 0; i < butterfly_count; i++)
+        //{
+            //auto butterfly_model_single = std::make_shared<Butterfly>("source/model/butterfly/ok.dae", meshes, meshInstances, textures, materials);
+            //butterflies.push_back(butterfly_model_single);
+        //}
 
         this->createBLAS();   // 建立低层次的BVH加速结构
         this->createTLAS();   // 建立高层次的BVH加速结构

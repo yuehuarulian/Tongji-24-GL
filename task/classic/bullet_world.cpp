@@ -47,7 +47,7 @@ void BulletWorld::BindFluid(std::shared_ptr<Fluid> fluidPtr) {
     sim_dt = fluid->fluid_sim.get_time_step();
 }
 
-bool BulletWorld::bind_model(const std::string &modelfilePath, const ObjectType &bodyType, const glm::mat4 &model_base_matrix) {
+bool BulletWorld::bind_model(const std::string &modelfilePath, const ObjectType &bodyType) {
     // 删除当前绑定的模型信息
     if (model) {
         delete model;
@@ -66,8 +66,8 @@ bool BulletWorld::bind_model(const std::string &modelfilePath, const ObjectType 
         return false;
     }
     rigidBodyInfo.chooseType(bodyType);
-    modelBaseMatrix = model_base_matrix;
-    std::cout << "BulletWorld::BIND a new " << rigidBodyInfo.typeName() << " model." << std::endl;
+    modelBaseMatrix = rigidBodyInfo.getBaseMatrix();
+    std::cout << "BulletWorld::BIND a new " << rigidBodyInfo.getTypeName() << " model." << std::endl;
     return true;
 }
 bool BulletWorld::add_model() {
@@ -86,7 +86,7 @@ bool BulletWorld::add_model(const glm::mat4 &world_matrix) {
         std::cout << "ERROR::MODEL IS NOT LOADED" << std::endl;
         return false;
     }
-    std::cout << "BulletWorld::ADD a new " << rigidBodyInfo.typeName() << " model." << std::endl;
+    std::cout << "BulletWorld::ADD a new " << rigidBodyInfo.getTypeName() << " model." << std::endl;
     // 1. 将model中的纹理数据导入scene中
     int textureStartId = textures.size();
     for (auto texture : model->getTextures())
@@ -120,7 +120,7 @@ bool BulletWorld::add_model(const glm::mat4 &world_matrix) {
     objectMatrices.push_back(objMats);
     return true;
 }
-void BulletWorld::addObject(const btTransform& state, const RigidBodyInfo& info) {
+void BulletWorld::addObject(const btTransform& state, const RigidBodyManager& info) {
     // 获取刚体所需的数据
     btScalar mass = info.getMass();
     btCollisionShape* shape = info.getCollisionShape();
@@ -144,7 +144,7 @@ void BulletWorld::addObject(const btTransform& state, const RigidBodyInfo& info)
 
 void BulletWorld::start() {
     if (!fluid) {
-        printf("BulletWorld: fluid is not binded! Failed to start physics simulation!");
+        printf("BulletWorld:: fluid is not binded! Failed to start physics simulation!");
         return;
     }
     running = true;
