@@ -79,7 +79,7 @@ namespace GL_TASK
         bulletWorld->add_model(glm::vec3(-20.0f, -77.0f, -50.0f));
         bulletWorld->add_model(glm::vec3(20.0f, -77.0f, 50.0f));
 
-        // butterfly model  
+        // butterfly model
         for (int i = 0; i < butterfly_count; i++)
         {
             auto butterfly_model_single = std::make_shared<Butterfly>("source/model/butterfly/ok.dae", meshes, meshInstances, textures, materials);
@@ -89,7 +89,7 @@ namespace GL_TASK
         this->createBLAS();   // 建立低层次的BVH加速结构
         this->createTLAS();   // 建立高层次的BVH加速结构
         this->process_data(); // 处理数据 将其转换成可供Shader使用的形式
-        fluid->start(); // 启动流体模拟
+        fluid->start();       // 启动流体模拟
         bulletWorld->start(); // 启动物理模拟
 
         // 点云
@@ -213,21 +213,26 @@ namespace GL_TASK
             if (butterflies.size() > 0)
                 TbvhDirty = true;
         }
-        if (BbvhDirty || TbvhDirty) {
+        if (BbvhDirty || TbvhDirty)
+        {
             dirty = true;
-            for (int i = 0; i < meshes.size(); ++i) {
-                Mesh* mesh = meshes[i];
-                if (mesh->needsUpdate(i)) { // 刷新低层次的BVH加速结构
+            for (int i = 0; i < meshes.size(); ++i)
+            {
+                Mesh *mesh = meshes[i];
+                if (mesh->needsUpdate(i))
+                { // 刷新低层次的BVH加速结构
                     std::cout << "Mesh " << i << " finish an update." << std::endl;
                     BbvhDirty = false;
                 }
             }
-            if (!BbvhDirty || TbvhDirty) {
-                if (TbvhDirty) {
-                    this->createTLAS();   // 重建高层次的BVH加速结构
+            if (!BbvhDirty || TbvhDirty)
+            {
+                if (TbvhDirty)
+                {
+                    this->createTLAS(); // 重建高层次的BVH加速结构
                     TbvhDirty = false;
                 }
-                this->process_data(); // 处理数据 将其转换成可供Shader使用的形式
+                this->process_data();    // 处理数据 将其转换成可供Shader使用的形式
                 this->update_GPU_data(); // 将相关数据绑定到纹理中以便传递到GPU中
                 this->update_FBOs();     // 重置帧缓冲对象
                 printf("ClassicScene: A new scene is ready\n");
@@ -235,7 +240,7 @@ namespace GL_TASK
         }
         if (dirty)
         {
-            //printf("Scene is dirty\n");
+            // printf("Scene is dirty\n");
             frameNum = 1;
             glBindFramebuffer(GL_FRAMEBUFFER, accumFBO);
             glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
@@ -243,7 +248,7 @@ namespace GL_TASK
         }
         else
         {
-            //printf("Scene isn't dirty\n");
+            // printf("Scene isn't dirty\n");
             frameNum++;
             currentBuffer = 1 - currentBuffer;
         }
