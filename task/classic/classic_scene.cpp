@@ -62,11 +62,9 @@ namespace GL_TASK
             // "./source/model/nanosuit/nanosuit.obj"
         };
         glm::mat4 room_model_matrix = glm::mat4(1.0f);
-        room_model_matrix = glm::rotate(room_model_matrix, glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-        room_model_matrix = glm::rotate(room_model_matrix, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-        room_model_matrix = glm::scale(room_model_matrix, glm::vec3(1.f, 1.f, 1.f) * 1.3f);
-        glm::mat4 shark_model_matrix = glm::mat4(1.0f);
-        shark_model_matrix = glm::scale(shark_model_matrix, glm::vec3(0.1f));
+        // room_model_matrix = glm::rotate(room_model_matrix, glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+        // room_model_matrix = glm::rotate(room_model_matrix, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+        // room_model_matrix = glm::scale(room_model_matrix, glm::vec3(1.f, 1.f, 1.f) * 1.3f);
         // 先加载所有的模型文件 存储在meshes中
         // AddModel("./source/model/shark.obj", shark_model_matrix);
         printf("Load Models\n");

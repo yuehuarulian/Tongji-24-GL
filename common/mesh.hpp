@@ -26,8 +26,6 @@ struct Vertex
     glm::vec3 Position;  // 顶点位置
     glm::vec3 Normal;    // 法线
     glm::vec2 TexCoords; // 纹理坐标
-    glm::vec3 Tangent;   // 切线
-    glm::vec3 Bitangent; // 副切线
 
     int m_BoneIDs[MAX_BONE_INFLUENCE];   // 影响该顶点的骨骼索引
     float m_Weights[MAX_BONE_INFLUENCE]; // 每个骨骼的权重

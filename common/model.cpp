@@ -17,7 +17,7 @@ bool Model::loadModel(string const &path)
     //
     printf("Load Model\n");
     Assimp::Importer importer;
-    const aiScene *scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
+    const aiScene *scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs);
 
     // 检查是否加载成功
     if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
@@ -40,14 +40,12 @@ bool Model::loadModel(string const &path)
 
 void Model::processNode(aiNode *node, const aiScene *scene)
 {
-    printf("Process Mesh Node\n");
     for (unsigned int i = 0; i < node->mNumMeshes; i++)
     {
         aiMesh *mesh = scene->mMeshes[node->mMeshes[i]];
         Mesh *m_mesh = processMesh(mesh, scene); // 创建一个新的
         meshes.push_back(m_mesh);
     }
-
     for (unsigned int i = 0; i < node->mNumChildren; i++)
     {
         processNode(node->mChildren[i], scene);
@@ -89,15 +87,7 @@ Mesh *Model::processMesh(aiMesh *mesh, const aiScene *scene)
             vec.x = mesh->mTextureCoords[0][i].x;
             vec.y = mesh->mTextureCoords[0][i].y;
             vertex.TexCoords = vec;
-
-            vector.x = mesh->mTangents[i].x;
-            vector.y = mesh->mTangents[i].y;
-            vector.z = mesh->mTangents[i].z;
-            vertex.Tangent = vector; // 切线
-            vector.x = mesh->mBitangents[i].x;
-            vector.y = mesh->mBitangents[i].y;
-            vector.z = mesh->mBitangents[i].z;
-            vertex.Bitangent = vector; // 副切线
+            // 删除切线和副切线
         }
         else
             vertex.TexCoords = glm::vec2(0.0f, 0.0f);

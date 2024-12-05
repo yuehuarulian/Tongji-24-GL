@@ -367,3 +367,9 @@ void Scene::InitFBOs()
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 }
+
+
+void Scene::SaveFrame(const std::string filename)
+{
+    // 保存
+}

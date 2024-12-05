@@ -37,6 +37,8 @@ public:
     bool getDirty() const { return this->dirty; }
     int getFrameNum() const { return this->frameNum; }
 
+    void SaveFrame(const std::string filename);
+
 protected:
     virtual void setup_scene() = 0;
 

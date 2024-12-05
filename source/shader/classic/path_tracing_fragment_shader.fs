@@ -176,7 +176,7 @@ void main()
     vec3 rayOrigin = camera.position;
     vec3 rayDirection = normalize(d.x * camera.right + d.y * camera.up + camera.forward);
     float radius = 2.5;
-    sphereLights[0] = SphereLight(vec3(0.,50.,30.), vec3(0.6941, 0.6941, 0.6941), radius, 4 * PI * radius * radius);
+    sphereLights[0] = SphereLight(vec3(0.,50.,30.), vec3(150), radius, 4 * PI * radius * radius);
     // sphereLights[1] = SphereLight(vec3(10.0, 20.0, -10.0), vec3(0.1), radius, 4 * PI * radius * radius);
     // sphereLights[2] = SphereLight(vec3(-10.0, 20.0, -10.0), vec3(0.1), radius, 4 * PI * radius * radius);
     numOfSphereLights = 1;
@@ -184,7 +184,7 @@ void main()
     Ray ray = Ray(rayOrigin, rayDirection);// 生成光线
     
     // 后面可以更改为 uniform 使用imgui进行调节
-    int maxDepth = 10;// 光线弹射的最大深度
+    int maxDepth = 3;// 光线弹射的最大深度
     int RR_maxDepth = 4;// 俄罗斯轮盘赌启动的最低深度
     
     vec4 accumColor = texture(accumTexture, TexCoords);
@@ -213,7 +213,7 @@ vec3 PathTrace(Ray r, int maxDepth, int RR_maxDepth)
         if(!ClosestHit(r, hit_record, lightSample))
         {
             // 如果没有交点，返回环境背景颜色
-            radiance += throughput * vec3(0.1059, 0.8784, 0.1059); // 蓝天背景
+            radiance += throughput * vec3(0.0, 0.0, 0.0);
             break;
         }
 
@@ -246,6 +246,7 @@ vec3 PathTrace(Ray r, int maxDepth, int RR_maxDepth)
             // vec3 Li = lightSample.emission * invDistances2; // 光源的辐射亮度 -- 随距离衰减
             vec3 Li = lightSample.emission;
             vec3 Lo = BRDF_PBR(N, V, L, Li, albedo, metallic, roughness, F0);
+            return Lo;
             Lo = Lo / lightSample.pdf;
             radiance += throughput * Lo;
         }
@@ -263,7 +264,7 @@ vec3 PathTrace(Ray r, int maxDepth, int RR_maxDepth)
         bool useCosineWeighted = true;
         vec3 wi = SampleDirection(hit_record.normal, useCosineWeighted); // 在半球中随机采样
         float pdf = useCosineWeighted ?  (wi.z / PI) : (1.0 / (2.0 * PI));
-        throughput *= BRDF_PBR(N, V, wi, vec3(1.0), albedo, metallic, roughness, F0) / pdf;
+        // throughput *= (BRDF_PBR(N, V, wi, vec3(1.0), albedo, metallic, roughness, F0) / pdf);
         r = Ray(hit_record.HitPoint + 0.001 * hit_record.normal, wi);      // 更新光线
     }
     
@@ -321,6 +322,7 @@ vec3 BRDF_PBR(vec3 N, vec3 V, vec3 L, vec3 radiance, vec3 albedo, float metallic
     // Cook-Torrance BRDF
     float NDF = DistributionGGX(N, H, roughness);
     float G   = GeometrySmith(N, V, L, roughness);
+    return vec3(dot(H, V), 0.0, 0.0);
     vec3 F    = fresnelSchlick(clamp(dot(H, V), 0.0, 1.0), F0);
     
     vec3 numerator    = NDF * G * F;
@@ -333,6 +335,7 @@ vec3 BRDF_PBR(vec3 N, vec3 V, vec3 L, vec3 radiance, vec3 albedo, float metallic
     
     // scale light by NdotL
     float NdotL = max(dot(N, L), 0.0);
+    return F;
     
     return (kD * albedo / PI + specular) * radiance * NdotL;
 }
