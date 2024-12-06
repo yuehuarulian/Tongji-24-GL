@@ -17,8 +17,6 @@
 #include <map>
 #include <mutex>
 
-using namespace std;
-
 #define MAX_BONE_INFLUENCE 4
 
 struct Vertex
@@ -129,31 +127,23 @@ class Mesh
 public:
     Mesh() = default;
 
-    Mesh(vector<Vertex> vertices, vector<unsigned int> indices, const Material &material);
+    Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, const Material &material);
 
     void BuildBVH();
 
     void ProcessVertices(std::vector<glm::vec4> &verticesUVX, std::vector<glm::vec4> &normalsUVY);
 
     void updateMesh();
+
     bool needsUpdate(int i);
 
-    vector<Vertex> vertices;      // 顶点位置、法线方向、纹理坐标
-    vector<unsigned int> indices; // 假设所有的面都为三角形 三个索引一个面 indices.size()/3表示三角形的数量
+    std::vector<Vertex> vertices;      // 顶点位置、法线方向、纹理坐标
+    std::vector<unsigned int> indices; // 假设所有的面都为三角形 三个索引一个面 indices.size()/3表示三角形的数量
     Material material;
     BVH *bvh;
 
 private:
-    // render data
-    // unsigned int VBO, EBO;
-    bool dirty {false}; // 标志变量，指示是否需要更新
-
-    // initializes all the buffer objects/arrays
-    // void setupMesh();
-
-    // void update();
-
-    // unsigned int createDefaultTexture();
+    bool dirty{false}; // 标志变量，指示是否需要更新
 };
 
 class MeshInstance

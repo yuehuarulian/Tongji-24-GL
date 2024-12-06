@@ -93,7 +93,7 @@ void Scene::createBLAS()
         // printf("\n*****************\n");
         // printf("MESH #%d BVH INFO: \n", i);
         meshes[i]->BuildBVH();
-        meshes[i]->bvh->PrintStatistics(std::cout);
+        // meshes[i]->bvh->PrintStatistics(std::cout);
         // printf("\n*****************\n");
     }
 }
@@ -134,7 +134,8 @@ void Scene::createTLAS()
     }
     printf("\n*****************\n");
     printf("SCENE MESH BVH:\n");
-    if (sceneBVH) {
+    if (sceneBVH)
+    {
         delete sceneBVH;
         sceneBVH = new BVH(10.0f, 64, false);
     }

@@ -20,7 +20,6 @@
 #include <iostream>
 #include <map>
 #include <vector>
-using namespace std;
 
 class Model
 {
@@ -28,7 +27,7 @@ public:
     // constructor, expects a filepath to a 3D model.
     Model() = default;
 
-    Model(string const &path, bool gamma = false);
+    Model(std::string const &path, bool gamma = false);
 
     bool LoadFromFile(const std::string &filePath) { return loadModel(filePath); }
 
@@ -36,17 +35,17 @@ public:
 
     std::vector<Texture *> getTextures() const { return textures_loaded; }
 
-    vector<Mesh *> meshes; // 存储模型中的所有网格
+    std::vector<Mesh *> meshes; // 存储模型中的所有网格
 
 private:
     // 模型数据
-    vector<Texture *> textures_loaded; // 存储所有的纹理数据
+    std::vector<Texture *> textures_loaded; // 存储所有的纹理数据
 
-    string directory;     // 模型文件目录
-    bool gammaCorrection; // gamma修正
+    std::string directory; // 模型文件目录
+    bool gammaCorrection;  // gamma修正
 
     // loads a model with supported ASSIMP extensions from file and stores the resulting meshes in the meshes vector.
-    bool loadModel(string const &path);
+    bool loadModel(std::string const &path);
 
     // processes a node in a recursive fashion. Processes each individual mesh located at the node and repeats this process on its children nodes (if any).
     void processNode(aiNode *node, const aiScene *scene);

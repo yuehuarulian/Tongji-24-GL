@@ -1,6 +1,6 @@
 #include <mesh.hpp>
 
-Mesh::Mesh(vector<Vertex> vertices, vector<unsigned int> indices, const Material &material)
+Mesh::Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, const Material &material)
     : vertices(vertices),
       indices(indices),
       material(material)
@@ -10,9 +10,7 @@ Mesh::Mesh(vector<Vertex> vertices, vector<unsigned int> indices, const Material
 
 void Mesh::BuildBVH()
 {
-    //
     // 对一个Mesh节点构建BVH节点
-    //
     int numTris = indices.size() / 3;
     printf("Triangle Nums: #%d\n", numTris);
     std::vector<AABB> bounds(numTris);
@@ -55,7 +53,8 @@ void Mesh::updateMesh()
     dirty = true;
 }
 
-bool Mesh::needsUpdate(int i) {
+bool Mesh::needsUpdate(int i)
+{
     if (!dirty)
         return false;
     printf("\n*****************\n");

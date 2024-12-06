@@ -2,9 +2,9 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
-unsigned int TextureFromFile(const char *path, const string &directory, bool gamma = false)
+unsigned int TextureFromFile(const char *path, const std::string &directory, bool gamma = false)
 {
-    string filename = string(path);
+    std::string filename = std::string(path);
     filename = directory + '/' + filename;
 
     unsigned int textureID;
@@ -44,14 +44,14 @@ unsigned int TextureFromFile(const char *path, const string &directory, bool gam
     return textureID;
 }
 
-Model::Model(string const &path, bool gamma) : gammaCorrection(gamma)
+Model::Model(std::string const &path, bool gamma) : gammaCorrection(gamma)
 {
     printf("start load model: %s\n", path.c_str());
     loadModel(path);
     printf("end load model: %s\n", path.c_str());
 }
 
-bool Model::loadModel(string const &path)
+bool Model::loadModel(std::string const &path)
 {
     //
     // 加载模型文件(.obj)
@@ -63,7 +63,7 @@ bool Model::loadModel(string const &path)
     // 检查是否加载成功
     if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
     {
-        cout << "ERROR::ASSIMP:: " << importer.GetErrorString() << endl;
+        std::cout << "ERROR::ASSIMP:: " << importer.GetErrorString() << std::endl;
         return false;
     }
 
@@ -94,9 +94,9 @@ void Model::processNode(aiNode *node, const aiScene *scene)
 // 将Assimp的Mesh数据类型转换为自定义的Mesh数据类型
 Mesh *Model::processMesh(aiMesh *mesh, const aiScene *scene)
 {
-    vector<Vertex> vertices;      // 顶点数据
-    vector<unsigned int> indices; // 索引数据
-    vector<Texture> textures;     // 纹理数据
+    std::vector<Vertex> vertices;      // 顶点数据
+    std::vector<unsigned int> indices; // 索引数据
+    std::vector<Texture> textures;     // 纹理数据
 
     // 1. 遍历所有的点 获取所有的顶点数据
     for (unsigned int i = 0; i < mesh->mNumVertices; i++)
@@ -205,8 +205,8 @@ int Model::loadMaterialTextures(aiMaterial *mat, aiTextureType type)
         return id;
 
     aiString str;
-    mat->GetTexture(type, 0, &str);                          // 一种类型的纹理推图只获取第一个
-    string filename = directory + '/' + string(str.C_Str()); // 纹理文件路径
+    mat->GetTexture(type, 0, &str);                                    // 一种类型的纹理推图只获取第一个
+    std::string filename = directory + '/' + std::string(str.C_Str()); // 纹理文件路径
 
     for (int i = 0; i < textures_loaded.size(); i++)
         if (textures_loaded[i]->texName == filename)

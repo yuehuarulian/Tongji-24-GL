@@ -154,7 +154,7 @@ void RenderManager::render_frame(int frame_number)
 
         std::ostringstream oss;
         oss << "./offline_rendering/frame_" << std::setw(3) << std::setfill('0') << frame_number << ".png";
-        cout << "frame_number: " << frame_number << endl;
+        std::cout << "frame_number: " << frame_number << std::endl;
         stbi_flip_vertically_on_write(true);
         stbi_write_png(oss.str().c_str(), window_width, window_height, 3, pixels.data(), window_width * 3);
     }
