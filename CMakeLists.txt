@@ -3,7 +3,12 @@ cmake_minimum_required(VERSION 3.5)
 #set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 project(BIGWORK)
-project(BIGWORK)
+
+if(MINGW)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wa,-mbig-obj")
+endif()
+
+# set(CMAKE_TOOLCHAIN_FILE "D:/ProgrammingSoftware/vcpkg/scripts/buildsystems/vcpkg.cmake")
 
 include_directories(${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/task/classic ${PROJECT_SOURCE_DIR}/task ${PROJECT_SOURCE_DIR}/common)
 include_directories(${PROJECT_SOURCE_DIR}/openvdb_include)
@@ -49,17 +54,16 @@ BulletDynamics   # Bullet 动力学
 BulletCollision  # Bullet 碰撞检测
 LinearMath       # Bullet 线性代数数学支持
 BulletSoftBody   # Bullet 软体支持
-Bullet3Common    # Bullet 通用库
 )
 
-add_executable(offline_rendering src/main_offline.cpp src/glad.c ${FLUID_LIST}  ${TASK_LIST} ${CLASSIC_LIST} ${COMMON_LIST} ${IMGUI_LIST})
-target_link_libraries(offline_rendering glfw3 libassimpd imgui openvdb tbb12 zlib1 blosc
-BulletDynamics   # Bullet 动力学
-BulletCollision  # Bullet 碰撞检测
-LinearMath       # Bullet 线性代数数学支持
-BulletSoftBody   # Bullet 软体支持
-Bullet3Common    # Bullet 通用库
-)
+# add_executable(offline_rendering src/main_offline.cpp src/glad.c ${FLUID_LIST}  ${TASK_LIST} ${CLASSIC_LIST} ${COMMON_LIST} ${IMGUI_LIST})
+# target_link_libraries(offline_rendering glfw3 libassimpd imgui openvdb tbb12 zlib1 blosc
+# BulletDynamics   # Bullet 动力学
+# BulletCollision  # Bullet 碰撞检测
+# LinearMath       # Bullet 线性代数数学支持
+# BulletSoftBody   # Bullet 软体支持
+# Bullet3Common    # Bullet 通用库
+# )
 
 # add_executable(fluid_testbed src/fluid_testbed.cpp src/glad.c ${FLUID_LIST} ${COMMON_LIST})
 # target_compile_options(fluid_testbed PRIVATE -msse2)
