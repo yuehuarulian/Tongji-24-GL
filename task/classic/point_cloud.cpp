@@ -174,25 +174,28 @@ void PointCloud::voxelize_point_cloud()
     openvdb::tools::VolumeToMesh mesher(0.5, 0.0); // 使用 isoValue 和 adaptivity
     mesher(*grid);
 
+    // 法线计算部分
+    std::unordered_map<unsigned int, glm::vec3> vertex_normals;
+
     // 将生成的顶点和三角形数据转换为 Mesh 对象
-    std::vector<Vertex> meshVertices;
+    std::vector<Vertex> mesh_vertices;
     for (size_t i = 0; i < mesher.pointListSize(); ++i)
     {
         const openvdb::Vec3s &v = mesher.pointList()[i];
         Vertex vertex;
         vertex.Position = glm::vec3(v.x(), v.y(), v.z());
 
-        // 这里可以根据需求计算法线和其他属性
+        // 计算法线
         vertex.Normal = glm::vec3(0.0f, 0.0f, 1.0f);
         vertex.TexCoords = glm::vec2(0.0f, 0.0f);
         vertex.Tangent = glm::vec3(1.0f, 0.0f, 0.0f);
         vertex.Bitangent = glm::vec3(0.0f, 1.0f, 0.0f);
 
-        meshVertices.push_back(vertex);
+        mesh_vertices.push_back(vertex);
     }
 
     // 获取三角形数据
-    std::vector<unsigned int> meshIndices;
+    std::vector<unsigned int> mesh_indices;
     for (size_t i = 0; i < mesher.polygonPoolListSize(); ++i)
     {
         const openvdb::tools::PolygonPool &polygonPool = mesher.polygonPoolList()[i];
@@ -201,28 +204,59 @@ void PointCloud::voxelize_point_cloud()
         for (size_t j = 0; j < polygonPool.numQuads(); ++j)
         {
             openvdb::Vec4I quad = polygonPool.quad(j);
-            meshIndices.push_back(static_cast<unsigned int>(quad[0]));
-            meshIndices.push_back(static_cast<unsigned int>(quad[1]));
-            meshIndices.push_back(static_cast<unsigned int>(quad[2]));
+            mesh_indices.push_back(static_cast<unsigned int>(quad[0]));
+            mesh_indices.push_back(static_cast<unsigned int>(quad[1]));
+            mesh_indices.push_back(static_cast<unsigned int>(quad[2]));
 
             // 将四边形拆分为两个三角形
-            meshIndices.push_back(static_cast<unsigned int>(quad[0]));
-            meshIndices.push_back(static_cast<unsigned int>(quad[2]));
-            meshIndices.push_back(static_cast<unsigned int>(quad[3]));
+            mesh_indices.push_back(static_cast<unsigned int>(quad[0]));
+            mesh_indices.push_back(static_cast<unsigned int>(quad[2]));
+            mesh_indices.push_back(static_cast<unsigned int>(quad[3]));
+
+            // 为每个三角形计算法线
+            glm::vec3 p0 = mesh_vertices[quad[0]].Position;
+            glm::vec3 p1 = mesh_vertices[quad[1]].Position;
+            glm::vec3 p2 = mesh_vertices[quad[2]].Position;
+            glm::vec3 p3 = mesh_vertices[quad[3]].Position;
+
+            glm::vec3 normal1 = compute_normal(p0, p1, p2);
+            glm::vec3 normal2 = compute_normal(p0, p2, p3);
+
+            vertex_normals[quad[0]] += normal1;
+            vertex_normals[quad[1]] += normal1;
+            vertex_normals[quad[2]] += normal1;
+            vertex_normals[quad[3]] += normal2;
         }
 
         // 处理三角形
         for (size_t j = 0; j < polygonPool.numTriangles(); ++j)
         {
             openvdb::Vec3I triangle = polygonPool.triangle(j);
-            meshIndices.push_back(static_cast<unsigned int>(triangle[0]));
-            meshIndices.push_back(static_cast<unsigned int>(triangle[1]));
-            meshIndices.push_back(static_cast<unsigned int>(triangle[2]));
+            mesh_indices.push_back(static_cast<unsigned int>(triangle[0]));
+            mesh_indices.push_back(static_cast<unsigned int>(triangle[1]));
+            mesh_indices.push_back(static_cast<unsigned int>(triangle[2]));
+
+            // 为每个三角形计算法线
+            glm::vec3 p0 = mesh_vertices[triangle[0]].Position;
+            glm::vec3 p1 = mesh_vertices[triangle[1]].Position;
+            glm::vec3 p2 = mesh_vertices[triangle[2]].Position;
+
+            glm::vec3 normal = compute_normal(p0, p1, p2);
+
+            vertex_normals[triangle[0]] += normal;
+            vertex_normals[triangle[1]] += normal;
+            vertex_normals[triangle[2]] += normal;
         }
     }
 
+    // 平滑法线：归一化法线
+    for (auto &vertex : mesh_vertices)
+    {
+        vertex.Normal = glm::normalize(vertex_normals[&vertex - &mesh_vertices[0]]);
+    }
+
     // 创建新的 Mesh 对象并添加到模型中
-    model->meshes.push_back(new Mesh(meshVertices, meshIndices, material));
+    model->meshes.push_back(new Mesh(mesh_vertices, mesh_indices, material));
     return;
 }
 

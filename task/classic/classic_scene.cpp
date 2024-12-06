@@ -52,7 +52,7 @@ namespace GL_TASK
     {
         // Room model
         // 先加载所有的模型文件 存储在meshes中
-        room = std::make_shared<Room>("E:/my_code/GL_bigwork/code/source/model/room2/room2.obj", meshes, meshInstances, textures, materials);
+        room = std::make_shared<Room>("./source/model/room2/room2.obj", meshes, meshInstances, textures, materials);
 
         // // liquid model
         // fluid = std::make_shared<Fluid>(meshes, meshInstances, textures, materials);
@@ -88,24 +88,21 @@ namespace GL_TASK
 
         // 点云
         glm::mat4 model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(0.0f, -100.0f, -130.0f));
+        model = glm::translate(model, glm::vec3(0.0f, -100.0f, -160.0f));
         model = glm::scale(model, glm::vec3(0.4f));
-        auto point_cloud1 = std::make_shared<PointCloud>("source/model/point_cloud/Cumulonimbus_11.vdb", meshes, meshInstances, textures, materials, model);
+        auto point_cloud1 = std::make_shared<PointCloud>("./source/model/point_cloud/Cumulonimbus_11.vdb", meshes, meshInstances, textures, materials, model);
         point_clouds.push_back(point_cloud1);
 
-        // auto point_cloud2 = std::make_shared<PointCloud>("E:/my_code/GL_bigwork/code/source/model/point_cloud/Cumulonimbus_14.vdb", meshes, meshInstances, textures, materials);
         // model = glm::mat4(1.0f);
         // model = glm::translate(model, glm::vec3(-80.0f, -40.0f, -110.0f));
         // model = glm::scale(model, glm::vec3(0.4f));
-        // point_cloud2->set_model_matrix(model);
+        // auto point_cloud2 = std::make_shared<PointCloud>("E:/my_code/GL_bigwork/code/source/model/point_cloud/Cumulonimbus_14.vdb", meshes, meshInstances, textures, materials, model);
         // point_clouds.push_back(point_cloud2);
 
-        // auto cloud_shader3 = shader_manager.get_shader("cloud");
-        // auto point_cloud3 = std::make_shared<PointCloud>("source/model/point_cloud/Cumulonimbus_09.vdb", cloud_shader3);
         // model = glm::mat4(1.0f);
         // model = glm::translate(model, glm::vec3(40.0f, -80.0f, 40.0f));
         // model = glm::scale(model, glm::vec3(0.5f));
-        // point_cloud3->set_model_matrix(model);
+        // auto point_cloud3 = std::make_shared<PointCloud>("source/model/point_cloud/Cumulonimbus_09.vdb", meshes, meshInstances, textures, materials, model);
         // point_clouds.push_back(point_cloud3);
 
         this->createBLAS();   // 建立低层次的BVH加速结构
