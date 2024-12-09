@@ -167,8 +167,8 @@ void BulletWorld::updateLoop() {
             std::lock_guard<std::mutex> lock(worldMutex);
             std::cout << "BulletWorld:: Applying Fluid Forces." << std::endl;
             applyFluidForces();
-            std::cout << "BulletWorld:: Simulating next step: " << sim_dt << std::endl;
-            dynamicsWorld->stepSimulation(sim_dt, 10);
+            std::cout << "BulletWorld:: Simulating next step: " << sim_dt << "s" << std::endl;
+            dynamicsWorld->stepSimulation(sim_dt, 20);
             enforceBounds();
             std::cout << "BulletWorld:: Applying model Matrices." << std::endl;
             applyModelMatrices();
@@ -302,7 +302,7 @@ void BulletWorld::applyFluidForces()
         btVector3 particlePos = transformPosition(particle.position, fluid_model_matrix);
         btVector3 particleVel = transformVelocity(particle.velocity, fluid_model_matrix);
         // 获取粒子压力
-        float pressure = particle.pressure / 1000.0 / p_scale * p_scale * p_scale;
+        float pressure = particle.pressure / p_scale * p_scale * p_scale / 100.0;
 
         // 遍历所有的刚体，计算浮力和扭矩
         for (size_t i = 0; i < objects.size(); ++i)

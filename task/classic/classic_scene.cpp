@@ -55,14 +55,16 @@ namespace GL_TASK
         glm::vec3 roomMin, roomMax;
         room = std::make_shared<Room>("source/model/room2/room2.obj", meshes, meshInstances, textures, materials);
         room->getBoundingBox(roomMin, roomMax);
+        //roomMin = glm::vec3(-104.160004, -359.567505, -430.721375);
+        //roomMax = glm::vec3(104.159973, 77.232498, 99.375420);
 
         // liquid model
-        //glm::mat4 room_model_matrix = glm::mat4(1.0f);
+        glm::mat4 room_model_matrix = room->get_model_matrix(); // glm::mat4(1.0f);
         //room_model_matrix = glm::rotate(room_model_matrix, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
         //room_model_matrix = glm::scale(room_model_matrix, glm::vec3(1.f, 1.f, 1.f) * 1.3f);
         fluid = std::make_shared<Fluid>(meshes, meshInstances, textures, materials);
         fluid->BindDirty(&BbvhDirty);
-        fluid->set_model_matrix(room->get_model_matrix());
+        fluid->set_model_matrix(room_model_matrix);
         fluid->add_model("source/model/fluid/mesh.obj");
 
         // bullet world
@@ -74,13 +76,13 @@ namespace GL_TASK
 
         // boat model
         bulletWorld->bind_model("source/model/boat/boat_obj.obj", ObjectType::BOAT);
-        bulletWorld->add_model(glm::vec3(15.0, water_level + 17.0, -25.0));
-        bulletWorld->add_model(glm::vec3(-15.0, water_level + 17.0, 25.0));
+        bulletWorld->add_model(glm::vec3(15.0, water_level + 5.0, -25.0));
+        bulletWorld->add_model(glm::vec3(-15.0, water_level + 5.0, 25.0));
 
         // flower model
         bulletWorld->bind_model("source/model/flower/flower.obj", ObjectType::FLOWER);
-        bulletWorld->add_model(glm::vec3(-20.0, water_level + 6.0, -50.0));
-        bulletWorld->add_model(glm::vec3(20.0, water_level + 6.0, 50.0));
+        bulletWorld->add_model(glm::vec3(-20.0, water_level + 2.0, -50.0));
+        bulletWorld->add_model(glm::vec3(20.0, water_level + 2.0, 50.0));
 
         // butterfly model  
         //for (int i = 0; i < butterfly_count; i++)
