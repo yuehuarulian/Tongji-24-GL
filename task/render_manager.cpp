@@ -116,6 +116,7 @@ void RenderManager::update_camera()
     auto camera_pos = camera.get_pos();
     camera.set_position(camera_pos - glm::vec3(0, 0, 2.0));
     camera.compute_matrices_from_inputs(window, dirty);
+    dirty = true;
 }
 
 void RenderManager::render_frame(int frame_number)

@@ -80,11 +80,11 @@ namespace GL_TASK
         // bulletWorld->add_model(glm::vec3(20.0f, -77.0f, 50.0f));
 
         // butterfly model
-        // for (int i = 0; i < butterfly_count; i++)
-        // {
-        //     auto butterfly_model_single = std::make_shared<Butterfly>("source/model/butterfly/ok.dae", meshes, meshInstances, textures, materials);
-        //     butterflies.push_back(butterfly_model_single);
-        // }
+        for (int i = 0; i < butterfly_count; i++)
+        {
+            auto butterfly_model_single = std::make_shared<Butterfly>("source/model/butterfly/ok.dae", meshes, meshInstances, textures, materials);
+            butterflies.push_back(butterfly_model_single);
+        }
 
         // 点云
         glm::mat4 model = glm::mat4(1.0f);
@@ -135,7 +135,6 @@ namespace GL_TASK
         render_path_tracing(camera);
         render_accumulation();
         render_post_processing();
-        render_point_clouds(camera);
     }
 
     void ClassicScene::render_path_tracing(Camera &camera)
@@ -177,16 +176,6 @@ namespace GL_TASK
         quad->Draw(post_process_shader.get());
     }
 
-    void ClassicScene::render_point_clouds(Camera &camera)
-    {
-        //     glDepthMask(GL_FALSE);
-        //     for (const auto &point_cloud : point_clouds)
-        //     {
-        //         point_cloud->draw(camera.projection, camera.view, camera.get_pos(), glm::vec3(0.9f), 0.9f, false, false, 1 / 30.);
-        //     }
-        //     glDepthMask(GL_TRUE);
-    }
-
     // 将渲染结果输出到屏幕上
     void ClassicScene::present()
     {
@@ -200,38 +189,39 @@ namespace GL_TASK
     {
         static int current_buffer = 0;
         current_buffer++;
-        // if (current_buffer % 3 == 0)
-        // {
-        //     for (auto &butterfly : butterflies)
-        //         butterfly->update();
-        //     if (butterflies.size() > 0)
-        //         TbvhDirty = true;
-        // }
-        // if (BbvhDirty || TbvhDirty)
-        // {
-        //     dirty = true;
-        //     for (int i = 0; i < meshes.size(); ++i)
-        //     {
-        //         Mesh *mesh = meshes[i];
-        //         if (mesh->needsUpdate(i))
-        //         { // 刷新低层次的BVH加速结构
-        //             std::cout << "Mesh " << i << " finish an update." << std::endl;
-        //             BbvhDirty = false;
-        //         }
-        //     }
-        //     if (!BbvhDirty || TbvhDirty)
-        //     {
-        //         if (TbvhDirty)
-        //         {
-        //             this->createTLAS(); // 重建高层次的BVH加速结构
-        //             TbvhDirty = false;
-        //         }
-        //         this->process_data();    // 处理数据 将其转换成可供Shader使用的形式
-        //         this->update_GPU_data(); // 将相关数据绑定到纹理中以便传递到GPU中
-        //         this->update_FBOs();     // 重置帧缓冲对象
-        //         printf("ClassicScene: A new scene is ready\n");
-        //     }
-        // }
+        if (current_buffer % 3 == 0)
+        {
+            for (auto &butterfly : butterflies)
+                butterfly->update();
+            if (butterflies.size() > 0)
+                TbvhDirty = true;
+        }
+        if (BbvhDirty || TbvhDirty)
+        {
+            dirty = true;
+            for (int i = 0; i < meshes.size(); ++i)
+            {
+                Mesh *mesh = meshes[i];
+                if (mesh->needsUpdate(i))
+                { // 刷新低层次的BVH加速结构
+                    std::cout << "Mesh " << i << " finish an update." << std::endl;
+                    BbvhDirty = false;
+                }
+            }
+            if (!BbvhDirty || TbvhDirty)
+            {
+                if (TbvhDirty)
+                {
+                    std::cout << "update butterfly" << std::endl;
+                    this->createTLAS(); // 重建高层次的BVH加速结构
+                    TbvhDirty = false;
+                }
+                this->process_data();    // 处理数据 将其转换成可供Shader使用的形式
+                this->update_GPU_data(); // 将相关数据绑定到纹理中以便传递到GPU中
+                this->update_FBOs();     // 重置帧缓冲对象
+                printf("ClassicScene: A new scene is ready\n");
+            }
+        }
         if (dirty)
         {
             // printf("Scene is dirty\n");

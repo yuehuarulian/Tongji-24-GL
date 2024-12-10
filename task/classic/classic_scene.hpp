@@ -26,8 +26,8 @@ namespace GL_TASK
         void update() override;  // 更新场景状态
         void wait_until_next_frame(int frame_number) override;
 
-        bool BbvhDirty{ false }; // 底层bvh树脏位
-        bool TbvhDirty{ false }; // 顶层bvh树脏位
+        bool BbvhDirty{false}; // 底层bvh树脏位
+        bool TbvhDirty{false}; // 顶层bvh树脏位
 
     private:
         void setup_scene();                 // 场景初始化
@@ -37,13 +37,12 @@ namespace GL_TASK
         void render_path_tracing(Camera &); // 路径追踪阶段
         void render_accumulation();         // 累积阶段
         void render_post_processing();      // 后处理阶段
-        void render_point_clouds(Camera &); // 绘制点云
 
         // room
         std::shared_ptr<Room> room;
 
         // buttefly
-        const int butterfly_count = 10;
+        const int butterfly_count = 5;
         std::vector<std::shared_ptr<Butterfly>> butterflies;
 
         // fluid
@@ -51,10 +50,10 @@ namespace GL_TASK
 
         // bullet world
         std::shared_ptr<BulletWorld> bulletWorld;
-        
+
         // point cloud
         std::vector<std::shared_ptr<PointCloud>> point_clouds;
-        
+
         // 光源
         std::vector<glm::vec3> area_lights_position = {
             glm::vec3(107.25, 33.9, -82.75),     // bulb.001
