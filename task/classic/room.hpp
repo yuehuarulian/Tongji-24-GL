@@ -15,10 +15,15 @@ namespace GL_TASK
 
         glm::mat4 get_model_matrix() const;
 
+        void getBoundingBox(glm::vec3 &min, glm::vec3 &max);
+
     private:
         void set_model_matrix() override;
 
         bool add_model(const std::string &model_path) override;
+
+        glm::vec3 min_bound;
+        glm::vec3 max_bound;
     };
 }
 

@@ -21,15 +21,18 @@ namespace GL_TASK
         void update() override {};
 
         void set_model_matrix() override {};
+
         void set_model_matrix(const glm::mat4 &room_model);
 
         glm::mat4 get_model_matrix() const;
+
+        double get_water_level(const glm::vec3& roomMin, const glm::vec3& roomMax) const; // 自动计算水面高度坐标
         
         void start(); // 继续模拟
         
         void pause(); // 暂停模拟
         
-        void advance(); // 模拟一帧（需要先暂停）
+        void advance(); // 模拟一帧（需要先处于暂停状态）
 
         void wait_until_next_frame(int frame);
 
