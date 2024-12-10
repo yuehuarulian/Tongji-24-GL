@@ -60,6 +60,7 @@ glm::mat4 GL_TASK::Fluid::get_model_matrix() const
 // 模拟控制函数
 void GL_TASK::Fluid::start()
 {
+    printf("Start Fluid Simulator\n");
     fluid_sim.start();
 }
 void GL_TASK::Fluid::pause()
@@ -73,4 +74,18 @@ void GL_TASK::Fluid::advance()
 void GL_TASK::Fluid::wait_until_next_frame(int frame)
 {
     fluid_sim.wait_until_next_frame(frame);
+}
+
+#include <fstream>   // 文件流库
+#include <nlohmann/json.hpp> // 配置文件库
+// 自动计算水位高度
+double GL_TASK::Fluid::get_water_level(const glm::vec3& roomMin, const glm::vec3& roomMax) const {
+    // 加载配置文件
+    nlohmann::json config;
+    std::ifstream config_file("fluid_config.json");
+    config_file >> config;
+    // 从配置文件读取参数
+    double _le = config.value("water_level", 0.35);
+    // 计算水面高度
+    return _le * (roomMax.y - roomMin.y) + roomMin.y;
 }

@@ -32,7 +32,7 @@ namespace GL_TASK
         void BindFluid(std::shared_ptr<Fluid> fluidPtr);
 
         // 添加模型
-        bool bind_model(const std::string &modelfilePath, const ObjectType &bodyType, const glm::mat4 &model_base_matrix = glm::mat4(1.0f));
+        bool bind_model(const std::string &modelfilePath, const ObjectType &bodyType);
         bool add_model();
         bool add_model(const glm::vec3 &world_position);
         bool add_model(const glm::mat4 &world_matrix);
@@ -57,7 +57,7 @@ namespace GL_TASK
         void enforceBounds();
 
         // 添加刚体对象
-        void addObject(const btTransform& state, const RigidBodyInfo& info);
+        void addObject(const btTransform& state, const RigidBodyManager& info);
 
         // 内置应力
         void applyFluidForces();
@@ -91,7 +91,7 @@ namespace GL_TASK
 
         // 模型初始化
         Model *model{nullptr};
-        RigidBodyInfo rigidBodyInfo{ObjectType::NONE};
+        RigidBodyManager rigidBodyInfo{ObjectType::NONE};
         glm::mat4 modelBaseMatrix{glm::mat4(1.0f)};
 
         // 流体/刚体与变换矩阵指针

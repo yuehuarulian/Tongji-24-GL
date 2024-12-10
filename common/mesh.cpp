@@ -14,7 +14,7 @@ void Mesh::BuildBVH()
     int numTris = indices.size() / 3;
     printf("Triangle Nums: #%d\n", numTris);
     std::vector<AABB> bounds(numTris);
-
+    
     // 遍历所有的三角形 -- 为其创建包围盒
     for (int i = 0; i < numTris; i++)
     {

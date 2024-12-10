@@ -130,8 +130,22 @@ void RenderManager::render_frame(int frame_number)
     // skybox->render(camera.view, camera.projection);
 
     scene->setDirty(dirty);
-    scene->update();
-    scene->render(camera);
+
+    // 当采样达到一定数量时将渲染结果提取出来
+    if (offscreen)
+    {
+        // 循环进行渲染
+        while (scene->getFrameNum() % SAMPLES_PER_FRAME != 0)
+        {
+            scene->update();
+            scene->render(camera);
+        }
+    }
+    else
+    {
+        scene->update();
+        scene->render(camera);
+    }
     scene->present(); // 渲染结果展示
 
     if (offscreen)

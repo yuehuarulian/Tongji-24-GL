@@ -50,34 +50,40 @@ namespace GL_TASK
 
     void ClassicScene::load_models()
     {
-        // Room model
         // 先加载所有的模型文件 存储在meshes中
-        room = std::make_shared<Room>("./source/model/room2/room2.obj", meshes, meshInstances, textures, materials);
+        // Room model
+        glm::vec3 roomMin, roomMax;
+        room = std::make_shared<Room>("source/model/room2/room2.obj", meshes, meshInstances, textures, materials);
+        printf("Load Room Model Over\n");
+        // room->getBoundingBox(roomMin, roomMax);
+        // roomMin = glm::vec3(-104.160004, -359.567505, -430.721375);
+        // roomMax = glm::vec3(104.159973, 77.232498, 99.375420);
 
-        // // liquid model
+        // liquid model
+        // glm::mat4 room_model_matrix = room->get_model_matrix(); // glm::mat4(1.0f);
+        // room_model_matrix = glm::rotate(room_model_matrix, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+        // room_model_matrix = glm::scale(room_model_matrix, glm::vec3(1.f, 1.f, 1.f) * 1.3f);
         // fluid = std::make_shared<Fluid>(meshes, meshInstances, textures, materials);
         // fluid->BindDirty(&BbvhDirty);
-        // fluid->set_model_matrix(room->get_model_matrix());
+        // fluid->set_model_matrix(room_model_matrix);
         // fluid->add_model("source/model/fluid/mesh.obj");
 
         // // bullet world
         // bulletWorld = std::make_shared<BulletWorld>(meshes, meshInstances, textures, materials);
         // bulletWorld->BindDirty(&TbvhDirty);
         // bulletWorld->BindFluid(fluid);
+        // bulletWorld->setRoomBounds(roomMin, roomMax);
+        // double water_level = fluid->get_water_level(roomMin, roomMax);
 
         // // boat model
-        // glm::mat4 boat_model_matrix = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f));
-        // boat_model_matrix = glm::scale(boat_model_matrix, glm::vec3(5.f));
-        // bulletWorld->bind_model("source/model/boat/boat_obj.obj", ObjectType::BOAT, boat_model_matrix);
-        // bulletWorld->add_model(glm::vec3(15.0f, -77.0f, -25.0f));
-        // bulletWorld->add_model(glm::vec3(-15.0f, -77.0f, 25.0f));
+        // bulletWorld->bind_model("source/model/boat/boat_obj.obj", ObjectType::BOAT);
+        // bulletWorld->add_model(glm::vec3(15.0, water_level + 5.0, -25.0));
+        // bulletWorld->add_model(glm::vec3(-15.0, water_level + 5.0, 25.0));
 
         // // flower model
-        // glm::mat4 flower_model_matrix = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f));
-        // flower_model_matrix = glm::scale(flower_model_matrix, glm::vec3(3.f));
-        // bulletWorld->bind_model("source/model/flower/flower.obj", ObjectType::FLOWER, flower_model_matrix);
-        // bulletWorld->add_model(glm::vec3(-20.0f, -77.0f, -50.0f));
-        // bulletWorld->add_model(glm::vec3(20.0f, -77.0f, 50.0f));
+        // bulletWorld->bind_model("source/model/flower/flower.obj", ObjectType::FLOWER);
+        // bulletWorld->add_model(glm::vec3(-20.0, water_level + 2.0, -50.0));
+        // bulletWorld->add_model(glm::vec3(20.0, water_level + 2.0, 50.0));
 
         // butterfly model
         for (int i = 0; i < butterfly_count; i++)
@@ -87,11 +93,11 @@ namespace GL_TASK
         }
 
         // 点云
-        glm::mat4 model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(0.0f, -100.0f, -160.0f));
-        model = glm::scale(model, glm::vec3(0.4f));
-        auto point_cloud1 = std::make_shared<PointCloud>("./source/model/point_cloud/Cumulonimbus_11.vdb", meshes, meshInstances, textures, materials, model);
-        point_clouds.push_back(point_cloud1);
+        // glm::mat4 model = glm::mat4(1.0f);
+        // model = glm::translate(model, glm::vec3(0.0f, -100.0f, -160.0f));
+        // model = glm::scale(model, glm::vec3(0.4f));
+        // auto point_cloud1 = std::make_shared<PointCloud>("./source/model/point_cloud/Cumulonimbus_11.vdb", meshes, meshInstances, textures, materials, model);
+        // point_clouds.push_back(point_cloud1);
 
         // model = glm::mat4(1.0f);
         // model = glm::translate(model, glm::vec3(-80.0f, -40.0f, -110.0f));
@@ -182,6 +188,8 @@ namespace GL_TASK
         auto accumulation_shader = shader_manager.get_shader("accumulationShader");
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, outputTexture[1 - currentBuffer]);
+        // this->DenoiseProcess();                        // 进行降噪处理
+        // glBindTexture(GL_TEXTURE_2D, denoisedTexture); // 降噪之后的纹理
         quad->Draw(accumulation_shader.get());
     }
 
@@ -229,6 +237,8 @@ namespace GL_TASK
             glBindFramebuffer(GL_FRAMEBUFFER, accumFBO);
             glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
             glClear(GL_COLOR_BUFFER_BIT);
+
+            // TODO: 数据修改与传输
         }
         else
         {
