@@ -1,6 +1,7 @@
 #include <scene.hpp>
 #include <mesh.hpp>
 #include <model.hpp>
+
 #define STB_IMAGE_RESIZE_IMPLEMENTATION
 #include "stb_image_resize.h"
 
@@ -373,6 +374,8 @@ void Scene::init_FBOs()
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
         std::cerr << "Output FBO is not complete!" << std::endl;
 
+    denoiserInputFramePtr = new glm::vec3[WINDOW_WIDTH * WINDOW_HEIGHT];
+
     // Clear accumulation buffer
     glBindFramebuffer(GL_FRAMEBUFFER, accumFBO);
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
@@ -480,4 +483,13 @@ void Scene::update_FBOs()
     glBindFramebuffer(GL_FRAMEBUFFER, accumFBO);
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
     glClear(GL_COLOR_BUFFER_BIT);
+}
+
+glm::vec3 *Scene::DenoiseProcess()
+{
+    // 降噪处理
+    // 将GPU中的 tileOutputTexture[1 - currentBuffer] 纹理数据传递到 denoiserInputFramePtr 中
+    glBindTexture(GL_TEXTURE_2D, outputTexture[1 - currentBuffer]);
+    glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_FLOAT, denoiserInputFramePtr);
+    return denoiserInputFramePtr;
 }

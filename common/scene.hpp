@@ -33,8 +33,12 @@ public:
     virtual void present() = 0; // 展示渲染结果
     virtual void update() = 0;  // 进行数据更新
     virtual void wait_until_next_frame(int frame_number) = 0;
+    glm::vec3 *DenoiseProcess();
 
-    void setDirty(bool isDirty) { this->dirty = isDirty; }
+    void setDirty(bool isDirty)
+    {
+        this->dirty = isDirty;
+    }
     bool getDirty() const { return this->dirty; }
     // std::vector<std::shared_ptr<RenderableModel>> models;
 protected:
@@ -68,6 +72,7 @@ protected:
     GLuint pathTraceFBO;
     GLuint accumFBO;
     GLuint outputFBO;
+
     // 帧缓冲对应的纹理
     GLuint pathTraceTexture;
     GLuint accumTexture;
@@ -116,6 +121,9 @@ protected:
     GLuint materialsTex;
     // ---------- 纹理数据 ---------- //
     GLuint textureMapsArrayTex;
+
+    // Denoiser output
+    glm::vec3 *denoiserInputFramePtr;
 };
 
 #endif // SCENE_HPP

@@ -21,7 +21,7 @@ public:
 
 private:
     void initialize_GLFW();
-    void initialize_framebuffer();
+    // void initialize_framebuffer();
     void update_camera();
     void render_frame(int frame_number);
 
@@ -32,8 +32,8 @@ private:
     std::unique_ptr<Scene> scene;
     std::unique_ptr<Skybox> skybox;
 
-    unsigned int msaa_fbo, msaa_texture, msaa_rbo;
-    unsigned int resolve_fbo, resolve_texture;
+    // unsigned int msaa_fbo, msaa_texture, msaa_rbo;
+    // unsigned int resolve_fbo, resolve_texture;
     int window_width, window_height, frames;
     bool offscreen;
     bool dirty = false;
