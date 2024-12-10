@@ -86,6 +86,9 @@ int main()
 
         glfwSwapBuffers(window);
         glfwPollEvents();
+        printf("SampleNumber: %d\n", classic_scene.getFrameNum());
+        // int tmp;
+        // cin >> tmp;
     }
     glfwTerminate();
     return 0;

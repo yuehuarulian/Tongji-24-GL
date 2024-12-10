@@ -57,8 +57,9 @@ bool Model::loadModel(string const &path)
     // 加载模型文件(.obj)
     // 使用Assimp库进行加载
     //
+    printf("Load Model\n");
     Assimp::Importer importer;
-    const aiScene *scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs); // aiProcess_CalcTangentSpace
+    const aiScene *scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs);
 
     // 检查是否加载成功
     if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
@@ -66,7 +67,10 @@ bool Model::loadModel(string const &path)
         cout << "ERROR::ASSIMP:: " << importer.GetErrorString() << endl;
         return false;
     }
-
+    else
+    {
+        printf("Load Model Success\n");
+    }
     // 提取文件路径的目录部分，用于后续加载纹理
     directory = path.substr(0, path.find_last_of('/'));
 
@@ -84,7 +88,6 @@ void Model::processNode(aiNode *node, const aiScene *scene)
         Mesh *m_mesh = processMesh(mesh, scene); // 创建一个新的
         meshes.push_back(m_mesh);
     }
-
     for (unsigned int i = 0; i < node->mNumChildren; i++)
     {
         processNode(node->mChildren[i], scene);
@@ -126,22 +129,7 @@ Mesh *Model::processMesh(aiMesh *mesh, const aiScene *scene)
             vec.x = mesh->mTextureCoords[0][i].x;
             vec.y = mesh->mTextureCoords[0][i].y;
             vertex.TexCoords = vec;
-            // Tangent
-            if (mesh->mTangents)
-            {
-                vector.x = mesh->mTangents[i].x;
-                vector.y = mesh->mTangents[i].y;
-                vector.z = mesh->mTangents[i].z;
-                vertex.Tangent = vector;
-            }
-            // Bitangent
-            if (mesh->mBitangents)
-            {
-                vector.x = mesh->mBitangents[i].x;
-                vector.y = mesh->mBitangents[i].y;
-                vector.z = mesh->mBitangents[i].z;
-                vertex.Bitangent = vector;
-            }
+            // 删除切线和副切线
         }
         else
             vertex.TexCoords = glm::vec2(0.0f, 0.0f);

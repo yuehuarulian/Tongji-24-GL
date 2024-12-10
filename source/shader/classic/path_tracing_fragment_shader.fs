@@ -1,11 +1,11 @@
 #version 330
 
 #define PI 3.14159265358979323
-#define INV_PI .31830988618379067
+#define INV_PI.31830988618379067
 #define TWO_PI 6.28318530717958648
-#define INV_TWO_PI .15915494309189533
-#define INV_4_PI .07957747154594766
-#define EPS .0003
+#define INV_TWO_PI.15915494309189533
+#define INV_4_PI.07957747154594766
+#define EPS.0003
 #define INF 1000000000.
 
 #define maxNumOfLights 10
@@ -85,6 +85,7 @@ struct HitRec
     // 击中点三角形数据
     vec2 texCoord;// 纹理坐标 -- 通过重心坐标插值计算得到
     vec3 normal;// 表面法线 -- 通过重心坐标插值计算得到
+    vec3 normal_tex;// 纹理法线
     vec3 ffnormal;// 面向外部的法线 -- 与光线进入的方向相反
     vec3 tangent;// 切线方向
     vec3 bitangent;// 副切线方向
@@ -168,33 +169,33 @@ void main()
     // 屏幕坐标直接映射生成光线
     // TODO: 添加扰动
     // InitRNG(gl_FragCoord.xy, frameNum);
-    InitRNG(gl_FragCoord.xy + vec2(rand(), rand()), frameNum);
-    vec2 d = (TexCoords * 2.0 - 1.0); // 将坐标范围映射到 [-1, 1]
-    float scale = tan(camera.fov * 0.5);
-    d.y *= resolution.y / resolution.x * scale;
-    d.x *= scale;
+    InitRNG(gl_FragCoord.xy+vec2(rand(),rand()),frameNum);
+    vec2 d=(TexCoords*2.-1.);// 将坐标范围映射到 [-1, 1]
+    float scale=tan(camera.fov*.5);
+    d.y*=resolution.y/resolution.x*scale;
+    d.x*=scale;
     
-    vec3 rayOrigin = camera.position;
-    vec3 rayDirection = normalize(d.x * camera.right + d.y * camera.up + camera.forward);
-    float radius = 5;
-    sphereLights[0] = SphereLight(vec3(0.,0.,0.), vec3(300), radius, 4 * PI * radius * radius);
-    sphereLights[1] = SphereLight(vec3(10.0, 20.0, -10.0), vec3(300), radius, 4 * PI * radius * radius);
-    sphereLights[2] = SphereLight(vec3(-10.0, 20.0, -10.0), vec3(300), radius, 4 * PI * radius * radius);
-    numOfSphereLights = 3;
+    vec3 rayOrigin=camera.position;
+    vec3 rayDirection=normalize(d.x*camera.right+d.y*camera.up+camera.forward);
+    float radius=2.5;
+    sphereLights[0]=SphereLight(vec3(0.,50.,30.),vec3(150),radius,4*PI*radius*radius);
+    // sphereLights[1] = SphereLight(vec3(10.0, 20.0, -10.0), vec3(0.1), radius, 4 * PI * radius * radius);
+    // sphereLights[2] = SphereLight(vec3(-10.0, 20.0, -10.0), vec3(0.1), radius, 4 * PI * radius * radius);
+    numOfSphereLights=1;
     
-    Ray ray = Ray(rayOrigin, rayDirection);// 生成光线
+    Ray ray=Ray(rayOrigin,rayDirection);// 生成光线
     
     // 后面可以更改为 uniform 使用imgui进行调节
-    int maxDepth = 20;// 光线弹射的最大深度
-    int RR_maxDepth = 5;// 俄罗斯轮盘赌启动的最低深度
-
-    vec4 accumColor = texture(accumTexture, TexCoords);
-    vec4 color = vec4(PathTrace(ray, maxDepth, RR_maxDepth), 1.0);
-
-    vec3 finalColor = accumColor.xyz + color.xyz;
-      
+    int maxDepth=3;// 光线弹射的最大深度
+    int RR_maxDepth=4;// 俄罗斯轮盘赌启动的最低深度
+    
+    vec4 accumColor=texture(accumTexture,TexCoords);
+    vec4 color=vec4(PathTrace(ray,maxDepth,RR_maxDepth),1.);
+    
+    vec3 finalColor=accumColor.xyz+color.xyz;
+    
     // vec3 finalColor = vec3(1.0);
-    FragColor = vec4(finalColor, 1.0); 
+    FragColor=vec4(finalColor,1.);
 }
 
 /********************************/
@@ -218,22 +219,22 @@ vec3 PathTrace(Ray r, int maxDepth, int RR_maxDepth)
             // if (depth == 1) return vec3(0.0, 1.0, 0.0); // 第二次弹射
             // if (depth == 2) return vec3(0.0, 0.0, 1.0); // 第三次弹射
             // else return vec3(1.0,1.0,1.0);
-
+            
             // 如果没有交点，返回环境背景颜色
-            radiance += throughput * vec3(0.5, 0.7, 1.0); // 蓝天背景
+            radiance += throughput * vec3(0.0, 0.0, 0.0);
             break;
         }
         
         GetMaterial(hit_record, r); // 获取材质
-        // return hit_record.mat.baseColor;
-        
-        // return hit_record.mat.normal;
         
         // 如果击中了发光体，添加其辐射贡献
         if (hit_record.isEmitter) {
             radiance += throughput * lightSample.emission;
             break;
         }
+        
+        return hit_record.mat.baseColor;
+        // return hit_record.ffnormal;
         
         // 直接光照计算（光源采样）
         sampleLight(hit_record.HitPoint, lightSample); // 进行光源采样
@@ -249,12 +250,11 @@ vec3 PathTrace(Ray r, int maxDepth, int RR_maxDepth)
         bool isShadow = AnyHit(r2light, lightSample.dist - EPS); // 判断阴影
         if (!isShadow) {
             float invDistances2 = 1 / (lightSample.dist * lightSample.dist);
-            vec3 Li = lightSample.emission * invDistances2; // 光源的辐射亮度 -- 随距离衰减
+            // vec3 Li = lightSample.emission * invDistances2; // 光源的辐射亮度 -- 随距离衰减
+            vec3 Li = lightSample.emission;
             vec3 Lo = BRDF_PBR(N, V, L, Li, albedo, metallic, roughness, F0);
             Lo = Lo / lightSample.pdf;
             radiance += throughput * Lo;
-        } else {
-            
         }
         
         // 间接光照计算（路径延续）
@@ -264,16 +264,14 @@ vec3 PathTrace(Ray r, int maxDepth, int RR_maxDepth)
             break; // 停止追踪路径
         }
         
-        throughput /= prob; // 更新通量权重以考虑路径终止的概率
+        throughput *= prob; // 更新通量权重以考虑路径终止的概率
         
         // 采样下一个方向
         bool useCosineWeighted = true;
         vec3 wi = SampleDirection(hit_record.normal, useCosineWeighted); // 在半球中随机采样
         float pdf = useCosineWeighted ?  (wi.z / PI) : (1.0 / (2.0 * PI));
-        throughput *= BRDF_PBR(N, V, wi, vec3(1.0), albedo, metallic, roughness, F0) / pdf;
-        r = Ray(hit_record.HitPoint + 0.001 * wi, wi);      // 更新光线
-        // r = Ray(vec3(0.0), wi);      // 更新光线
-        // return r.direction;
+        // throughput *= (BRDF_PBR(N, V, wi, vec3(1.0), albedo, metallic, roughness, F0) / pdf);
+        r = Ray(hit_record.HitPoint + 0.001 * hit_record.normal, wi);      // 更新光线
     }
     
     return radiance;
@@ -330,6 +328,7 @@ vec3 BRDF_PBR(vec3 N, vec3 V, vec3 L, vec3 radiance, vec3 albedo, float metallic
     // Cook-Torrance BRDF
     float NDF = DistributionGGX(N, H, roughness);
     float G   = GeometrySmith(N, V, L, roughness);
+    return vec3(dot(H, V), 0.0, 0.0);
     vec3 F    = fresnelSchlick(clamp(dot(H, V), 0.0, 1.0), F0);
     
     vec3 numerator    = NDF * G * F;
@@ -367,7 +366,7 @@ bool ClosestHit(Ray r, inout HitRec hit_record, inout LightSampleRec lightSample
         float area    = sphereLights[i].area;
         tTmp = SphereIntersect(radius, position, r);
         if (tTmp < 0.)
-            tTmp = INF;
+        tTmp = INF;
         if (tTmp < tMin)
         {
             tMin = tTmp;
@@ -515,7 +514,7 @@ bool ClosestHit(Ray r, inout HitRec hit_record, inout LightSampleRec lightSample
     
     // 没有相交点
     if (tMin == INF)
-        return false;
+    return false;
     
     hit_record.HitDist = tMin;                            // 记录光线击中物体的最近时间/距离
     hit_record.HitPoint = r.origin + r.direction * tMin;  // 记录光线与物体的交点
@@ -561,10 +560,10 @@ bool AnyHit(Ray r, float maxDist)
     // TODO
     // for (int i = 0; i < numOfRectLights; i++)
     // {
-    //     // 与矩形光源相交测试，假设我们已经有矩形光源的属性
-    //     RectLight light = rectLights[i];
-    //     if (IntersectRectLight(r, light, maxDist))
-    //         return true;
+        //     // 与矩形光源相交测试，假设我们已经有矩形光源的属性
+        //     RectLight light = rectLights[i];
+        //     if (IntersectRectLight(r, light, maxDist))
+        //         return true;
     // }
     
     for (int i = 0; i < numOfSphereLights; i++)
@@ -573,10 +572,10 @@ bool AnyHit(Ray r, float maxDist)
         vec3 emission = sphereLights[i].emission;
         float radius  = sphereLights[i].radius;
         float area    = sphereLights[i].area;
-
+        
         float intersectionDistance = SphereIntersect(radius, position, r);
         if (intersectionDistance > 0.0 && intersectionDistance < maxDist)
-            return true;
+        return true;
     }
     
     int stack[64];  // 用栈模拟递归
@@ -815,7 +814,7 @@ void GetMaterial(inout HitRec hit_record, in Ray r)
     vec4 param1 = texelFetch(materialsTex, index + 0);  // 获取第一个材质参数
     vec4 param2 = texelFetch(materialsTex, index + 1);  // 获取第二个材质参数
     vec4 param3 = texelFetch(materialsTex, index + 2);  // 获取第三个材质参数
-
+    
     // 获取材质的基本颜色
     mat.baseColor = param1.rgb;
     

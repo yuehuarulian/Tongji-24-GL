@@ -36,7 +36,11 @@ public:
 
     void setDirty(bool isDirty) { this->dirty = isDirty; }
     bool getDirty() const { return this->dirty; }
-    // std::vector<std::shared_ptr<RenderableModel>> models;
+    int getFrameNum() const { return this->frameNum; }
+
+    void SaveFrame(const std::string filename);
+    void DenoiseProcess();
+
 protected:
     virtual void setup_scene() = 0;
     bool add_model(const std::string &modelfilePath, glm::mat4 transformMat = glm::mat4(1.0f));
@@ -72,6 +76,7 @@ protected:
     GLuint pathTraceTexture;
     GLuint accumTexture;
     GLuint outputTexture[2];
+    GLuint denoisedTexture;
     int currentBuffer; // 表示当前渲染结果存储的位置
 
     // Quad
@@ -116,6 +121,27 @@ protected:
     GLuint materialsTex;
     // ---------- 纹理数据 ---------- //
     GLuint textureMapsArrayTex;
+
+    // Denoiser output
+    glm::vec3 *denoiserInputFramePtr;
+    glm::vec3 *frameOutputPtr;
+    bool denoised;
+
+    bool AddModel(const std::string &modelfilePath, glm::mat4 transformMat = glm::mat4(1.0f));
+    int AddMaterial(const Material &material);
+    int AddTexture(const std::string &filename);
+
+protected:
+    const int texArrayHeight = 2048;
+    const int texArrayWidth = 2048;
+    int frameNum = 0;
+
+    void createBLAS(); // 建立低层次的BVH加速结构
+    void createTLAS(); // 建立高层次的BVH加速结构
+    void ProcessData();
+    void InitGPUData();
+    void InitFBOs();
+    virtual void InitShaders() = 0;
 };
 
 #endif // SCENE_HPP

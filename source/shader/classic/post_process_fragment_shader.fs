@@ -13,7 +13,7 @@ void main()
     float alpha = col.w;
     
     const float gamma = 2.2;
-    float exposure = 0.1; 
+    float exposure = 0.5; 
     // color = color / (color + vec3(1.0)); // Reinhard tone mapping
     color = vec3(1.0) - exp(-color * exposure);
     color = pow(color, vec3(1.0 / 2.2));

@@ -5,6 +5,7 @@ cmake_minimum_required(VERSION 3.5)
 project(BIGWORK)
 project(BIGWORK)
 
+
 include_directories(${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/task/classic ${PROJECT_SOURCE_DIR}/task ${PROJECT_SOURCE_DIR}/common)
 include_directories(${PROJECT_SOURCE_DIR}/openvdb_include)
 include_directories(${PROJECT_SOURCE_DIR}/include/bullet)
