@@ -3,6 +3,7 @@
 #include <model.hpp>
 #define STB_IMAGE_RESIZE_IMPLEMENTATION
 #include "stb_image_resize.h"
+#include "oidn/OpenImageDenoise/oidn.hpp"
 
 // 添加模型
 bool Scene::AddModel(const std::string &modelfilePath, glm::mat4 transformMat)
@@ -366,10 +367,52 @@ void Scene::InitFBOs()
     glBindFramebuffer(GL_FRAMEBUFFER, accumFBO);
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
     glClear(GL_COLOR_BUFFER_BIT);
+
+    // For Denoiser
+    denoiserInputFramePtr = new glm::vec3[WINDOW_WIDTH * WINDOW_HEIGHT];
+    frameOutputPtr = new glm::vec3[WINDOW_WIDTH * WINDOW_HEIGHT];
+
+    glGenTextures(1, &denoisedTexture);
+    glBindTexture(GL_TEXTURE_2D, denoisedTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, WINDOW_WIDTH, WINDOW_HEIGHT, 0, GL_RGB, GL_FLOAT, 0);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 
 void Scene::SaveFrame(const std::string filename)
 {
     // 保存
+}
+
+void Scene::DenoiseProcess()
+{
+    // 降噪处理
+    // 将GPU中的 tileOutputTexture[1 - currentBuffer] 纹理数据传递到 denoiserInputFramePtr 中
+    glBindTexture(GL_TEXTURE_2D, outputTexture[1 - currentBuffer]);
+    glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_FLOAT, denoiserInputFramePtr);
+
+    // Create an Intel Open Image Denoise device
+    oidn::DeviceRef device = oidn::newDevice();
+    device.commit();
+
+    // Create a denoising filter
+    oidn::FilterRef filter = device.newFilter("RT"); // generic ray tracing filter
+    filter.setImage("color", denoiserInputFramePtr, oidn::Format::Float3, WINDOW_WIDTH, WINDOW_HEIGHT, 0, 0, 0);
+    filter.setImage("output", frameOutputPtr, oidn::Format::Float3, WINDOW_WIDTH, WINDOW_HEIGHT, 0, 0, 0);
+    filter.set("hdr", false);
+    filter.commit();
+
+    // Filter the image
+    filter.execute();
+
+    // Check for errors
+    const char* errorMessage;
+    if (device.getError(errorMessage) != oidn::Error::None)
+        std::cout << "Error: " << errorMessage << std::endl;
+    
+    // 将降噪之后的纹理数据复制到 denoisedTexture 中
+    glBindTexture(GL_TEXTURE_2D, denoisedTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, WINDOW_HEIGHT, WINDOW_HEIGHT, 0, GL_RGB, GL_FLOAT, frameOutputPtr);
 }

@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.11)
 
 project(BIGWORK)
 
+
 include_directories(${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/task/classic ${PROJECT_SOURCE_DIR}/task ${PROJECT_SOURCE_DIR}/common)
 link_directories(${PROJECT_SOURCE_DIR}/lib)
 

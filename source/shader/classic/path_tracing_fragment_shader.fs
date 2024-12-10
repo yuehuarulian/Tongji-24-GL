@@ -215,11 +215,7 @@ vec3 PathTrace(Ray r, int maxDepth, int RR_maxDepth)
             // 如果没有交点，返回环境背景颜色
             radiance += throughput * vec3(0.0, 0.0, 0.0);
             break;
-        }
-
-        // if(depth == 3) return vec3(0.0824, 0.0706, 0.8706);
-        // return hit_record.ffnormal;
-        // return hit_record.mat.baseColor;
+        }      
         
         GetMaterial(hit_record, r); // 获取材质
         
@@ -228,6 +224,9 @@ vec3 PathTrace(Ray r, int maxDepth, int RR_maxDepth)
             radiance += throughput * lightSample.emission;
             break;
         }
+
+        return hit_record.mat.baseColor;
+        // return hit_record.ffnormal;
         
         // 直接光照计算（光源采样）
         sampleLight(hit_record.HitPoint, lightSample); // 进行光源采样
@@ -246,19 +245,18 @@ vec3 PathTrace(Ray r, int maxDepth, int RR_maxDepth)
             // vec3 Li = lightSample.emission * invDistances2; // 光源的辐射亮度 -- 随距离衰减
             vec3 Li = lightSample.emission;
             vec3 Lo = BRDF_PBR(N, V, L, Li, albedo, metallic, roughness, F0);
-            return Lo;
             Lo = Lo / lightSample.pdf;
             radiance += throughput * Lo;
         }
         
         // 间接光照计算（路径延续）
         // 俄罗斯轮盘赌优化
-        float prob = 0.5; // 概率阈值
+        float prob = 0.7; // 概率阈值
         if (depth > RR_maxDepth && rand() > prob) {
             break; // 停止追踪路径
         }
         
-        throughput /= prob; // 更新通量权重以考虑路径终止的概率
+        throughput *= prob; // 更新通量权重以考虑路径终止的概率
         
         // 采样下一个方向
         bool useCosineWeighted = true;
@@ -335,7 +333,6 @@ vec3 BRDF_PBR(vec3 N, vec3 V, vec3 L, vec3 radiance, vec3 albedo, float metallic
     
     // scale light by NdotL
     float NdotL = max(dot(N, L), 0.0);
-    return F;
     
     return (kD * albedo / PI + specular) * radiance * NdotL;
 }

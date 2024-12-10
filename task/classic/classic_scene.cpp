@@ -186,7 +186,9 @@ namespace GL_TASK
     {
         auto accumulation_shader = shader_manager.get_shader("accumulationShader");
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, outputTexture[1 - currentBuffer]);
+        // glBindTexture(GL_TEXTURE_2D, outputTexture[1 - currentBuffer]);
+        this->DenoiseProcess(); // 进行降噪处理
+        glBindTexture(GL_TEXTURE_2D, denoisedTexture); // 降噪之后的纹理
         quad->Draw(accumulation_shader.get());
     }
 
