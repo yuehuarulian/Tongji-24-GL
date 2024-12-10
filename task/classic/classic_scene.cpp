@@ -54,6 +54,7 @@ namespace GL_TASK
         // Room model
         glm::vec3 roomMin, roomMax;
         room = std::make_shared<Room>("source/model/room2/room2.obj", meshes, meshInstances, textures, materials);
+        printf("Load Room Model Over\n");
         room->getBoundingBox(roomMin, roomMax);
         // roomMin = glm::vec3(-104.160004, -359.567505, -430.721375);
         // roomMax = glm::vec3(104.159973, 77.232498, 99.375420);
@@ -67,22 +68,22 @@ namespace GL_TASK
         fluid->set_model_matrix(room_model_matrix);
         fluid->add_model("source/model/fluid/mesh.obj");
 
-        // bullet world
-        bulletWorld = std::make_shared<BulletWorld>(meshes, meshInstances, textures, materials);
-        bulletWorld->BindDirty(&TbvhDirty);
-        bulletWorld->BindFluid(fluid);
-        bulletWorld->setRoomBounds(roomMin, roomMax);
-        double water_level = fluid->get_water_level(roomMin, roomMax);
+        // // bullet world
+        // bulletWorld = std::make_shared<BulletWorld>(meshes, meshInstances, textures, materials);
+        // bulletWorld->BindDirty(&TbvhDirty);
+        // bulletWorld->BindFluid(fluid);
+        // bulletWorld->setRoomBounds(roomMin, roomMax);
+        // double water_level = fluid->get_water_level(roomMin, roomMax);
 
-        // boat model
-        bulletWorld->bind_model("source/model/boat/boat_obj.obj", ObjectType::BOAT);
-        bulletWorld->add_model(glm::vec3(15.0, water_level + 5.0, -25.0));
-        bulletWorld->add_model(glm::vec3(-15.0, water_level + 5.0, 25.0));
+        // // boat model
+        // bulletWorld->bind_model("source/model/boat/boat_obj.obj", ObjectType::BOAT);
+        // bulletWorld->add_model(glm::vec3(15.0, water_level + 5.0, -25.0));
+        // bulletWorld->add_model(glm::vec3(-15.0, water_level + 5.0, 25.0));
 
-        // flower model
-        bulletWorld->bind_model("source/model/flower/flower.obj", ObjectType::FLOWER);
-        bulletWorld->add_model(glm::vec3(-20.0, water_level + 2.0, -50.0));
-        bulletWorld->add_model(glm::vec3(20.0, water_level + 2.0, 50.0));
+        // // flower model
+        // bulletWorld->bind_model("source/model/flower/flower.obj", ObjectType::FLOWER);
+        // bulletWorld->add_model(glm::vec3(-20.0, water_level + 2.0, -50.0));
+        // bulletWorld->add_model(glm::vec3(20.0, water_level + 2.0, 50.0));
 
         // butterfly model
         // for (int i = 0; i < butterfly_count; i++)
@@ -94,8 +95,8 @@ namespace GL_TASK
         this->createBLAS();   // 建立低层次的BVH加速结构
         this->createTLAS();   // 建立高层次的BVH加速结构
         this->process_data(); // 处理数据 将其转换成可供Shader使用的形式
-        fluid->start();       // 启动流体模拟
-        bulletWorld->start(); // 启动物理模拟
+        // fluid->start();       // 启动流体模拟
+        // bulletWorld->start(); // 启动物理模拟
 
         // 点云
         // auto cloud_shader1 = shader_manager.get_shader("cloud");

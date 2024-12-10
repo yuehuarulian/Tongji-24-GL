@@ -126,22 +126,6 @@ protected:
     glm::vec3 *denoiserInputFramePtr;
     glm::vec3 *frameOutputPtr;
     bool denoised;
-
-    bool AddModel(const std::string &modelfilePath, glm::mat4 transformMat = glm::mat4(1.0f));
-    int AddMaterial(const Material &material);
-    int AddTexture(const std::string &filename);
-
-protected:
-    const int texArrayHeight = 2048;
-    const int texArrayWidth = 2048;
-    int frameNum = 0;
-
-    void createBLAS(); // 建立低层次的BVH加速结构
-    void createTLAS(); // 建立高层次的BVH加速结构
-    void ProcessData();
-    void InitGPUData();
-    void InitFBOs();
-    virtual void InitShaders() = 0;
 };
 
 #endif // SCENE_HPP

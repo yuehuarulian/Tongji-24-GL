@@ -60,6 +60,7 @@ glm::mat4 GL_TASK::Fluid::get_model_matrix() const
 // 模拟控制函数
 void GL_TASK::Fluid::start()
 {
+    printf("Start Fluid Simulator\n");
     fluid_sim.start();
 }
 void GL_TASK::Fluid::pause()

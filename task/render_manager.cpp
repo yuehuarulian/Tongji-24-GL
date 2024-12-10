@@ -158,7 +158,4 @@ void RenderManager::render_frame(int frame_number)
         stbi_flip_vertically_on_write(true);
         stbi_write_png(oss.str().c_str(), window_width, window_height, 3, pixels.data(), window_width * 3);
     }
-
-    if (offscreen)
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }

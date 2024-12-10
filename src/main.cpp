@@ -51,7 +51,7 @@ int main()
 
     GL_TASK::ClassicScene classic_scene(shader_manager, light_manager);
 
-    Camera camera(window, 75 * D2R, glm::vec3(0.0f, -120.0f, 80.0f), glm::pi<float>(), 15. * D2R, 30.0f, 1.0f);
+    Camera camera(window, 75 * D2R, glm::vec3(0.0f, 0.0f, 0.0f), glm::pi<float>(), 15. * D2R, 30.0f, 1.0f);
 
     Skybox skybox(faces, "source/shader/skybox.vs", "source/shader/skybox.fs");
 
@@ -79,7 +79,6 @@ int main()
 
         classic_scene.render(camera);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
         glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
         classic_scene.present(); // 渲染结果展示
         gui_manager.render();
