@@ -39,7 +39,6 @@ public:
     int getFrameNum() const { return this->frameNum; }
     void save_render_image(const std::string filename);
     void get_render_image(unsigned char **data, int &w, int &h);
-    int getFrameNum() const { return this->frameNum; }
 
     void SaveFrame(const std::string filename);
     void DenoiseProcess();
