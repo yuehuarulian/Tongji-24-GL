@@ -1,8 +1,12 @@
 #include <scene.hpp>
 #include <mesh.hpp>
 #include <model.hpp>
+// #define STB_IMAGE_IMPLEMENTATION
+// #define STB_IMAGE_WRITE_IMPLEMENTATION
 #define STB_IMAGE_RESIZE_IMPLEMENTATION
 #include "stb_image_resize.h"
+#include "stb_image.h"
+#include "stb_image_write.h"
 
 // 添加模型
 bool Scene::add_model(const std::string &modelfilePath, glm::mat4 transformMat)
@@ -506,4 +510,31 @@ void Scene::update_FBOs()
     glBindFramebuffer(GL_FRAMEBUFFER, accumFBO);
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
     glClear(GL_COLOR_BUFFER_BIT);
+}
+
+void Scene::get_render_image(unsigned char **data, int &w, int &h)
+{
+    // 获取渲染结果的图片
+    w = WINDOW_WIDTH;
+    h = WINDOW_HEIGHT;
+
+    *data = new unsigned char[w * h * 4];
+
+    glActiveTexture(GL_TEXTURE0);
+
+    glBindTexture(GL_TEXTURE_2D, outputTexture[1 - currentBuffer]);
+
+    glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, *data);
+}
+
+void Scene::save_render_image(const std::string filename)
+{
+    // 将渲染结果存储到图片中
+    unsigned char *data = nullptr;
+    int w, h;
+    this->get_render_image(&data, w, h);
+    stbi_flip_vertically_on_write(true);
+    stbi_write_png(filename.c_str(), w, h, 4, data, w * 4);
+    printf("Frame saved: %s\n", filename.c_str());
+    delete[] data;
 }

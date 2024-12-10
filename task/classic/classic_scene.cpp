@@ -147,7 +147,7 @@ namespace GL_TASK
         render_path_tracing(camera);
         render_accumulation();
         render_post_processing();
-        render_point_clouds(camera);
+        // render_point_clouds(camera);
     }
 
     void ClassicScene::render_path_tracing(Camera &camera)

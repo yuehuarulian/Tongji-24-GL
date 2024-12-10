@@ -175,13 +175,13 @@ void main()
     d.y*=resolution.y/resolution.x*scale;
     d.x*=scale;
     
-    vec3 rayOrigin=camera.position;
-    vec3 rayDirection=normalize(d.x*camera.right+d.y*camera.up+camera.forward);
-    float radius=2.5;
-    sphereLights[0]=SphereLight(vec3(0.,50.,30.),vec3(150),radius,4*PI*radius*radius);
-    // sphereLights[1] = SphereLight(vec3(10.0, 20.0, -10.0), vec3(0.1), radius, 4 * PI * radius * radius);
-    // sphereLights[2] = SphereLight(vec3(-10.0, 20.0, -10.0), vec3(0.1), radius, 4 * PI * radius * radius);
-    numOfSphereLights=1;
+    vec3 rayOrigin = camera.position;
+    vec3 rayDirection = normalize(d.x * camera.right + d.y * camera.up + camera.forward);
+    float radius = 5;
+    sphereLights[0] = SphereLight(vec3(0.,0.,0.), vec3(120), radius, 4 * PI * radius * radius);
+    // sphereLights[1] = SphereLight(vec3(10.0, 20.0, -10.0), vec3(300), radius, 4 * PI * radius * radius);
+    // sphereLights[2] = SphereLight(vec3(-10.0, 20.0, -10.0), vec3(300), radius, 4 * PI * radius * radius);
+    numOfSphereLights = 1;
     
     Ray ray=Ray(rayOrigin,rayDirection);// 生成光线
     
@@ -215,12 +215,8 @@ vec3 PathTrace(Ray r, int maxDepth, int RR_maxDepth)
         // 判断光线是否与场景相交
         if(!ClosestHit(r, hit_record, lightSample))
         {
-            // if (depth == 0) return vec3(1.0, 0.0, 0.0); // 第一次弹射
-            // if (depth == 1) return vec3(0.0, 1.0, 0.0); // 第二次弹射
-            // if (depth == 2) return vec3(0.0, 0.0, 1.0); // 第三次弹射
-            // else return vec3(1.0,1.0,1.0);
-            
             // 如果没有交点，返回环境背景颜色
+            radiance += throughput * vec3(0.0, 0.0, 0.0); // 纯黑色
             radiance += throughput * vec3(1.0, 0.0, 0.0);
             break;
         }
@@ -253,6 +249,7 @@ vec3 PathTrace(Ray r, int maxDepth, int RR_maxDepth)
             // vec3 Li = lightSample.emission * invDistances2; // 光源的辐射亮度 -- 随距离衰减
             vec3 Li = lightSample.emission;
             vec3 Lo = BRDF_PBR(N, V, L, Li, albedo, metallic, roughness, F0);
+            return Lo;
             Lo = Lo / lightSample.pdf;
             radiance += throughput * Lo;
         }
@@ -341,6 +338,7 @@ vec3 BRDF_PBR(vec3 N, vec3 V, vec3 L, vec3 radiance, vec3 albedo, float metallic
     
     // scale light by NdotL
     float NdotL = max(dot(N, L), 0.0);
+    return kD * albedo;
     
     return (kD * albedo / PI + specular) * radiance * NdotL;
 }
@@ -548,7 +546,7 @@ bool ClosestHit(Ray r, inout HitRec hit_record, inout LightSampleRec lightSample
         hit_record.tangent = normalize(mat3(transform) * hit_record.tangent);
         hit_record.bitangent = normalize(mat3(transform) * hit_record.bitangent);
         
-        // GetMaterial(hit_record, r); // 获取材质
+        GetMaterial(hit_record, r); // 获取材质
     }
     
     return true;
@@ -786,15 +784,10 @@ void GetMaterial(inout HitRec hit_record, in Ray r)
     Material mat;
     // 材质默认值
     // 灰色（默认非金属材质）
-    //vec3 defaultAlbedo = vec3(0.8, 0.8, 0.8); // 默认反射率：灰色
-    //float defaultMetallic = 0.0;                // 默认金属度：非金属
-    //float defaultRoughness = 0.5;               // 默认粗糙度：中等
-    //float defaultAO = 1.0;                      // 默认 AO 值：完全无遮蔽
-    // 水体材质的参数设置
-    vec3 defaultAlbedo = vec3(0.1, 0.3, 0.5);  // 水的反射率：轻微蓝色
-    float defaultMetallic = 0.0;                // 水体是非金属
-    float defaultRoughness = 0.1;               // 水体表面非常平滑
-    float defaultAO = 1.0;                      // 水体的环境遮蔽值，假设水面平坦无遮挡
+    vec3 defaultAlbedo = vec3(0.0824, 0.8706, 0.251); // 默认反射率：灰色
+    float defaultMetallic = 0.0;                // 默认金属度：非金属
+    float defaultRoughness = 0.5;               // 默认粗糙度：中等
+    float defaultAO = 1.0;                      // 默认 AO 值：完全无遮蔽
     // 铝材质（Metal）
     vec3 defaultAlbedoMetal = vec3(0.8, 0.85, 0.9);  // 默认铝的反射率（银白色）
     float defaultMetallicMetal = 1.0;                  // 完全金属
