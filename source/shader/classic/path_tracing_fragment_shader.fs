@@ -221,7 +221,7 @@ vec3 PathTrace(Ray r, int maxDepth, int RR_maxDepth)
             // else return vec3(1.0,1.0,1.0);
             
             // 如果没有交点，返回环境背景颜色
-            radiance += throughput * vec3(0.0, 0.0, 0.0);
+            radiance += throughput * vec3(1.0, 0.0, 0.0);
             break;
         }
         

@@ -95,7 +95,7 @@ namespace GL_TASK
         this->createBLAS();   // 建立低层次的BVH加速结构
         this->createTLAS();   // 建立高层次的BVH加速结构
         this->process_data(); // 处理数据 将其转换成可供Shader使用的形式
-        // fluid->start();       // 启动流体模拟
+        fluid->start();       // 启动流体模拟
         // bulletWorld->start(); // 启动物理模拟
 
         // 点云
