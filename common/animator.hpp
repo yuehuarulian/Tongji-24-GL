@@ -24,22 +24,19 @@ public:
 
         // x方向的控制
         float x = path_z;
-        if (translate_rand - path_z * sin(glm::radians(rotate_rand)) > 2.0f)
-            x = (translate_rand - 2.0f) / sin(glm::radians(rotate_rand));
-        if (translate_rand - path_z * sin(glm::radians(rotate_rand)) < -2.0f)
-            x = (translate_rand + 2.0f) / sin(glm::radians(rotate_rand));
+        if (translate_rand - path_z * sin(glm::radians(rotate_rand)) > 5.0f)
+            x = (translate_rand - 5.0f) / sin(glm::radians(rotate_rand));
+        if (translate_rand - path_z * sin(glm::radians(rotate_rand)) < -5.0f)
+            x = (translate_rand + 5.0f) / sin(glm::radians(rotate_rand));
 
         // z方向控制
-        float z = path_z;
-        if ((translate_rand + path_z) > 5.0f)
+        float z = x;
+        if ((translate_rand + x) > 5.0f)
             z = 5.0 - translate_rand;
-        if ((translate_rand + path_z) < -25.0f)
+        if ((translate_rand + x) < -25.0f)
             z = -25.0 - translate_rand;
 
-        if (abs(x) > abs(z))
-            path_z = z;
-        else
-            path_z = x;
+        path_z = z;
     }
 
     void UpdateAnimation(float dt)

@@ -75,11 +75,10 @@ bool GL_TASK::Butterfly::add_model(const std::string &model_path)
 
 void GL_TASK::Butterfly::set_model_matrix()
 {
-    model_matrix = glm::mat4(1.0f);
-    model_matrix = glm::scale(model_matrix, glm::vec3(1.f, 1.f, 1.f) * scale_rand);                   // 缩放
-    model_matrix = glm::rotate(model_matrix, glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f));      // 正向
-    model_matrix = glm::rotate(model_matrix, glm::radians(rotate_rand), glm::vec3(0.0f, 1.0f, 0.0f)); // 旋转
-    model_matrix = glm::translate(model_matrix, glm::vec3(translate_rand, 0.0f, translate_rand));     // 平移
+    model_matrix = glm::scale(model_matrix, glm::vec3(1.f, 1.f, 1.f) * scale_rand);                                        // 缩放
+    model_matrix = glm::rotate(model_matrix, glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f));                           // 正向
+    model_matrix = glm::translate(model_matrix, glm::vec3(translate_rand, translate_rand + 5.0f, 20.0f + translate_rand)); // 平移远一点
+    model_matrix = glm::rotate(model_matrix, glm::radians(rotate_rand), glm::vec3(0.0f, 1.0f, 0.0f));                      // 旋转
 }
 
 void GL_TASK::Butterfly::update_matrix()

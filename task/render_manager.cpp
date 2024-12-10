@@ -121,40 +121,29 @@ void RenderManager::update_camera()
 
 void RenderManager::render_frame(int frame_number)
 {
-    // if (offscreen)
-    //     glBindFramebuffer(GL_FRAMEBUFFER, msaa_fbo);
-
-    // glClearColor(0.f, 0.f, 0.f, 1.0f);
-    // glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    // skybox->render(camera.view, camera.projection);
-
-    scene->setDirty(dirty);
-
     // 当采样达到一定数量时将渲染结果提取出来
     if (offscreen)
     {
         // 循环进行渲染
         while (scene->getFrameNum() % SAMPLES_PER_FRAME != 0)
         {
-            scene->update();
-            scene->render(camera);
+            printf("SampleNumber: %d\n", scene->getFrameNum());
+            scene->render_scene(camera);
         }
     }
     else
     {
-        scene->update();
-        scene->render(camera);
+        scene->render_scene(camera);
     }
-    scene->present(); // 渲染结果展示
+    scene->setDirty(dirty);
+    scene->update_models();
+    scene->update_scene();
 
     if (offscreen)
     {
         glm::vec3 *output_frame_ptr = scene->DenoiseProcess();
 
         std::vector<unsigned char> pixels(window_width * window_height * 3);
-
-        std::cout << "output_frame_ptr size" << sizeof(output_frame_ptr) << std::endl;
 
         // Copy data from output_frame_ptr to pixels
         for (int i = 0; i < window_width * window_height; ++i)

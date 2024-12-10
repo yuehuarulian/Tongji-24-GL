@@ -51,7 +51,7 @@ int main()
 
     GL_TASK::ClassicScene classic_scene(shader_manager, light_manager);
 
-    Camera camera(window, 75 * D2R, glm::vec3(0.0f, 0.0f, 0.0f), glm::pi<float>(), 15. * D2R, 30.0f, 1.0f);
+    Camera camera(window, 75 * D2R, glm::vec3(0.0f, -120.0f, 80.0f), glm::pi<float>(), 15. * D2R, 30.0f, 1.0f);
 
     Skybox skybox(faces, "source/shader/skybox.vs", "source/shader/skybox.fs");
 
@@ -71,16 +71,17 @@ int main()
         bool dirty = false;
         camera.compute_matrices_from_inputs(window, dirty);
         classic_scene.setDirty(dirty);
-        classic_scene.update();
+        classic_scene.update_models();
+        classic_scene.update_scene();
 
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glDisable(GL_DEPTH_TEST);
 
-        classic_scene.render(camera);
+        classic_scene.render_scene(camera);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
-        classic_scene.present(); // 渲染结果展示
+        classic_scene.present_scene(); // 渲染结果展示
         gui_manager.render();
 
         glfwSwapBuffers(window);

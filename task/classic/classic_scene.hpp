@@ -21,9 +21,10 @@ namespace GL_TASK
         ClassicScene(ShaderManager &shader_manager, LightManager &light_manager, const int WINDOW_WIDTH = 1080, const int WINDOW_HEIGHT = 720);
         ~ClassicScene() = default;
 
-        void render(Camera &) override;
-        void present() override; // 显示结果到屏幕
-        void update() override;  // 更新场景状态
+        void render_scene(Camera &) override;
+        void update_scene() override;
+        void present_scene() override;
+        void update_models(); // 更新场景
         void wait_until_next_frame(int frame_number) override;
 
         bool BbvhDirty{false}; // 底层bvh树脏位

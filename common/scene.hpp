@@ -29,9 +29,10 @@ public:
 
     virtual ~Scene() = default;
 
-    virtual void render(Camera &) = 0;
-    virtual void present() = 0; // 展示渲染结果
-    virtual void update() = 0;  // 进行数据更新
+    virtual void render_scene(Camera &) = 0;
+    virtual void update_scene() = 0;  // 进行场景更新
+    virtual void present_scene() = 0; // 展示渲染结果
+    virtual void update_models() = 0; // 更新场景中的模型
     virtual void wait_until_next_frame(int frame_number) = 0;
     glm::vec3 *DenoiseProcess();
 
@@ -41,8 +42,6 @@ public:
     }
     bool getDirty() const { return this->dirty; }
     int getFrameNum() const { return this->frameNum; }
-    void save_render_image(const std::string filename);
-    void get_render_image(unsigned char **data, int &w, int &h);
 
     void SaveFrame(const std::string filename);
 
