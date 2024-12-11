@@ -23,20 +23,17 @@ using namespace std;
 
 struct Vertex
 {
-    // position
-    glm::vec3 Position;
-    // normal
-    glm::vec3 Normal;
-    // texCoords
-    glm::vec2 TexCoords;
-    // tangent
+    // ---------- 顶点数据 ---------- //
+    //
+    //
+    glm::vec3 Position;  // 顶点位置
+    glm::vec3 Normal;    // 法线
+    glm::vec2 TexCoords; // 纹理坐标
     glm::vec3 Tangent;
-    // bitangent
     glm::vec3 Bitangent;
-    // bone indexes which will influence this vertex
-    int m_BoneIDs[MAX_BONE_INFLUENCE];
-    // weights from each bone
-    float m_Weights[MAX_BONE_INFLUENCE];
+
+    int m_BoneIDs[MAX_BONE_INFLUENCE];   // 影响该顶点的骨骼索引
+    float m_Weights[MAX_BONE_INFLUENCE]; // 每个骨骼的权重
 };
 
 class Texture
@@ -167,7 +164,7 @@ public:
 private:
     // render data
     // unsigned int VBO, EBO;
-    bool dirty {false}; // 标志变量，指示是否需要更新
+    bool dirty{false}; // 标志变量，指示是否需要更新
 
     // initializes all the buffer objects/arrays
     // void setupMesh();

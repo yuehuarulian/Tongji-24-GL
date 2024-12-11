@@ -1,9 +1,10 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.11)
 #set(CMAKE_CXX_STANDARD 17)
 #set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 project(BIGWORK)
 project(BIGWORK)
+
 
 include_directories(${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/task/classic ${PROJECT_SOURCE_DIR}/task ${PROJECT_SOURCE_DIR}/common)
 include_directories(${PROJECT_SOURCE_DIR}/openvdb_include)
@@ -60,6 +61,7 @@ LinearMath       # Bullet 线性代数数学支持
 BulletSoftBody   # Bullet 软体支持
 Bullet3Common    # Bullet 通用库
 )
+
 
 # add_executable(fluid_testbed src/fluid_testbed.cpp src/glad.c ${FLUID_LIST} ${COMMON_LIST})
 # target_compile_options(fluid_testbed PRIVATE -msse2)

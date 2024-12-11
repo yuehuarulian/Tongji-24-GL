@@ -136,29 +136,49 @@ void RenderManager::render_frame(int frame_number)
     // skybox->render(camera.view, camera.projection);
 
     scene->setDirty(dirty);
-    scene->update();
-    scene->render(camera);
+
+    // 当采样达到一定数量时将渲染结果提取出来
+    if (offscreen)
+    {
+        // 循环进行渲染
+        while (scene->getFrameNum() % SAMPLES_PER_FRAME != 0)
+        {
+            scene->update();
+            scene->render(camera);
+        }
+    }
+    else
+    {
+        scene->update();
+        scene->render(camera);
+    }
     scene->present(); // 渲染结果展示
 
     if (offscreen)
     {
-        // 解析（resolve）多重采样帧缓冲区到普通帧缓冲区
-        glBindFramebuffer(GL_READ_FRAMEBUFFER, msaa_fbo);
-        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, resolve_fbo);
-        glBlitFramebuffer(0, 0, window_width, window_height, 0, 0, window_width, window_height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
-
-        // 读取解析后的像素数据
-        glBindFramebuffer(GL_FRAMEBUFFER, resolve_fbo);
-        std::vector<unsigned char> pixels(window_width * window_height * 3);
-        glReadPixels(0, 0, window_width, window_height, GL_RGB, GL_UNSIGNED_BYTE, pixels.data());
-
         std::ostringstream oss;
         oss << "./offline_rendering/frame_" << std::setw(3) << std::setfill('0') << frame_number << ".png";
-        cout << "frame_number: " << frame_number << endl;
-        stbi_flip_vertically_on_write(true);
-        stbi_write_png(oss.str().c_str(), window_width, window_height, 3, pixels.data(), window_width * 3);
+        std::string frame_iamge_file_name = oss.str();
+        printf("Save Image Frame %d\n", frame_number);
+        scene->save_render_image(frame_iamge_file_name);
     }
 
     if (offscreen)
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    {
+        // 解析（resolve）多重采样帧缓冲区到普通帧缓冲区
+        // glBindFramebuffer(GL_READ_FRAMEBUFFER, msaa_fbo);
+        // glBindFramebuffer(GL_DRAW_FRAMEBUFFER, resolve_fbo);
+        // glBlitFramebuffer(0, 0, window_width, window_height, 0, 0, window_width, window_height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+
+        // // 读取解析后的像素数据
+        // glBindFramebuffer(GL_FRAMEBUFFER, resolve_fbo);
+        // std::vector<unsigned char> pixels(window_width * window_height * 3);
+        // glReadPixels(0, 0, window_width, window_height, GL_RGB, GL_UNSIGNED_BYTE, pixels.data());
+
+        // std::ostringstream oss;
+        // oss << "./offline_rendering/frame_" << std::setw(3) << std::setfill('0') << frame_number << ".png";
+        // cout << "frame_number: " << frame_number << endl;
+        // stbi_flip_vertically_on_write(true);
+        // stbi_write_png(oss.str().c_str(), window_width, window_height, 3, pixels.data(), window_width * 3);
+    }
 }

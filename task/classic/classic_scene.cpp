@@ -54,48 +54,49 @@ namespace GL_TASK
         // Room model
         glm::vec3 roomMin, roomMax;
         room = std::make_shared<Room>("source/model/room2/room2.obj", meshes, meshInstances, textures, materials);
+        printf("Load Room Model Over\n");
         room->getBoundingBox(roomMin, roomMax);
-        roomMin = glm::vec3(-104.160004, -359.567505, -430.721375);
-        roomMax = glm::vec3(104.159973, 77.232498, 99.375420);
+        // roomMin = glm::vec3(-104.160004, -359.567505, -430.721375);
+        // roomMax = glm::vec3(104.159973, 77.232498, 99.375420);
 
         // liquid model
-        glm::mat4 room_model_matrix = glm::mat4(1.0f); // room->get_model_matrix(); // 
-        room_model_matrix = glm::rotate(room_model_matrix, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-        room_model_matrix = glm::scale(room_model_matrix, glm::vec3(1.f, 1.f, 1.f) * 1.3f);
+        glm::mat4 room_model_matrix = room->get_model_matrix(); // glm::mat4(1.0f);
+        // room_model_matrix = glm::rotate(room_model_matrix, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+        // room_model_matrix = glm::scale(room_model_matrix, glm::vec3(1.f, 1.f, 1.f) * 1.3f);
         fluid = std::make_shared<Fluid>(meshes, meshInstances, textures, materials);
         fluid->BindDirty(&BbvhDirty);
         fluid->set_model_matrix(room_model_matrix);
         fluid->add_model("source/model/fluid/mesh.obj");
 
-        // bullet world
-        bulletWorld = std::make_shared<BulletWorld>(meshes, meshInstances, textures, materials);
-        bulletWorld->BindDirty(&TbvhDirty);
-        bulletWorld->BindFluid(fluid);
-        bulletWorld->setRoomBounds(roomMin, roomMax);
-        double water_level = fluid->get_water_level(roomMin, roomMax);
+        // // bullet world
+        // bulletWorld = std::make_shared<BulletWorld>(meshes, meshInstances, textures, materials);
+        // bulletWorld->BindDirty(&TbvhDirty);
+        // bulletWorld->BindFluid(fluid);
+        // bulletWorld->setRoomBounds(roomMin, roomMax);
+        // double water_level = fluid->get_water_level(roomMin, roomMax);
 
-        // boat model
-        bulletWorld->bind_model("source/model/boat/boat_obj.obj", ObjectType::BOAT);
-        bulletWorld->add_model(glm::vec3(15.0, water_level + 5.0, -25.0));
-        bulletWorld->add_model(glm::vec3(-15.0, water_level + 5.0, 25.0));
+        // // boat model
+        // bulletWorld->bind_model("source/model/boat/boat_obj.obj", ObjectType::BOAT);
+        // bulletWorld->add_model(glm::vec3(15.0, water_level + 5.0, -25.0));
+        // bulletWorld->add_model(glm::vec3(-15.0, water_level + 5.0, 25.0));
 
-        // flower model
-        bulletWorld->bind_model("source/model/flower/flower.obj", ObjectType::FLOWER);
-        bulletWorld->add_model(glm::vec3(-20.0, water_level + 2.0, -50.0));
-        bulletWorld->add_model(glm::vec3(20.0, water_level + 2.0, 50.0));
+        // // flower model
+        // bulletWorld->bind_model("source/model/flower/flower.obj", ObjectType::FLOWER);
+        // bulletWorld->add_model(glm::vec3(-20.0, water_level + 2.0, -50.0));
+        // bulletWorld->add_model(glm::vec3(20.0, water_level + 2.0, 50.0));
 
-        // butterfly model  
-        //for (int i = 0; i < butterfly_count; i++)
+        // butterfly model
+        // for (int i = 0; i < butterfly_count; i++)
         //{
-            //auto butterfly_model_single = std::make_shared<Butterfly>("source/model/butterfly/ok.dae", meshes, meshInstances, textures, materials);
-            //butterflies.push_back(butterfly_model_single);
+        // auto butterfly_model_single = std::make_shared<Butterfly>("source/model/butterfly/ok.dae", meshes, meshInstances, textures, materials);
+        // butterflies.push_back(butterfly_model_single);
         //}
 
         this->createBLAS();   // 建立低层次的BVH加速结构
         this->createTLAS();   // 建立高层次的BVH加速结构
         this->process_data(); // 处理数据 将其转换成可供Shader使用的形式
-        fluid->start(); // 启动流体模拟
-        bulletWorld->start(); // 启动物理模拟
+        fluid->start();       // 启动流体模拟
+        // bulletWorld->start(); // 启动物理模拟
 
         // 点云
         // auto cloud_shader1 = shader_manager.get_shader("cloud");
@@ -146,7 +147,7 @@ namespace GL_TASK
         render_path_tracing(camera);
         render_accumulation();
         render_post_processing();
-        render_point_clouds(camera);
+        // render_point_clouds(camera);
     }
 
     void ClassicScene::render_path_tracing(Camera &camera)
@@ -204,6 +205,8 @@ namespace GL_TASK
         auto accumulation_shader = shader_manager.get_shader("accumulationShader");
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, outputTexture[1 - currentBuffer]);
+        // this->DenoiseProcess();                        // 进行降噪处理
+        // glBindTexture(GL_TEXTURE_2D, denoisedTexture); // 降噪之后的纹理
         quad->Draw(accumulation_shader.get());
     }
 
@@ -218,21 +221,26 @@ namespace GL_TASK
             if (butterflies.size() > 0)
                 TbvhDirty = true;
         }
-        if (BbvhDirty || TbvhDirty) {
+        if (BbvhDirty || TbvhDirty)
+        {
             dirty = true;
-            for (int i = 0; i < meshes.size(); ++i) {
-                Mesh* mesh = meshes[i];
-                if (mesh->needsUpdate(i)) { // 刷新低层次的BVH加速结构
+            for (int i = 0; i < meshes.size(); ++i)
+            {
+                Mesh *mesh = meshes[i];
+                if (mesh->needsUpdate(i))
+                { // 刷新低层次的BVH加速结构
                     std::cout << "Mesh " << i << " finish an update." << std::endl;
                     BbvhDirty = false;
                 }
             }
-            if (!BbvhDirty || TbvhDirty) {
-                if (TbvhDirty) {
-                    this->createTLAS();   // 重建高层次的BVH加速结构
+            if (!BbvhDirty || TbvhDirty)
+            {
+                if (TbvhDirty)
+                {
+                    this->createTLAS(); // 重建高层次的BVH加速结构
                     TbvhDirty = false;
                 }
-                this->process_data(); // 处理数据 将其转换成可供Shader使用的形式
+                this->process_data();    // 处理数据 将其转换成可供Shader使用的形式
                 this->update_GPU_data(); // 将相关数据绑定到纹理中以便传递到GPU中
                 this->update_FBOs();     // 重置帧缓冲对象
                 printf("ClassicScene: A new scene is ready\n");
@@ -240,15 +248,17 @@ namespace GL_TASK
         }
         if (dirty)
         {
-            //printf("Scene is dirty\n");
+            // printf("Scene is dirty\n");
             frameNum = 1;
             glBindFramebuffer(GL_FRAMEBUFFER, accumFBO);
             glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
             glClear(GL_COLOR_BUFFER_BIT);
+
+            // TODO: 数据修改与传输
         }
         else
         {
-            //printf("Scene isn't dirty\n");
+            // printf("Scene isn't dirty\n");
             frameNum++;
             currentBuffer = 1 - currentBuffer;
         }

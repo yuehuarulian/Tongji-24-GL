@@ -13,10 +13,9 @@ void main()
     float alpha = col.w;
     
     const float gamma = 2.2;
-    float exposure = 0.1; 
-    // color = color / (color + vec3(1.0)); // Reinhard tone mapping
+    float exposure = 1.0; 
     color = vec3(1.0) - exp(-color * exposure);
-    color = pow(color, vec3(1.0 / 2.2));
+    color = pow(color, vec3(1.0 / gamma)); 
 
     FragColor = vec4(color, 1.0);
 }

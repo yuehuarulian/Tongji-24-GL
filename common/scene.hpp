@@ -36,7 +36,13 @@ public:
 
     void setDirty(bool isDirty) { this->dirty = isDirty; }
     bool getDirty() const { return this->dirty; }
-    // std::vector<std::shared_ptr<RenderableModel>> models;
+    int getFrameNum() const { return this->frameNum; }
+    void save_render_image(const std::string filename);
+    void get_render_image(unsigned char **data, int &w, int &h);
+
+    void SaveFrame(const std::string filename);
+    void DenoiseProcess();
+
 protected:
     virtual void setup_scene() = 0;
     bool add_model(const std::string &modelfilePath, glm::mat4 transformMat = glm::mat4(1.0f));
@@ -72,6 +78,7 @@ protected:
     GLuint pathTraceTexture;
     GLuint accumTexture;
     GLuint outputTexture[2];
+    GLuint denoisedTexture;
     int currentBuffer; // 表示当前渲染结果存储的位置
 
     // Quad
@@ -116,6 +123,11 @@ protected:
     GLuint materialsTex;
     // ---------- 纹理数据 ---------- //
     GLuint textureMapsArrayTex;
+
+    // Denoiser output
+    glm::vec3 *denoiserInputFramePtr;
+    glm::vec3 *frameOutputPtr;
+    bool denoised;
 };
 
 #endif // SCENE_HPP
