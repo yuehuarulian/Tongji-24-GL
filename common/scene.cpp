@@ -516,7 +516,7 @@ void Scene::DenoiseProcess()
 glm::vec3 *Scene::get_frame_output()
 {
     // 获取当前帧的输出
-    glBindTexture(GL_TEXTURE_2D, outputTexture[currentBuffer]);
+    glBindTexture(GL_TEXTURE_2D, outputTexture[1 - currentBuffer]);
     glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_FLOAT, frameOutputPtr);
     return frameOutputPtr;
 }
