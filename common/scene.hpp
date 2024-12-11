@@ -34,7 +34,7 @@ public:
     virtual void present_scene() = 0; // 展示渲染结果
     virtual void update_models() = 0; // 更新场景中的模型
     virtual void wait_until_next_frame(int frame_number) = 0;
-    glm::vec3 *DenoiseProcess();
+    void DenoiseProcess();
 
     void setDirty(bool isDirty)
     {
@@ -42,6 +42,7 @@ public:
     }
     bool getDirty() const { return this->dirty; }
     int getFrameNum() const { return this->frameNum; }
+    glm::vec3 *get_frame_output();
 
     void SaveFrame(const std::string filename);
 
@@ -62,7 +63,7 @@ protected:
     const int WINDOW_WIDTH, WINDOW_HEIGHT;
     const int texArrayHeight = 2048;
     const int texArrayWidth = 2048;
-    int frameNum = 0;
+    int frameNum = 1;
     bool dirty; // 脏位
 
     // 存储所有的网格

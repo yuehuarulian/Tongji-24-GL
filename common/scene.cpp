@@ -505,11 +505,18 @@ void Scene::update_FBOs()
     glClear(GL_COLOR_BUFFER_BIT);
 }
 
-glm::vec3 *Scene::DenoiseProcess()
+void Scene::DenoiseProcess()
 {
     // 降噪处理
     // 将GPU中的 tileOutputTexture[1 - currentBuffer] 纹理数据传递到 denoiserInputFramePtr 中
     glBindTexture(GL_TEXTURE_2D, outputTexture[1 - currentBuffer]);
     glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_FLOAT, denoiserInputFramePtr);
-    return denoiserInputFramePtr;
+}
+
+glm::vec3 *Scene::get_frame_output()
+{
+    // 获取当前帧的输出
+    glBindTexture(GL_TEXTURE_2D, outputTexture[currentBuffer]);
+    glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_FLOAT, frameOutputPtr);
+    return frameOutputPtr;
 }

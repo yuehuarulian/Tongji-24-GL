@@ -34,7 +34,10 @@ void RenderManager::initialize()
     camera = Camera(window, 75 * D2R, glm::vec3(0.0f, -120.0f, 80.0f), glm::pi<float>(), 15. * D2R, 30.0f, 1.0f);
     scene = std::make_unique<GL_TASK::ClassicScene>(shader_manager, light_manager); // TODO
     skybox = std::make_unique<Skybox>(faces, "source/shader/skybox.vs", "source/shader/skybox.fs");
+
     glEnable(GL_DEPTH_TEST);
+    glDisable(GL_CULL_FACE);
+    glDepthFunc(GL_LESS);
     glEnable(GL_MULTISAMPLE);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -116,12 +119,15 @@ void RenderManager::update_camera()
     auto camera_pos = camera.get_pos();
     camera.set_position(camera_pos - glm::vec3(0, 0, 2.0));
     camera.compute_matrices_from_inputs(window, dirty);
-    dirty = true;
 }
 
 void RenderManager::render_frame(int frame_number)
 {
     // 当采样达到一定数量时将渲染结果提取出来
+    scene->setDirty(true);
+    scene->update_models();
+    scene->update_scene();
+
     if (offscreen)
     {
         // 循环进行渲染
@@ -130,18 +136,7 @@ void RenderManager::render_frame(int frame_number)
             printf("SampleNumber: %d\n", scene->getFrameNum());
             scene->render_scene(camera);
         }
-    }
-    else
-    {
-        scene->render_scene(camera);
-    }
-    scene->setDirty(dirty);
-    scene->update_models();
-    scene->update_scene();
-
-    if (offscreen)
-    {
-        glm::vec3 *output_frame_ptr = scene->DenoiseProcess();
+        glm::vec3 *output_frame_ptr = scene->get_frame_output();
 
         std::vector<unsigned char> pixels(window_width * window_height * 3);
 
@@ -157,7 +152,7 @@ void RenderManager::render_frame(int frame_number)
         // Save the image to disk
         std::ostringstream oss;
         oss << "./offline_rendering/frame_" << std::setw(3) << std::setfill('0') << frame_number << ".png";
-        std::cout << "frame_number: " << frame_number << std::endl;
+        std::cout << "save picture, frame_number: " << frame_number << std::endl;
         stbi_flip_vertically_on_write(true);
         stbi_write_png(oss.str().c_str(), window_width, window_height, 3, pixels.data(), window_width * 3);
     }

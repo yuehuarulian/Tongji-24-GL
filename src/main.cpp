@@ -71,14 +71,19 @@ int main()
         bool dirty = false;
         camera.compute_matrices_from_inputs(window, dirty);
         classic_scene.setDirty(dirty);
-        classic_scene.update_models();
+        static int frame = 1;
+        if (frame++ % 3 == 0)
+        {
+            frame = 1;
+            classic_scene.update_models();
+        }
         classic_scene.update_scene();
 
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glDisable(GL_DEPTH_TEST);
-
         classic_scene.render_scene(camera);
+
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
         classic_scene.present_scene(); // 渲染结果展示
@@ -87,8 +92,6 @@ int main()
         glfwSwapBuffers(window);
         glfwPollEvents();
         printf("SampleNumber: %d\n", classic_scene.getFrameNum());
-        // int tmp;
-        // cin >> tmp;
     }
     glfwTerminate();
     return 0;
