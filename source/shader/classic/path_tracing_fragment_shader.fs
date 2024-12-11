@@ -140,6 +140,8 @@ float DistributionGGX(vec3 N,vec3 H,float roughness);
 float GeometrySchlickGGX(float NdotV,float roughness);
 float GeometrySmith(vec3 N,vec3 V,vec3 L,float roughness);
 vec3 fresnelSchlick(float cosTheta,vec3 F0);
+float fresnelSchlick(float cosTheta, float ior);
+bool Refract(vec3 I, vec3 N, float ior, out vec3 refracted);
 // 随机数函数
 uvec4 seed;
 ivec2 pixel;
@@ -218,7 +220,7 @@ vec3 PathTrace(Ray r, int maxDepth, int RR_maxDepth)
     {
         HitRec hit_record;  // 记录当前的击中状态
         
-        // 判断光线是否与场景相交
+        // 1. 判断光线是否与场景相交
         if(!ClosestHit(r, hit_record, lightSample))
         {
             // if (depth == 0) return vec3(1.0, 0.0, 0.0); // 第一次弹射
@@ -231,18 +233,53 @@ vec3 PathTrace(Ray r, int maxDepth, int RR_maxDepth)
             break;
         }
         
+        // 2. 从材质贴图中加载材质信息
         GetMaterial(hit_record, r); // 获取材质
         // return hit_record.mat.baseColor;
-        
         // return hit_record.mat.normal;
         
-        // 如果击中了发光体，添加其辐射贡献
+        // 3. 如果击中了发光体，添加其辐射贡献
         if (hit_record.isEmitter) {
             radiance += throughput * lightSample.emission;
             break;
         }
+
+        // 4. 处理透明材质的反射和折射
+        if(hit_record.mat.alpha < 1.0) 
+        {
+            vec3 refractedDirection;
+            bool isTotalInternalReflection = !Refract(r.direction, hit_record.ffnormal, hit_record.mat.ior, refractedDirection);
+            
+            if (!isTotalInternalReflection) {
+                // 计算菲涅耳反射系数
+                float cosTheta = dot(-r.direction, hit_record.normal);
+                float fresnel = fresnelSchlick(cosTheta, hit_record.mat.ior);
+
+                // 反射路径
+                vec3 reflectedDirection = reflect(r.direction, hit_record.normal);
+                Ray reflectedRay = Ray(hit_record.HitPoint + 0.001 * reflectedDirection, reflectedDirection);
+
+                // 折射路径
+                Ray refractedRay = Ray(hit_record.HitPoint + 0.001 * refractedDirection, refractedDirection);
+
+                // 通过菲涅耳系数决定光的分支
+                if (rand() < fresnel) {
+                    r = reflectedRay; // 反射路径
+                } else {
+                    r = refractedRay; // 折射路径
+                }
+            } 
+            else {
+                // 处理全内反射
+                vec3 reflectedDirection = reflect(r.direction, hit_record.normal);
+                r = Ray(hit_record.HitPoint + 0.001 * reflectedDirection, reflectedDirection);
+            }
+
+            throughput *= hit_record.mat.baseColor; // 透明材质的颜色
+            continue;
+        }
         
-        // 直接光照计算（光源采样）
+        // 5. 直接光照计算（光源采样）
         sampleLight(hit_record.HitPoint, lightSample); // 进行光源采样
         vec3 V = -r.direction;           // 视线光线 -- 由交点指向外侧
         vec3 L = lightSample.direction;  // 光源光线 -- 由交点指向外侧
@@ -264,8 +301,8 @@ vec3 PathTrace(Ray r, int maxDepth, int RR_maxDepth)
             
         }
         
-        // 间接光照计算（路径延续）
-        // 俄罗斯轮盘赌优化
+        // 6. 间接光照计算（路径延续）
+        // 7. 俄罗斯轮盘赌优化
         float prob = 0.7; // 概率阈值
         if (depth > RR_maxDepth && rand() > prob) {
             break; // 停止追踪路径
@@ -273,7 +310,7 @@ vec3 PathTrace(Ray r, int maxDepth, int RR_maxDepth)
         
         throughput /= prob; // 更新通量权重以考虑路径终止的概率
         
-        // 采样下一个方向
+        // 8. 采样下一个方向
         bool useCosineWeighted = true;
         vec3 wi = SampleDirection(hit_record.normal, useCosineWeighted); // 在半球中随机采样
         float pdf = useCosineWeighted ?  (wi.z / PI) : (1.0 / (2.0 * PI));
@@ -328,6 +365,26 @@ float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness)
 vec3 fresnelSchlick(float cosTheta, vec3 F0)
 {
     return F0 + (1.0 - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
+}
+float fresnelSchlick(float cosTheta, float ior)
+{
+    float r0 = pow((1.0 - ior) / (1.0 + ior), 2.0);
+    return r0 + (1.0 - r0) * pow(1.0 - cosTheta, 5.0);
+}
+// ----------------------------------------------------------------------------
+bool Refract(vec3 I, vec3 N, float ior, out vec3 refracted)
+{
+    float cosThetaI = dot(-I, N);
+    float eta = 1.0 / ior; // 介质比率（例如从空气 (1.0) 到玻璃 (1.5)）
+    float sinThetaTSq = eta * eta * (1.0 - cosThetaI * cosThetaI);
+
+    // 检查是否发生**全内反射**
+    if (sinThetaTSq > 1.0) 
+        return false;
+
+    float cosThetaT = sqrt(1.0 - sinThetaTSq);
+    refracted = eta * I + (eta * cosThetaI - cosThetaT) * N;
+    return true;
 }
 // ----------------------------------------------------------------------------
 vec3 BRDF_PBR(vec3 N, vec3 V, vec3 L, vec3 radiance, vec3 albedo, float metallic, float roughness, vec3 F0)
