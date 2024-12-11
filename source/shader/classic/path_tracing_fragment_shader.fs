@@ -830,20 +830,20 @@ void GetMaterial(inout HitRec hit_record, in Ray r)
     vec4 param7 = texelFetch(materialsTex, index + 6);  // 获取第七个材质参数
 
     // 获取材质的基本颜色
-    // mat.baseColor = param1.rgb;
-    // mat.specular = param2.rgb;
-    // mat.emission = param3.rgb;
+    mat.baseColor = param1.rgb;
+    mat.specular = param2.rgb;
+    mat.emission = param3.rgb;
 
     // 获取材质的参数
-    // ivec4 para_1  = ivec4(param4);
-    // ivec4 para_2  = ivec4(param5);
-    // mat.ior = para_1.x;
-    // mat.tr = para_1.y;
-    // mat.roughness = para_1.w;
-    // mat.metallic = para_2.x;
-    // mat.scatter = para_2.y;
-    // mat.coat = para_2.z;
-    // mat.coatRough = para_2.w;
+    vec4 para_1  = param4;
+    vec4 para_2  = param5;
+    mat.ior = para_1.x;
+    mat.alpha = para_1.y;
+    mat.roughness = para_1.w;
+    mat.matellic = para_2.x;
+    mat.scatter = para_2.y;
+    mat.coat = para_2.z;
+    mat.coatRough = para_2.w;
     
     // 获取纹理相应的索引
     ivec4 texIDs_1  = ivec4(param6);

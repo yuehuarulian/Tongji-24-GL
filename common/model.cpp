@@ -273,24 +273,28 @@ int Model::loadMaterialParams(Material& m_material, aiMaterial *mat)
         loadnum++;
     }
 
-    // TODO::自定义属性 (粗糙度、金属度等)
-    if (mat->Get("$raw.Pr", 0, 0, value) == AI_SUCCESS) {
+    // TODO::其他属性 (粗糙度、金属度等)
+    // for (unsigned int i = 0; i < mat->mNumProperties; i++) {
+    //     aiMaterialProperty *prop = mat->mProperties[i];
+    //     std::cout << "Property Key: " << prop->mKey.C_Str() << " | Type: " << prop->mType << " | Size: " << prop->mDataLength << std::endl;
+    // }
+    if (mat->Get("$mat.roughnessFactor", 0, 0, value) == AI_SUCCESS) {
         m_material.roughness = value; // 粗糙度 (Pr)
         loadnum++;
     }
-    if (mat->Get("$raw.Pm", 0, 0, value) == AI_SUCCESS) {
+    if (mat->Get("$mat.metallicFactor", 0, 0, value) == AI_SUCCESS) {
         m_material.metalness = value; // 金属度 (Pm)
         loadnum++;
     }
-    if (mat->Get("$raw.Ps", 0, 0, value) == AI_SUCCESS) {
-        m_material.scattering = value; // 散射系数 (Ps)
+    if (mat->Get("$mat.anisotropyFactor", 0, 0, value) == AI_SUCCESS) {
+        m_material.scattering = value; // 金属度 (Pm)
         loadnum++;
     }
-    if (mat->Get("$raw.Pc", 0, 0, value) == AI_SUCCESS) {
+    if (mat->Get("$mat.clearcoat.factor", 0, 0, value) == AI_SUCCESS) {
         m_material.coating = value; // 涂层 (Pc)
         loadnum++;
     }
-    if (mat->Get("$raw.Pcr", 0, 0, value) == AI_SUCCESS) {
+    if (mat->Get("$mat.clearcoat.roughnessFactor", 0, 0, value) == AI_SUCCESS) {
         m_material.coatRoughness = value; // 涂层粗糙度 (Pcr)
         loadnum++;
     }
