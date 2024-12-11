@@ -65,13 +65,20 @@ struct DistantLight
 // 材质
 struct Material
 {
-    vec3 baseColor;// 材质的基础颜色
-    float matellic;// 金属度
+    vec3 baseColor;     // 漫反射颜色
+    vec3 specular;      // 镜面反射颜色
+    vec3 emission;      // 自发光颜色
+    vec3 normal;        // 表面法线贴图
+    vec3 F0;            // 镜面反射的基础反射率
+    
+    float ior;// 折射率
+    float alpha;// 透明度
     float roughness;// 粗糙度
+    float matellic;// 金属度
+    float scatter;// 散射
+    float coat;// 涂层
+    float coatRough;// 涂层粗糙度
     float ao;// 环境光遮蔽
-    vec3 F0;// 镜面反射的基础反射率
-    vec3 emission;// 自发光颜色
-    vec3 normal;// 表面法线贴图
 };
 // 击中点记录
 struct HitRec
@@ -243,7 +250,7 @@ vec3 PathTrace(Ray r, int maxDepth, int RR_maxDepth)
         vec3 albedo = hit_record.mat.baseColor;
         float metallic = hit_record.mat.matellic;
         float roughness = hit_record.mat.roughness;
-        vec3 F0 = vec3(0.04);
+        vec3 F0 = vec3(0.04); //hit_record.mat.F0;
         F0 = mix(F0, albedo, metallic);
         Ray r2light = Ray(hit_record.HitPoint + 0.001 * L, L); // 发射一条从散射点到光源的射线 -- 阴影射线
         bool isShadow = AnyHit(r2light, lightSample.dist - EPS); // 判断阴影
@@ -783,54 +790,74 @@ void GetMaterial(inout HitRec hit_record, in Ray r)
     // 获取材质信息
     // 并通过光线计算光照颜色
     // TODO: 这里需要根据实际的材质类包含的内容进行调整
-    int index = hit_record.matID * 3;
+    int index = hit_record.matID * 7; // Material类有7块
     Material mat;
     // 材质默认值
     // 灰色（默认非金属材质）
-    //vec3 defaultAlbedo = vec3(0.8, 0.8, 0.8); // 默认反射率：灰色
-    //float defaultMetallic = 0.0;                // 默认金属度：非金属
-    //float defaultRoughness = 0.5;               // 默认粗糙度：中等
-    //float defaultAO = 1.0;                      // 默认 AO 值：完全无遮蔽
+    vec3 defaultAlbedo = vec3(0.8, 0.8, 0.8);   // 默认反射率：灰色
+    float defaultMetallic = 0.0;                // 默认金属度：非金属
+    float defaultRoughness = 0.5;               // 默认粗糙度：中等
+    float defaultAO = 1.0;                      // 默认 AO 值：完全无遮蔽
     // 水体材质的参数设置
-    vec3 defaultAlbedo = vec3(0.1, 0.3, 0.5);  // 水的反射率：轻微蓝色
-    float defaultMetallic = 0.0;                // 水体是非金属
-    float defaultRoughness = 0.1;               // 水体表面非常平滑
-    float defaultAO = 1.0;                      // 水体的环境遮蔽值，假设水面平坦无遮挡
+    vec3 defaultAlbedoWater = vec3(0.1, 0.3, 0.5);  // 水的反射率：轻微蓝色
+    float defaultMetallicWater = 0.0;               // 水体是非金属
+    float defaultRoughnessWater = 0.1;              // 水体表面非常平滑
+    float defaultAOWater = 1.0;                     // 水体的环境遮蔽值，假设水面平坦无遮挡
     // 铝材质（Metal）
     vec3 defaultAlbedoMetal = vec3(0.8, 0.85, 0.9);  // 默认铝的反射率（银白色）
-    float defaultMetallicMetal = 1.0;                  // 完全金属
-    float defaultRoughnessMetal = 0.1;                 // 低粗糙度
-    float defaultAOMetal = 1.0;                        // 完全无遮蔽
+    float defaultMetallicMetal = 1.0;                // 完全金属
+    float defaultRoughnessMetal = 0.1;               // 低粗糙度
+    float defaultAOMetal = 1.0;                      // 完全无遮蔽
     // 木材材质
-    vec3 defaultAlbedoWood = vec3(0.5, 0.25, 0.1);    // 默认木材反射率（棕色）
-    float defaultMetallicWood = 0.0;                    // 非金属
-    float defaultRoughnessWood = 0.7;                   // 高粗糙度
-    float defaultAOWood = 1.0;                          // 完全无遮蔽
+    vec3 defaultAlbedoWood = vec3(0.5, 0.25, 0.1);   // 默认木材反射率（棕色）
+    float defaultMetallicWood = 0.0;                 // 非金属
+    float defaultRoughnessWood = 0.7;                // 高粗糙度
+    float defaultAOWood = 1.0;                       // 完全无遮蔽
+    // 默认设置
     mat.baseColor = defaultAlbedo;
     mat.matellic = defaultMetallic;
     mat.roughness = defaultRoughness;
     mat.ao = defaultAO;
     mat.normal = hit_record.normal;
+    mat.F0 = vec3(0.04);
     // 获取材质的信息
     vec4 param1 = texelFetch(materialsTex, index + 0);  // 获取第一个材质参数
     vec4 param2 = texelFetch(materialsTex, index + 1);  // 获取第二个材质参数
     vec4 param3 = texelFetch(materialsTex, index + 2);  // 获取第三个材质参数
+    vec4 param4 = texelFetch(materialsTex, index + 3);  // 获取第四个材质参数
+    vec4 param5 = texelFetch(materialsTex, index + 4);  // 获取第五个材质参数
+    vec4 param6 = texelFetch(materialsTex, index + 5);  // 获取第六个材质参数
+    vec4 param7 = texelFetch(materialsTex, index + 6);  // 获取第七个材质参数
 
     // 获取材质的基本颜色
-    mat.baseColor = param1.rgb;
+    // mat.baseColor = param1.rgb;
+    // mat.specular = param2.rgb;
+    // mat.emission = param3.rgb;
+
+    // 获取材质的参数
+    // ivec4 para_1  = ivec4(param4);
+    // ivec4 para_2  = ivec4(param5);
+    // mat.ior = para_1.x;
+    // mat.tr = para_1.y;
+    // mat.roughness = para_1.w;
+    // mat.metallic = para_2.x;
+    // mat.scatter = para_2.y;
+    // mat.coat = para_2.z;
+    // mat.coatRough = para_2.w;
     
     // 获取纹理相应的索引
-    ivec4 texIDs_1  = ivec4(param2);
-    ivec4 texIDs_2  = ivec4(param3);
-    
+    ivec4 texIDs_1  = ivec4(param6);
+    ivec4 texIDs_2  = ivec4(param7);
     // 根据纹理图片修正材质的数据
-    if(texIDs_1.x >= 0)
+    if(texIDs_1.x >= 0) // diffuseTexId
     {
         vec4 col = texture(textureMapsArrayTex, vec3(hit_record.texCoord, texIDs_1.x));
         mat.baseColor.rgb = col.rgb;
     }
     if(texIDs_1.y >= 0) // specularTexId
     {
+        vec4 col = texture(textureMapsArrayTex, vec3(hit_record.texCoord, texIDs_1.y));
+        mat.specular.rgb = col.rgb;
     }
     if(texIDs_1.z >= 0) // normalTexId
     {

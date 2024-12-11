@@ -159,8 +159,9 @@ Mesh *Model::processMesh(aiMesh *mesh, const aiScene *scene)
 
     // 3. 获取材质
     Material m_material = Material();
-    m_material.baseColor = glm::vec3(0.0, 1.0, 0.0);
     aiMaterial *material = scene->mMaterials[mesh->mMaterialIndex];
+    printf("## Material %d Material Params ##\n", loadMaterialParams(m_material, material));
+    // 4. 获取纹理贴图
     {
         // 1. 漫反射纹理
         m_material.diffuseTexId = loadMaterialTextures(material, aiTextureType_DIFFUSE);
@@ -226,4 +227,73 @@ int Model::loadMaterialTextures(aiMaterial *mat, aiTextureType type)
     }
 
     return id;
+}
+
+int Model::loadMaterialParams(Material& m_material, aiMaterial *mat)
+{
+    int loadnum = 0;
+    // 提取颜色和物理属性
+    aiColor3D color;
+    float value;
+
+    // 漫反射颜色 (Kd)
+    if (mat->Get(AI_MATKEY_COLOR_DIFFUSE, color) == AI_SUCCESS) {
+        m_material.baseColor = glm::vec3(color.r, color.g, color.b);
+        loadnum++;
+    }
+
+    // 镜面反射颜色 (Ks)
+    if (mat->Get(AI_MATKEY_COLOR_SPECULAR, color) == AI_SUCCESS) {
+        m_material.specularColor = glm::vec3(color.r, color.g, color.b);
+        loadnum++;
+    }
+
+    // 自发光颜色 (Ke)
+    if (mat->Get(AI_MATKEY_COLOR_EMISSIVE, color) == AI_SUCCESS) {
+        m_material.emissiveColor = glm::vec3(color.r, color.g, color.b);
+        loadnum++;
+    }
+
+    // 折射率 (Ni)
+    if (mat->Get(AI_MATKEY_REFRACTI, value) == AI_SUCCESS) {
+        m_material.refractionIndex = value;
+        loadnum++;
+    }
+
+    // 透明度 (d)
+    if (mat->Get(AI_MATKEY_OPACITY, value) == AI_SUCCESS) {
+        m_material.transparency = value;
+        loadnum++;
+    }
+
+    // 光照模型 (illum)
+    int intValue;
+    if (mat->Get(AI_MATKEY_SHADING_MODEL, intValue) == AI_SUCCESS) {
+        m_material.illuminationModel = intValue;
+        loadnum++;
+    }
+
+    // TODO::自定义属性 (粗糙度、金属度等)
+    if (mat->Get("$raw.Pr", 0, 0, value) == AI_SUCCESS) {
+        m_material.roughness = value; // 粗糙度 (Pr)
+        loadnum++;
+    }
+    if (mat->Get("$raw.Pm", 0, 0, value) == AI_SUCCESS) {
+        m_material.metalness = value; // 金属度 (Pm)
+        loadnum++;
+    }
+    if (mat->Get("$raw.Ps", 0, 0, value) == AI_SUCCESS) {
+        m_material.scattering = value; // 散射系数 (Ps)
+        loadnum++;
+    }
+    if (mat->Get("$raw.Pc", 0, 0, value) == AI_SUCCESS) {
+        m_material.coating = value; // 涂层 (Pc)
+        loadnum++;
+    }
+    if (mat->Get("$raw.Pcr", 0, 0, value) == AI_SUCCESS) {
+        m_material.coatRoughness = value; // 涂层粗糙度 (Pcr)
+        loadnum++;
+    }
+
+    return loadnum;
 }
