@@ -188,10 +188,10 @@ void main()
     vec3 rayOrigin = camera.position;
     vec3 rayDirection = normalize(d.x * camera.right + d.y * camera.up + camera.forward);
     float radius = 5;
-    sphereLights[0] = SphereLight(vec3(0.,0.,0.), vec3(1500), radius, 4 * PI * radius * radius);
-    // sphereLights[1] = SphereLight(vec3(10.0, 20.0, -10.0), vec3(300), radius, 4 * PI * radius * radius);
-    // sphereLights[2] = SphereLight(vec3(-10.0, 20.0, -10.0), vec3(300), radius, 4 * PI * radius * radius);
-    numOfSphereLights = 1;
+    sphereLights[0] = SphereLight(vec3(0.,0.,0.), vec3(2000), radius, 4 * PI * radius * radius);
+    sphereLights[1] = SphereLight(vec3(10.0, 20.0, -10.0), vec3(5000), radius, 4 * PI * radius * radius);
+    sphereLights[2] = SphereLight(vec3(-10.0, 20.0, -10.0), vec3(300), radius, 4 * PI * radius * radius);
+    numOfSphereLights = 3;
     
     Ray ray=Ray(rayOrigin,rayDirection);// 生成光线
     
