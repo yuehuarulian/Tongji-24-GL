@@ -222,14 +222,6 @@ vec3 PathTrace(Ray r, int maxDepth, int RR_maxDepth)
         
         GetMaterial(hit_record, r); // 获取材质
         
-        // 如果击中了发光体，添加其辐射贡献
-        if (hit_record.isEmitter) {
-            if(depth == 0){
-                radiance += throughput * lightSample.emission;
-            } 
-            break;
-        }
-        
         // 直接光照计算（光源采样）
         if(hit_record.isEmitter) {
             if(depth == 0){

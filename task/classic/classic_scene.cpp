@@ -94,11 +94,12 @@ namespace GL_TASK
         // }
 
         // 点云
-        glm::mat4 model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(0.0f, -100.0f, -160.0f));
-        model = glm::scale(model, glm::vec3(0.4f));
-        auto point_cloud1 = std::make_shared<PointCloud>("./source/model/point_cloud/Cumulonimbus_11.vdb", meshes, meshInstances, textures, materials, model);
-        point_clouds.push_back(point_cloud1);
+        // printf("Load point Cloud Model\n");
+        // glm::mat4 model = glm::mat4(1.0f);
+        // model = glm::translate(model, glm::vec3(0.0f, -100.0f, -160.0f));
+        // model = glm::scale(model, glm::vec3(0.4f));
+        // auto point_cloud1 = std::make_shared<PointCloud>("./source/model/point_cloud/Cumulonimbus_11.vdb", meshes, meshInstances, textures, materials, model);
+        // point_clouds.push_back(point_cloud1);
 
         // model = glm::mat4(1.0f);
         // model = glm::translate(model, glm::vec3(-80.0f, -40.0f, -110.0f));

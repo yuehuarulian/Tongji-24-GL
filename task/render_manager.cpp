@@ -104,10 +104,12 @@ void RenderManager::start_rendering(bool offscreen)
 
     for (int i = 0; i < frames; ++i)
     {
+        printf("Render Frame %d -- Start\n", i);
         scene->wait_until_next_frame(i);
         update_camera();
         render_frame(i);
         glfwPollEvents();
+        printf("Render Frame %d -- End\n", i);
     }
 }
 
