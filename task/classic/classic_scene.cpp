@@ -59,7 +59,7 @@ namespace GL_TASK
         roomMin = glm::vec3(-104.160004, -359.567505, -430.721375);
         roomMax = glm::vec3(104.159973, 77.232498, 99.375420);
 
-        // // liquid model
+        // liquid model
         // glm::mat4 room_model_matrix = room->get_model_matrix(); // glm::mat4(1.0f);
         // // room_model_matrix = glm::rotate(room_model_matrix, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
         // // room_model_matrix = glm::scale(room_model_matrix, glm::vec3(1.f, 1.f, 1.f) * 1.3f);
@@ -93,11 +93,11 @@ namespace GL_TASK
         // }
 
         // // 点云
-        // glm::mat4 model = glm::mat4(1.0f);
-        // model = glm::translate(model, glm::vec3(0.0f, -100.0f, -160.0f));
-        // model = glm::scale(model, glm::vec3(0.3f));
-        // auto point_cloud1 = std::make_shared<PointCloud>("./source/model/point_cloud/Cumulonimbus_11.vdb", meshes, meshInstances, textures, materials, model);
-        // point_clouds.push_back(point_cloud1);
+        glm::mat4 model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(0.0f, -100.0f, -160.0f));
+        model = glm::scale(model, glm::vec3(0.3f));
+        auto point_cloud1 = std::make_shared<PointCloud>("./source/model/point_cloud/Cumulonimbus_11.vdb", meshes, meshInstances, textures, materials, model);
+        point_clouds.push_back(point_cloud1);
 
         // model = glm::mat4(1.0f);
         // model = glm::translate(model, glm::vec3(-80.0f, -40.0f, -110.0f));
@@ -114,8 +114,10 @@ namespace GL_TASK
         this->createBLAS();   // 建立低层次的BVH加速结构
         this->createTLAS();   // 建立高层次的BVH加速结构
         this->process_data(); // 处理数据 将其转换成可供Shader使用的形式
-        // fluid->start();       // 启动流体模拟
-        // bulletWorld->start(); // 启动物理模拟
+        // if (fluid.get() != nullptr)
+        //     fluid->start(); // 启动流体模拟
+        // if (bulletWorld.get() != nullptr)
+        //     bulletWorld->start(); // 启动物理模拟
     }
 
     void ClassicScene::load_lights()
@@ -158,7 +160,7 @@ namespace GL_TASK
         path_tracing_shader->stopUsing();
 
         glBindFramebuffer(GL_FRAMEBUFFER, pathTraceFBO);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT);
         glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
         glBindTexture(GL_TEXTURE_2D, accumTexture);
         quad->Draw(path_tracing_shader.get());
@@ -237,7 +239,7 @@ namespace GL_TASK
             // printf("Scene is dirty\n");
             glBindFramebuffer(GL_FRAMEBUFFER, accumFBO);
             glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            glClear(GL_COLOR_BUFFER_BIT);
 
             frameNum = 1;
             std::cout << "reset FrameNum: " << frameNum << std::endl;
@@ -250,7 +252,7 @@ namespace GL_TASK
 
     void ClassicScene::wait_until_next_frame(int frame_number)
     {
-        if (fluid.get() != nullptr)
-            fluid->wait_until_next_frame(frame_number);
+        // if (fluid.get() != nullptr)
+        //     fluid->wait_until_next_frame(frame_number);
     }
 }
