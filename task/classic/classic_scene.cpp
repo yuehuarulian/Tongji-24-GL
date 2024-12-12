@@ -59,7 +59,7 @@ namespace GL_TASK
         roomMin = glm::vec3(-104.160004, -359.567505, -430.721375);
         roomMax = glm::vec3(104.159973, 77.232498, 99.375420);
 
-        // liquid model
+        // // liquid model
         // glm::mat4 room_model_matrix = room->get_model_matrix(); // glm::mat4(1.0f);
         // // room_model_matrix = glm::rotate(room_model_matrix, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
         // // room_model_matrix = glm::scale(room_model_matrix, glm::vec3(1.f, 1.f, 1.f) * 1.3f);
@@ -220,6 +220,7 @@ namespace GL_TASK
                 if (mesh->needsUpdate(i))
                 { // 刷新低层次的BVH加速结构
                     std::cout << "Mesh " << i << " finish an update." << std::endl;
+                    BbvhDirty = false;
                 }
             }
             if (!BbvhDirty || TbvhDirty)
@@ -245,7 +246,6 @@ namespace GL_TASK
             std::cout << "reset FrameNum: " << frameNum << std::endl;
             // TODO: 数据修改与传输
         }
-        BbvhDirty = false;
         TbvhDirty = false;
         dirty = false;
     }

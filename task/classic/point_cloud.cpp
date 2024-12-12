@@ -11,6 +11,38 @@ PointCloud::PointCloud(const std::string &vdb_file, std::vector<Mesh *> &meshes,
 
     this->model_matrix = model_matrix;
 
+    // 设置基础颜色为白色（云的典型颜色）
+    material.baseColor = glm::vec3(0.9f, 0.9f, 0.9f); // 漫反射颜色
+    // 设置镜面反射颜色较低，模拟云的不光滑表面
+    material.specularColor = glm::vec3(0.1f, 0.1f, 0.1f);
+    // 云层通常有一定的自发光，用于模拟光在云中散射后的效果
+    material.emissiveColor = glm::vec3(0.5f, 0.5f, 0.5f); // 自发光颜色
+    // 设置透明度和折射率
+    material.transparency = 0.5f;    // 云层半透明
+    material.refractionIndex = 1.0f; // 近似空气的折射率
+    // 设置粗糙度（较高粗糙度模拟云的不规则表面）
+    material.roughness = 0.8f;
+    // 设置金属度为0，因为云层不具有金属特性
+    material.metalness = 0.0f;
+    // 设置散射系数较高，模拟云层的光散射
+    material.scattering = 0.9f;
+    // 涂层参数对于云材质可以不设置，保持默认值即可
+    material.coating = 0.0f;
+    material.coatRoughness = 0.0f;
+    // 如果需要纹理控制，可以设置纹理 ID（假设云纹理加载后纹理 ID 为 0）
+    material.diffuseTexId = -1.0f;  // 云的基础颜色纹理
+    material.specularTexId = -1.0f; // 云通常不需要镜面反射纹理
+    material.normalTexId = -1.0f;   // 如果需要云的体积感，可以添加法线纹理
+    material.heightTexId = -1.0f;   // 高度纹理可以为空
+    material.metalnessTexId = -1.0f;
+    material.diffuse_roughnessTexId = -1.0f;
+    material.ambient_occlusionTexId = -1.0f;
+
+    // 打印材质信息（可选，用于调试）
+    std::cout << "Cloud Material Initialized:" << std::endl;
+    std::cout << "Transparency: " << material.transparency << std::endl;
+    std::cout << "Scattering: " << material.scattering << std::endl;
+
     voxelize_point_cloud();
     add_model(vdb_file);
 }

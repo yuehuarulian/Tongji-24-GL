@@ -27,6 +27,7 @@ bool GL_TASK::Fluid::add_model(const std::string &modelfilePath)
             // 3. 将mesh中的材质信息导入scene中
             //    同时更新纹理索引
             mesh->material.updateTexId(textureStartId);
+            mesh->material.baseColor = glm::vec3(0.0, 0.0, 1.0);
             materials.push_back(mesh->material);
             // 4. 根据网格id和材质id创建一个meshInstance
             MeshInstance *instance = new MeshInstance(mesh_id, materialStartId, model_matrix);

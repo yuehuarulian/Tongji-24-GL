@@ -80,18 +80,13 @@ public:
 class Material
 {
     // ---------- 材质数据 ---------- //
-    // 按照每四个float进行分类 -- 便于将数据传递至Shader中
+    // 按照每七个float进行分类 -- 便于将数据传递至Shader中
     // 对于无法补齐的部分可以使用 float padding_i 进行补齐(其中i是一个变量)
 public:
     Material()
-        : baseColor(glm::vec3(0.8824, 0.0627, 0.0627)),
-          diffuseTexId(-1.0f),
-          specularTexId(-1.0f),
-          normalTexId(-1.0f),
-          heightTexId(-1.0f),
-          metalnessTexId(-1.0f),
-          diffuse_roughnessTexId(-1.0f),
-          ambient_occlusionTexId(-1.0f) {}
+        : baseColor(glm::vec3(0.0, 1.0, 0.0)),
+          specularColor(glm::vec3(0.0, 0.0, 1.0)),
+          emissiveColor(glm::vec3(1.0, 1.0, 1.0)) {}
 
     void updateTexId(const int offset)
     {
@@ -105,18 +100,44 @@ public:
         ambient_occlusionTexId += offset;
     }
 
-    glm::vec3 baseColor; // 基础颜色
-    float padding_0;
+    // 颜色参数
+    // param1
+    glm::vec3 baseColor; // 漫反射颜色 (Kd)
+    float padding_kd;
 
-    float diffuseTexId;
-    float specularTexId;
-    float normalTexId;
-    float heightTexId;
+    // param2
+    glm::vec3 specularColor; // 镜面反射颜色 (Ks)
+    float padding_ks;
 
-    float metalnessTexId;
-    float diffuse_roughnessTexId;
-    float ambient_occlusionTexId;
-    float padding_1;
+    // param3
+    glm::vec3 emissiveColor; // 自发光颜色 (Ke)
+    float padding_ke;
+
+    // 材质参数
+    // param4
+    float refractionIndex{1.0f}; // 折射率 (Ni)
+    float transparency{1.0f};    // 透明度 (d)
+    int illuminationModel{1};    // 光照模型 (illum)
+    float roughness{0.0f};       // 粗糙度 (Pr)
+
+    // param5
+    float metalness{0.0f};     // 金属度 (Pm)
+    float scattering{0.0f};    // 散射系数 (Ps)
+    float coating{0.0f};       // 涂层 (Pc)
+    float coatRoughness{0.0f}; // 涂层粗糙度 (Pcr)
+
+    // 纹理贴图的ID
+    // param6
+    float diffuseTexId{-1.0f};
+    float specularTexId{-1.0f};
+    float normalTexId{-1.0f};
+    float heightTexId{-1.0f};
+
+    // param7
+    float metalnessTexId{-1.0f};
+    float diffuse_roughnessTexId{-1.0f};
+    float ambient_occlusionTexId{-1.0f};
+    float padding_id;
 };
 
 class Mesh
