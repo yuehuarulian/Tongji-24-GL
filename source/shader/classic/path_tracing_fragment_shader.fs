@@ -149,8 +149,6 @@ float GeometrySmith(vec3 N,vec3 V,vec3 L,float roughness);
 vec3 fresnelSchlick(float cosTheta,vec3 F0);
 float fresnelSchlick(float cosTheta, float ior);
 bool Refract(vec3 I, vec3 N, float ior, out vec3 refracted);
-vec3 handleVolumeScattering(Ray r, HitRec hit_record, vec3 throughput);
-float computeDensity(vec3 point, float baseDensity);
 // 随机数函数
 uvec4 seed;
 ivec2 pixel;
@@ -194,11 +192,17 @@ void main()
     
     vec3 rayOrigin = camera.position;
     vec3 rayDirection = normalize(d.x * camera.right + d.y * camera.up + camera.forward);
-    float radius = 5;
-    sphereLights[0] = SphereLight(vec3(0.,0.,0.), vec3(2000), radius, 4 * PI * radius * radius);
-    sphereLights[1] = SphereLight(vec3(10.0, 20.0, -10.0), vec3(5000), radius, 4 * PI * radius * radius);
-    sphereLights[2] = SphereLight(vec3(-10.0, 20.0, -10.0), vec3(300), radius, 4 * PI * radius * radius);
-    numOfSphereLights = 3;
+    float radius = 1;
+    sphereLights[0] = SphereLight(vec3(-34.53,27.02,8.634), vec3(100), radius, 4 * PI * radius * radius);
+    sphereLights[1] = SphereLight(vec3(34.15,26.82,8.719), vec3(100), radius, 4 * PI * radius * radius);
+    sphereLights[2] = SphereLight(vec3(-36.92,26.97,82.96), vec3(100), radius, 4 * PI * radius * radius);
+    sphereLights[3] = SphereLight(vec3(33.55,26.88,83.29), vec3(100), radius, 4 * PI * radius * radius);
+    sphereLights[4] = SphereLight(vec3(-34.31,26.83,158.16), vec3(100), radius, 4 * PI * radius * radius);
+    sphereLights[5] = SphereLight(vec3(36.96,26.83,154.76), vec3(100), radius, 4 * PI * radius * radius);
+    sphereLights[6] = SphereLight(vec3(-33.80,26.94,227.89), vec3(100), radius, 4 * PI * radius * radius);
+    sphereLights[7] = SphereLight(vec3(34.24,26.84,228.11), vec3(100), radius, 4 * PI * radius * radius);
+    sphereLights[0] = SphereLight(vec3(0.0,0.0,0.0), vec3(100), radius, 4 * PI * radius * radius);
+    numOfSphereLights = 9;
     
     Ray ray=Ray(rayOrigin,rayDirection);// 生成光线
     
@@ -243,20 +247,32 @@ vec3 PathTrace(Ray r, int maxDepth, int RR_maxDepth)
         // 3. 如果击中了发光体，添加其辐射贡献
         if (hit_record.isEmitter) {
             if(depth == 0){
-                radiance += throughput * lightSample.emission;
-            } 
+                radiance += vec3(0.651, 0.8118, 0.1216);
+            } else {
+                radiance += throughput * calculateDirectLighting(r, hit_record, lightSample);
+            }
             break;
+        } else {
+            sampleLight(hit_record.HitPoint, lightSample); // 进行光源采样
+            vec3 L = lightSample.direction;
+            Ray r2light = Ray(hit_record.HitPoint + 0.001 * L, L);   // 发射一条从散射点到光源的射线 -- 阴影射线
+            bool isShadow = AnyHit(r2light, lightSample.dist - EPS); // 判断阴影
+            if (!isShadow) {
+                vec3 Lo = calculateDirectLighting(r, hit_record, lightSample);
+                Lo = Lo / lightSample.pdf;
+                // return Lo;
+                radiance += throughput * Lo;
+            }
         }
-        
-        // 4. 处理自发光 
-        if (hit_record.emission.r > 0.0001) {
-            // return vec3(1.0, 0.0, 0.0);
-            radiance += throughput * hit_record.emission * 0.001;
-            // if (hit_record.mat.alpha < 1.0) {
-                // continue;
-            // }
-            break;
-        }
+        //  // 4. 处理自发光 
+        // if (hit_record.emission.r > 0.0001) {
+        //     // return vec3(1.0, 0.0, 0.0);
+        //     radiance += throughput * hit_record.emission * 0.001;
+        //     // if (hit_record.mat.alpha < 1.0) {
+        //         // continue;
+        //     // }
+        //     break;
+        // }
 
         // // 5. 判断是否击中体积散射体
         // if (hit_record.mat.isVolume > 0.5) {
@@ -265,7 +281,16 @@ vec3 PathTrace(Ray r, int maxDepth, int RR_maxDepth)
         //     continue;
         // }
 
-        // 5. 处理透明材质的反射和折射
+        // 6. 间接光照计算（路径延续）
+        // 7. 俄罗斯轮盘赌优化
+        float prob = 0.7; // 概率阈值
+        float m_prob = rand();
+        if (depth > RR_maxDepth && m_prob > prob) {
+            break; // 停止追踪路径
+        }
+        throughput *= m_prob; // 更新通量权重以考虑路径终止的概率
+        
+        // 4. 处理透明材质的反射和折射
         if(hit_record.mat.alpha < 1.0) 
         {
             vec3 refractedDirection;
@@ -299,41 +324,10 @@ vec3 PathTrace(Ray r, int maxDepth, int RR_maxDepth)
             throughput *= hit_record.mat.baseColor; // 透明材质的颜色
             continue;
         }
-        
-        //6. 直接光照计算（光源采样）
-        if(hit_record.isEmitter) {
-            if(depth == 0){
-                radiance += throughput * lightSample.emission;
-            } else {
-                radiance += throughput * calculateDirectLighting(r, hit_record, lightSample);
-            }
-            break;
-        } else {
-            sampleLight(hit_record.HitPoint, lightSample); // 进行光源采样
-            vec3 L = lightSample.direction;
-            Ray r2light = Ray(hit_record.HitPoint + 0.001 * L, L);   // 发射一条从散射点到光源的射线 -- 阴影射线
-            bool isShadow = AnyHit(r2light, lightSample.dist - EPS); // 判断阴影
-            if (!isShadow) {
-                vec3 Lo = calculateDirectLighting(r, hit_record, lightSample);
-                Lo = Lo / lightSample.pdf;
-                radiance += throughput * Lo;
-            }
-        }
-        
-        // 7. 间接光照计算（路径延续）
-        // 8. 俄罗斯轮盘赌优化
-        float prob = 0.7; // 概率阈值
-        float m_prob = rand();
-        if (depth > RR_maxDepth && m_prob > prob) {
-            break; // 停止追踪路径
-        }
-        throughput *= m_prob; // 更新通量权重以考虑路径终止的概率
-        
-        // 9. 采样下一个方向
+        // 8. 采样下一个方向 -- 漫反射
         bool useCosineWeighted = true;
         vec3 wi = SampleDirection(hit_record.normal, useCosineWeighted); // 在半球中随机采样
         float pdf = useCosineWeighted ?  (wi.z / PI) : (1.0 / (2.0 * PI));
-        // throughput /= pdf;
         // throughput /= pdf;
         r = Ray(hit_record.HitPoint + 0.001 * hit_record.normal, wi);      // 更新光线
     }
@@ -350,7 +344,9 @@ vec3 calculateDirectLighting(Ray r, HitRec hit_record, LightSampleRec lightSampl
     vec3 N = hit_record.normal;
     vec3 V = -r.direction;
     vec3 L = lightSample.direction;
+    // return hit_record.mat.baseColor;
     vec3 albedo = pow(hit_record.mat.baseColor, vec3(2.2));
+    // return albedo;
     float metallic = hit_record.mat.matellic;
     float roughness = hit_record.mat.roughness;
     vec3 F0 = mix(vec3(0.04), albedo, metallic);
@@ -359,7 +355,6 @@ vec3 calculateDirectLighting(Ray r, HitRec hit_record, LightSampleRec lightSampl
 
     return BRDF_PBR(N, V, L, Li, albedo, metallic, roughness, F0);
 }
-
 // ----------------------------------------------------------------------------
 float DistributionGGX(vec3 N, vec3 H, float roughness)
 {
@@ -374,7 +369,6 @@ float DistributionGGX(vec3 N, vec3 H, float roughness)
     
     return nom / denom;
 }
-
 // ----------------------------------------------------------------------------
 float GeometrySchlickGGX(float NdotV, float roughness)
 {
@@ -444,33 +438,6 @@ vec3 BRDF_PBR(vec3 N, vec3 V, vec3 L, vec3 radiance, vec3 albedo, float metallic
     
     return (kD * albedo / PI + specular) * radiance * NdotL;
 }
-// ----------------------------------------------------------------------------
-// vec3 handleVolumeScattering(Ray r, HitRec hit_record, vec3 throughput) {
-//     vec3 radiance = vec3(0.0);
-//     float stepSize = 0.1;  // 体积采样的步长
-//     float maxDistance = 5.0;  // 光线在云层内的最大距离
-
-//     for (float t = 0.0; t < maxDistance; t += stepSize) {
-//         vec3 samplePoint = r.origin + t * r.direction;
-//         float density = computeDensity(samplePoint, hit_record.mat.density);
-//         throughput *= exp(-density * hit_record.mat.absorption);  // 光线吸收
-
-//         if (rand() < density * hit_record.mat.scatter) {
-//             bool useCosineWeighted = true;
-//             vec3 scatterDir = SampleDirection(hit_record.normal, useCosineWeighted);  // 采样散射方向
-//             Ray scatteredRay = Ray(samplePoint, scatterDir);
-//             return throughput * PathTrace(scatteredRay, maxDepth, RR_maxDepth);
-//         }
-//     }
-
-//     return radiance;
-// }
-
-// // ----------------------------------------------------------------------------
-// float computeDensity(vec3 point, float baseDensity) {
-//     return baseDensity * (0.5 + 0.5 * PerlinNoise(point));  // 基础密度乘以噪声扰动
-// }
-
 /********************************/
 // 求取交点
 /********************************/
@@ -909,7 +876,7 @@ void GetMaterial(inout HitRec hit_record, in Ray r)
     // 获取材质信息
     // 并通过光线计算光照颜色
     // TODO: 这里需要根据实际的材质类包含的内容进行调整
-    int index = hit_record.matID * 7; // Material类有7块
+    int index = hit_record.matID * 8; // Material类有7块
     Material mat;
     // 材质默认值
     // 灰色（默认非金属材质）
@@ -1115,24 +1082,6 @@ void sampleLight(vec3 hitPoint,inout LightSampleRec lightSample)
 {
     int lightIndex=int(rand()*float(numOfSphereLights));
     SampleSphereLight(sphereLights[lightIndex],hitPoint,lightSample);
-    
-    // // 随机选择一种光源类型：平面光源、球面光源或远程光源
-    // // 随机选择一个光源类型（0: QUAD_LIGHT, 1: SPHERE_LIGHT, 2: DISTANT_LIGHT）
-    // int lightType = int(rand() * 3.0);
-    
-    // // 根据光源类型确保选取正确的光源索引
-    // if (lightType == 0 && numOfRectLights > 0) {
-        //     int lightIndex = int(rand() * float(numOfRectLights));
-        //     SampleRectLight(rectLights[lightIndex], hitPoint, lightSample);
-    // }
-    // else if (lightType == 1 && numOfSphereLights > 0) {
-        //     int lightIndex = int(rand() * float(numOfSphereLights));
-        //     SampleSphereLight(sphereLights[lightIndex], hitPoint, lightSample);
-    // }
-    // else if (lightType == 2 && numOfDistantLights > 0) {
-        //     int lightIndex = int(rand() * float(numOfDistantLights));
-        //     SampleDistantLight(distantLights[lightIndex], hitPoint, lightSample);
-    // }
 }
 void SampleRectLight(in RectLight light,in vec3 hitPoint,inout LightSampleRec lightSample)
 {
@@ -1172,7 +1121,8 @@ void SampleSphereLight(in SphereLight light,in vec3 hitPoint,inout LightSampleRe
     
     lightSample.direction=lightSurfacePos-hitPoint;
     lightSample.dist=length(lightSample.direction);
-    float distSq=lightSample.dist*lightSample.dist;
+    // float distSq=lightSample.dist*lightSample.dist;
+    float distSq = lightSample.dist;
     
     lightSample.direction/=lightSample.dist;
     lightSample.normal=normalize(lightSurfacePos-light.position);
