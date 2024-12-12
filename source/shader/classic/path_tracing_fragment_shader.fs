@@ -79,6 +79,11 @@ struct Material
     float coat;// 涂层
     float coatRough;// 涂层粗糙度
     float ao;// 环境光遮蔽
+
+    float absorption;// 吸收
+    float density;// 密度
+    float anisotropy;// 各向异性
+    float isVolume;// 缩放
 };
 // 击中点记录
 struct HitRec
@@ -144,6 +149,8 @@ float GeometrySmith(vec3 N,vec3 V,vec3 L,float roughness);
 vec3 fresnelSchlick(float cosTheta,vec3 F0);
 float fresnelSchlick(float cosTheta, float ior);
 bool Refract(vec3 I, vec3 N, float ior, out vec3 refracted);
+vec3 handleVolumeScattering(Ray r, HitRec hit_record, vec3 throughput);
+float computeDensity(vec3 point, float baseDensity);
 // 随机数函数
 uvec4 seed;
 ivec2 pixel;
@@ -231,6 +238,7 @@ vec3 PathTrace(Ray r, int maxDepth, int RR_maxDepth)
         
         // 2. 从材质贴图中加载材质信息
         GetMaterial(hit_record, r); // 获取材质
+        // return hit_record.mat.baseColor;
         
         // 3. 如果击中了发光体，添加其辐射贡献
         if (hit_record.isEmitter) {
@@ -239,8 +247,25 @@ vec3 PathTrace(Ray r, int maxDepth, int RR_maxDepth)
             } 
             break;
         }
+        
+        // 4. 处理自发光 
+        if (hit_record.emission.r > 0.0001) {
+            // return vec3(1.0, 0.0, 0.0);
+            radiance += throughput * hit_record.emission * 0.001;
+            // if (hit_record.mat.alpha < 1.0) {
+                // continue;
+            // }
+            break;
+        }
 
-        // 4. 处理透明材质的反射和折射
+        // // 5. 判断是否击中体积散射体
+        // if (hit_record.mat.isVolume > 0.5) {
+        //     r = Ray(hit_record.HitPoint + 0.001 * hit_record.ffnormal, r.direction);
+        //     radiance += handleVolumeScattering(r, hit_record, throughput);
+        //     continue;
+        // }
+
+        // 5. 处理透明材质的反射和折射
         if(hit_record.mat.alpha < 1.0) 
         {
             vec3 refractedDirection;
@@ -275,7 +300,7 @@ vec3 PathTrace(Ray r, int maxDepth, int RR_maxDepth)
             continue;
         }
         
-        // 5. 直接光照计算（光源采样）
+        //6. 直接光照计算（光源采样）
         if(hit_record.isEmitter) {
             if(depth == 0){
                 radiance += throughput * lightSample.emission;
@@ -295,8 +320,8 @@ vec3 PathTrace(Ray r, int maxDepth, int RR_maxDepth)
             }
         }
         
-        // 6. 间接光照计算（路径延续）
-        // 7. 俄罗斯轮盘赌优化
+        // 7. 间接光照计算（路径延续）
+        // 8. 俄罗斯轮盘赌优化
         float prob = 0.7; // 概率阈值
         float m_prob = rand();
         if (depth > RR_maxDepth && m_prob > prob) {
@@ -304,7 +329,7 @@ vec3 PathTrace(Ray r, int maxDepth, int RR_maxDepth)
         }
         throughput *= m_prob; // 更新通量权重以考虑路径终止的概率
         
-        // 8. 采样下一个方向
+        // 9. 采样下一个方向
         bool useCosineWeighted = true;
         vec3 wi = SampleDirection(hit_record.normal, useCosineWeighted); // 在半球中随机采样
         float pdf = useCosineWeighted ?  (wi.z / PI) : (1.0 / (2.0 * PI));
@@ -419,6 +444,33 @@ vec3 BRDF_PBR(vec3 N, vec3 V, vec3 L, vec3 radiance, vec3 albedo, float metallic
     
     return (kD * albedo / PI + specular) * radiance * NdotL;
 }
+// ----------------------------------------------------------------------------
+// vec3 handleVolumeScattering(Ray r, HitRec hit_record, vec3 throughput) {
+//     vec3 radiance = vec3(0.0);
+//     float stepSize = 0.1;  // 体积采样的步长
+//     float maxDistance = 5.0;  // 光线在云层内的最大距离
+
+//     for (float t = 0.0; t < maxDistance; t += stepSize) {
+//         vec3 samplePoint = r.origin + t * r.direction;
+//         float density = computeDensity(samplePoint, hit_record.mat.density);
+//         throughput *= exp(-density * hit_record.mat.absorption);  // 光线吸收
+
+//         if (rand() < density * hit_record.mat.scatter) {
+//             bool useCosineWeighted = true;
+//             vec3 scatterDir = SampleDirection(hit_record.normal, useCosineWeighted);  // 采样散射方向
+//             Ray scatteredRay = Ray(samplePoint, scatterDir);
+//             return throughput * PathTrace(scatteredRay, maxDepth, RR_maxDepth);
+//         }
+//     }
+
+//     return radiance;
+// }
+
+// // ----------------------------------------------------------------------------
+// float computeDensity(vec3 point, float baseDensity) {
+//     return baseDensity * (0.5 + 0.5 * PerlinNoise(point));  // 基础密度乘以噪声扰动
+// }
+
 /********************************/
 // 求取交点
 /********************************/
@@ -904,11 +956,13 @@ void GetMaterial(inout HitRec hit_record, in Ray r)
     vec4 param5 = texelFetch(materialsTex, index + 4);  // 获取第五个材质参数
     vec4 param6 = texelFetch(materialsTex, index + 5);  // 获取第六个材质参数
     vec4 param7 = texelFetch(materialsTex, index + 6);  // 获取第七个材质参数
+    vec4 param8 = texelFetch(materialsTex, index + 7);  // 获取第八个材质参数
 
     // 获取材质的基本颜色
     mat.baseColor = param1.rgb;
     mat.specular = param2.rgb;
     mat.emission = param3.rgb;
+    hit_record.emission = mat.emission;
 
     // 获取材质的参数
     vec4 para_1  = param4;
@@ -920,6 +974,10 @@ void GetMaterial(inout HitRec hit_record, in Ray r)
     mat.scatter = para_2.y;// 散射
     mat.coat = para_2.z;// 涂层
     mat.coatRough = para_2.w;// 涂层粗糙度
+    mat.absorption = param8.r;// 吸收率
+    mat.density = param8.g;// 透射率
+    mat.anisotropy = param8.b;// 各向异性
+    mat.isVolume = param8.a;// 各向异性旋转
     
     // 获取纹理相应的索引
     ivec4 texIDs_1  = ivec4(param6);

@@ -53,13 +53,13 @@ namespace GL_TASK
         // 先加载所有的模型文件 存储在meshes中
         // Room model
         glm::vec3 roomMin, roomMax;
-        room = std::make_shared<Room>("source/model/room2/room2.obj", meshes, meshInstances, textures, materials);
-        printf("Load Room Model Over\n");
-        room->getBoundingBox(roomMin, roomMax);
-        roomMin = glm::vec3(-104.160004, -359.567505, -430.721375);
-        roomMax = glm::vec3(104.159973, 77.232498, 99.375420);
+        room = std::make_shared<Room>("source/model/room2/test.obj", meshes, meshInstances, textures, materials);
+        // printf("Load Room Model Over\n");
+        // room->getBoundingBox(roomMin, roomMax);
+        // roomMin = glm::vec3(-104.160004, -359.567505, -430.721375);
+        // roomMax = glm::vec3(104.159973, 77.232498, 99.375420);
 
-        // // liquid model
+        // liquid model
         // glm::mat4 room_model_matrix = room->get_model_matrix(); // glm::mat4(1.0f);
         // // room_model_matrix = glm::rotate(room_model_matrix, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
         // // room_model_matrix = glm::scale(room_model_matrix, glm::vec3(1.f, 1.f, 1.f) * 1.3f);

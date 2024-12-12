@@ -86,7 +86,7 @@ public:
     Material()
         : baseColor(glm::vec3(0.0, 1.0, 0.0)),
           specularColor(glm::vec3(0.0, 0.0, 1.0)),
-          emissiveColor(glm::vec3(1.0, 1.0, 1.0)) {}
+          emissiveColor(glm::vec3(0.0, 0.0, 0.0)) {}
 
     void updateTexId(const int offset)
     {
@@ -138,6 +138,12 @@ public:
     float diffuse_roughnessTexId{-1.0f};
     float ambient_occlusionTexId{-1.0f};
     float padding_id;
+
+    // param8
+    float absorption{0.0}; // 吸收系数 (控制光线穿透的深度)
+    float density{0.0};    // 密度 (控制光线在材质中的传播)
+    float anisotropy{0.0}; // 各向异性 (控制材质的各向异性)
+    float isVolume{0.0};   // 是否是体积材质
 };
 
 class Mesh

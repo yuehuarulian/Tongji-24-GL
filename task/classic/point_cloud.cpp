@@ -12,13 +12,13 @@ PointCloud::PointCloud(const std::string &vdb_file, std::vector<Mesh *> &meshes,
     this->model_matrix = model_matrix;
 
     // 设置基础颜色为白色（云的典型颜色）
-    material.baseColor = glm::vec3(0.9f, 0.9f, 0.9f); // 漫反射颜色
+    material.baseColor = glm::vec3(1.0f, 1.0f, 1.0f); // 漫反射颜色
     // 设置镜面反射颜色较低，模拟云的不光滑表面
     material.specularColor = glm::vec3(0.1f, 0.1f, 0.1f);
     // 云层通常有一定的自发光，用于模拟光在云中散射后的效果
     material.emissiveColor = glm::vec3(0.5f, 0.5f, 0.5f); // 自发光颜色
     // 设置透明度和折射率
-    material.transparency = 0.5f;    // 云层半透明
+    material.transparency = 0.1f;    // 云层半透明
     material.refractionIndex = 1.0f; // 近似空气的折射率
     // 设置粗糙度（较高粗糙度模拟云的不规则表面）
     material.roughness = 0.8f;
@@ -37,6 +37,11 @@ PointCloud::PointCloud(const std::string &vdb_file, std::vector<Mesh *> &meshes,
     material.metalnessTexId = -1.0f;
     material.diffuse_roughnessTexId = -1.0f;
     material.ambient_occlusionTexId = -1.0f;
+
+    material.absorption = 0.1;
+    material.density = 0.5f;    // 云层的密度较大
+    material.anisotropy = 0.5f; // 云层的各向异性较大
+    material.isVolume = 1.0f;   // 云层是体积材质
 
     // 打印材质信息（可选，用于调试）
     std::cout << "Cloud Material Initialized:" << std::endl;
