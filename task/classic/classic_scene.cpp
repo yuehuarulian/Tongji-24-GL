@@ -54,36 +54,36 @@ namespace GL_TASK
         // Room model
         glm::vec3 roomMin, roomMax;
         room = std::make_shared<Room>("source/model/room2/test.obj", meshes, meshInstances, textures, materials);
-        // printf("Load Room Model Over\n");
-        // room->getBoundingBox(roomMin, roomMax);
+        printf("Load Room Model Over\n");
+        room->getBoundingBox(roomMin, roomMax);
         // roomMin = glm::vec3(-104.160004, -359.567505, -430.721375);
         // roomMax = glm::vec3(104.159973, 77.232498, 99.375420);
 
         // liquid model
-        // glm::mat4 room_model_matrix = room->get_model_matrix(); // glm::mat4(1.0f);
-        // // room_model_matrix = glm::rotate(room_model_matrix, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-        // // room_model_matrix = glm::scale(room_model_matrix, glm::vec3(1.f, 1.f, 1.f) * 1.3f);
-        // fluid = std::make_shared<Fluid>(meshes, meshInstances, textures, materials);
-        // fluid->BindDirty(&BbvhDirty);
-        // fluid->set_model_matrix(room_model_matrix);
-        // fluid->add_model("source/model/fluid/mesh.obj");
+        glm::mat4 room_model_matrix = room->get_model_matrix(); // glm::mat4(1.0f); //
+        // room_model_matrix = glm::rotate(room_model_matrix, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+        // room_model_matrix = glm::scale(room_model_matrix, glm::vec3(1.f, 1.f, 1.f) * 1.3f);
+        fluid = std::make_shared<Fluid>(meshes, meshInstances, textures, materials);
+        fluid->BindDirty(&BbvhDirty);
+        fluid->set_model_matrix(room_model_matrix);
+        fluid->add_model("source/model/fluid/mesh.obj");
 
-        // // bullet world
-        // bulletWorld = std::make_shared<BulletWorld>(meshes, meshInstances, textures, materials);
-        // bulletWorld->BindDirty(&TbvhDirty);
-        // bulletWorld->BindFluid(fluid);
-        // bulletWorld->setRoomBounds(roomMin, roomMax);
-        // double water_level = fluid->get_water_level(roomMin, roomMax);
+        // bullet world
+        bulletWorld = std::make_shared<BulletWorld>(meshes, meshInstances, textures, materials);
+        bulletWorld->BindDirty(&TbvhDirty);
+        bulletWorld->BindFluid(fluid);
+        bulletWorld->setRoomBounds(roomMin, roomMax);
+        double water_level = fluid->get_water_level(roomMin, roomMax);
 
-        // // boat model
-        // bulletWorld->bind_model("source/model/boat/boat_obj.obj", ObjectType::BOAT);
-        // bulletWorld->add_model(glm::vec3(15.0, water_level + 5.0, -25.0));
-        // bulletWorld->add_model(glm::vec3(-15.0, water_level + 5.0, 25.0));
+        // boat model
+        bulletWorld->bind_model("source/model/boat/boat_obj.obj", ObjectType::BOAT);
+        bulletWorld->add_model(glm::vec3(15.0, water_level + 5.0, -25.0));
+        bulletWorld->add_model(glm::vec3(-15.0, water_level + 5.0, 25.0));
 
-        // // flower model
-        // bulletWorld->bind_model("source/model/flower/flower.obj", ObjectType::FLOWER);
-        // bulletWorld->add_model(glm::vec3(-20.0, water_level + 2.0, -50.0));
-        // bulletWorld->add_model(glm::vec3(20.0, water_level + 2.0, 50.0));
+        // flower model
+        bulletWorld->bind_model("source/model/flower/flower.obj", ObjectType::FLOWER);
+        bulletWorld->add_model(glm::vec3(-20.0, water_level + 2.0, -50.0));
+        bulletWorld->add_model(glm::vec3(20.0, water_level + 2.0, 50.0));
 
         // butterfly model
         // for (int i = 0; i < butterfly_count; i++)
@@ -93,11 +93,11 @@ namespace GL_TASK
         // }
 
         // // 点云
-        glm::mat4 model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(0.0f, -100.0f, -160.0f));
-        model = glm::scale(model, glm::vec3(0.3f));
-        auto point_cloud1 = std::make_shared<PointCloud>("./source/model/point_cloud/Cumulonimbus_11.vdb", meshes, meshInstances, textures, materials, model);
-        point_clouds.push_back(point_cloud1);
+        // glm::mat4 model = glm::mat4(1.0f);
+        // model = glm::translate(model, glm::vec3(0.0f, -100.0f, -160.0f));
+        // model = glm::scale(model, glm::vec3(0.3f));
+        // auto point_cloud1 = std::make_shared<PointCloud>("./source/model/point_cloud/Cumulonimbus_11.vdb", meshes, meshInstances, textures, materials, model);
+        // point_clouds.push_back(point_cloud1);
 
         // model = glm::mat4(1.0f);
         // model = glm::translate(model, glm::vec3(-80.0f, -40.0f, -110.0f));
@@ -114,10 +114,10 @@ namespace GL_TASK
         this->createBLAS();   // 建立低层次的BVH加速结构
         this->createTLAS();   // 建立高层次的BVH加速结构
         this->process_data(); // 处理数据 将其转换成可供Shader使用的形式
-        // if (fluid.get() != nullptr)
-        //     fluid->start(); // 启动流体模拟
-        // if (bulletWorld.get() != nullptr)
-        //     bulletWorld->start(); // 启动物理模拟
+        if (fluid.get() != nullptr)
+            fluid->start(); // 启动流体模拟
+        if (bulletWorld.get() != nullptr)
+            bulletWorld->start(); // 启动物理模拟
     }
 
     void ClassicScene::load_lights()

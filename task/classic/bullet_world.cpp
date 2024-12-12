@@ -168,7 +168,7 @@ void BulletWorld::updateLoop() {
             std::cout << "BulletWorld:: Applying Fluid Forces." << std::endl;
             applyFluidForces();
             std::cout << "BulletWorld:: Simulating next step: " << sim_dt << "s" << std::endl;
-            dynamicsWorld->stepSimulation(sim_dt, 20);
+            dynamicsWorld->stepSimulation(sim_dt, 5);
             enforceBounds();
             std::cout << "BulletWorld:: Applying model Matrices." << std::endl;
             applyModelMatrices();
