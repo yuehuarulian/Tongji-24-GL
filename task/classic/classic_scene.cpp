@@ -59,7 +59,7 @@ namespace GL_TASK
         // roomMin = glm::vec3(-104.160004, -359.567505, -430.721375);
         // roomMax = glm::vec3(104.159973, 77.232498, 99.375420);
 
-        // // liquid model
+        // liquid model
         // glm::mat4 room_model_matrix = room->get_model_matrix(); // glm::mat4(1.0f); //
         // // room_model_matrix = glm::rotate(room_model_matrix, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
         // // room_model_matrix = glm::scale(room_model_matrix, glm::vec3(1.f, 1.f, 1.f) * 1.3f);
@@ -86,36 +86,41 @@ namespace GL_TASK
         // bulletWorld->add_model(glm::vec3(20.0, water_level + 2.0, 50.0));
 
         // butterfly model
-        for (int i = 0; i < butterfly_count; i++)
-        {
-            auto butterfly_model_single = std::make_shared<Butterfly>("source/model/butterfly/ok.dae", meshes, meshInstances, textures, materials);
-            butterflies.push_back(butterfly_model_single);
-        }
+        // for (int i = 0; i < butterfly_count; i++)
+        // {
+        //     auto butterfly_model_single = std::make_shared<Butterfly>("source/model/butterfly/ok.dae", meshes, meshInstances, textures, materials);
+        //     butterflies.push_back(butterfly_model_single);
+        // }
 
         // // 点云
-        // glm::mat4 model = glm::mat4(1.0f);
-        // model = glm::translate(model, glm::vec3(0.0f, -100.0f, -160.0f));
-        // model = glm::scale(model, glm::vec3(0.3f));
-        // auto point_cloud1 = std::make_shared<PointCloud>("./source/model/point_cloud/Cumulonimbus_11.vdb", meshes, meshInstances, textures, materials, model);
-        // point_clouds.push_back(point_cloud1);
+        glm::mat4 model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(0.0f, -120.0f, -160.0f));
+        model = glm::scale(model, glm::vec3(0.3f));
+        auto point_cloud1 = std::make_shared<PointCloud>("./source/model/point_cloud/Cumulonimbus_11.vdb", meshes, meshInstances, textures, materials, model);
+        point_clouds.push_back(point_cloud1);
 
         // model = glm::mat4(1.0f);
-        // model = glm::translate(model, glm::vec3(-80.0f, -40.0f, -110.0f));
-        // model = glm::scale(model, glm::vec3(0.4f));
-        // auto point_cloud2 = std::make_shared<PointCloud>("E:/my_code/GL_bigwork/code/source/model/point_cloud/Cumulonimbus_14.vdb", meshes, meshInstances, textures, materials, model);
+        // model = glm::translate(model, glm::vec3(0.0f, -300.0f, -110.0f));
+        // model = glm::scale(model, glm::vec3(1.0f));
+        // auto point_cloud2 = std::make_shared<PointCloud>("./source/model/point_cloud/VDB_PACK_Smoke5.vdb", meshes, meshInstances, textures, materials, model);
         // point_clouds.push_back(point_cloud2);
+        //  model = glm::mat4(1.0f);
+        //  model = glm::translate(model, glm::vec3(-60.0f, -100.0f, -110.0f));
+        //  model = glm::scale(model, glm::vec3(0.4f));
+        //  auto point_cloud2 = std::make_shared<PointCloud>("./source/model/point_cloud/Cumulonimbus_14.vdb", meshes, meshInstances, textures, materials, model);
+        //  point_clouds.push_back(point_cloud2);
 
-        // model = glm::mat4(1.0f);
-        // model = glm::translate(model, glm::vec3(40.0f, -80.0f, 40.0f));
-        // model = glm::scale(model, glm::vec3(0.5f));
-        // auto point_cloud3 = std::make_shared<PointCloud>("source/model/point_cloud/Cumulonimbus_09.vdb", meshes, meshInstances, textures, materials, model);
-        // point_clouds.push_back(point_cloud3);
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(40.0f, -140.0f, 0.0f));
+        model = glm::scale(model, glm::vec3(0.5f));
+        auto point_cloud3 = std::make_shared<PointCloud>("./source/model/point_cloud/Cumulonimbus_09.vdb", meshes, meshInstances, textures, materials, model);
+        point_clouds.push_back(point_cloud3);
 
         this->createBLAS();   // 建立低层次的BVH加速结构
         this->createTLAS();   // 建立高层次的BVH加速结构
         this->process_data(); // 处理数据 将其转换成可供Shader使用的形式
-        // if (fluid.get() != nullptr)
-        //     fluid->start(); // 启动流体模拟
+        if (fluid.get() != nullptr)
+            fluid->start(); // 启动流体模拟
         // if (bulletWorld.get() != nullptr)
         //     bulletWorld->start(); // 启动物理模拟
     }
@@ -252,7 +257,7 @@ namespace GL_TASK
 
     void ClassicScene::wait_until_next_frame(int frame_number)
     {
-        // if (fluid.get() != nullptr)
-        //     fluid->wait_until_next_frame(frame_number);
+        if (fluid.get() != nullptr)
+            fluid->wait_until_next_frame(frame_number);
     }
 }

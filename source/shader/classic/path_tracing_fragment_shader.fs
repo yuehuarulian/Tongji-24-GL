@@ -115,6 +115,14 @@ struct LightSampleRec
     float pdf;// 采样到该光源的概率密度函数值
 };
 
+// 散射记录结构体
+struct ScatterRec {
+    vec3 scatteringColor; // 散射光的颜色
+    vec3 transmittance;   // 透过率
+    vec3 scatteredDirection; // 散射方向
+    float pdf;             // 概率密度函数
+};
+
 // 路径追踪函数
 vec3 PathTrace(Ray r,int maxDepth,int RR_maxDepth);
 vec3 calculateDirectLighting(Ray r, HitRec hit_record, LightSampleRec lightSample);
@@ -155,6 +163,9 @@ ivec2 pixel;
 void InitRNG(vec2 p,int frame);
 void pcg4d(inout uvec4 v);
 float rand();
+vec3 handleVolumeScattering(Ray r, HitRec hit_record, vec3 throughput);
+vec3 getTransmittance(Ray r, float distance, Material volMat);
+ScatterRec sampleScatterDirection(Ray r, HitRec hit_record, Material volMat);
 
 uniform int topBVHIndex;
 uniform sampler2D accumTexture;
@@ -179,6 +190,76 @@ uniform vec2 resolution;
 uniform Camera camera;
 uniform int frameNum;
 
+float perlinNoise(vec3 p) {
+    // 伪实现 Perlin 噪声
+    return fract(sin(dot(p, vec3(12.9898, 78.233, 45.643))) * 43758.5453);
+}
+
+// 避免递归路径追踪的方式是使用循环
+vec3 handleVolumeScattering(Ray r, HitRec hit_record, vec3 throughput) {
+    vec3 radiance = vec3(0.0);
+    int depth = 0;
+    int maxDepth = 5;
+    
+    // 最大路径深度控制
+    while (depth < maxDepth) {
+        // 计算体积散射的透过率和散射颜色
+        ScatterRec scatterRec = sampleScatterDirection(r, hit_record, hit_record.mat);
+        
+        float noise = perlinNoise(hit_record.HitPoint * hit_record.mat.density);
+        vec3 scatteringColor = mix(vec3(0.0), scatterRec.scatteringColor, noise);
+
+        // 使用路径的当前通量和散射结果计算辐射
+        vec3 scatterRadiance = throughput * scatteringColor * scatterRec.transmittance;
+        radiance += scatterRadiance;
+
+        // 如果透过率太低，停止继续传播
+        if (length(throughput) < 0.01) {
+            break;
+        }
+        
+        // 更新传播通量
+        throughput *= scatterRec.transmittance;
+        
+        // 路径更新：光线继续传播
+        r.origin = hit_record.HitPoint + 0.001 * hit_record.ffnormal;
+        r.direction = scatterRec.scatteredDirection;
+
+        // 增加深度
+        depth++;
+    }
+
+    return radiance;
+}
+
+// 计算光线在体积介质中的透过率
+vec3 getTransmittance(Ray r, float distance, Material volMat) {
+    // Beer-Lambert定律的简化版
+    float absorption = exp(-volMat.absorption * distance);  // 计算吸收衰减，返回一个标量
+    return vec3(absorption, absorption, absorption);  // 返回一个vec3，使每个通道都应用相同的衰减
+}
+
+// 采样散射方向
+ScatterRec sampleScatterDirection(Ray r, HitRec hit_record, Material volMat) {
+    ScatterRec scatterRec;
+
+    // 从各向同性散射的情况下采样方向
+    vec3 randomDirection = normalize(vec3(rand(), rand(), rand()));
+    scatterRec.scatteredDirection = randomDirection;
+
+    // 计算散射的强度和概率密度函数（PDF）
+    float cosTheta = dot(randomDirection, hit_record.ffnormal);
+    scatterRec.pdf = volMat.scatter * max(cosTheta, 0.0);
+
+    // 计算散射光的颜色（通常假设光线散射不改变颜色）
+    scatterRec.scatteringColor = volMat.scatter * hit_record.mat.baseColor;
+
+    // 计算透过率
+    scatterRec.transmittance = getTransmittance(r, hit_record.HitDist, volMat);
+
+    return scatterRec;
+}
+
 void main()
 {
     // 屏幕坐标直接映射生成光线
@@ -202,7 +283,7 @@ void main()
     sphereLights[6] = SphereLight(vec3(-33.80,26.94,227.89), vec3(100), radius, 4 * PI * radius * radius);
     sphereLights[7] = SphereLight(vec3(34.24,26.84,228.11), vec3(100), radius, 4 * PI * radius * radius);
     sphereLights[0] = SphereLight(vec3(0.0,0.0,0.0), vec3(100), radius, 4 * PI * radius * radius);
-    numOfSphereLights = 9;
+    numOfSphereLights = 8;
     
     Ray ray=Ray(rayOrigin,rayDirection);// 生成光线
     
@@ -267,19 +348,27 @@ vec3 PathTrace(Ray r, int maxDepth, int RR_maxDepth)
         //  // 4. 处理自发光 
         // if (hit_record.emission.r > 0.0001) {
         //     // return vec3(1.0, 0.0, 0.0);
-        //     radiance += throughput * hit_record.emission * 0.001;
+        //     radiance += throughput * hit_record.emission * 0.1;
         //     // if (hit_record.mat.alpha < 1.0) {
         //         // continue;
         //     // }
         //     break;
         // }
 
-        // // 5. 判断是否击中体积散射体
-        // if (hit_record.mat.isVolume > 0.5) {
-        //     r = Ray(hit_record.HitPoint + 0.001 * hit_record.ffnormal, r.direction);
-        //     radiance += handleVolumeScattering(r, hit_record, throughput);
-        //     continue;
-        // }
+        // 5. 判断是否击中体积散射体
+        if (hit_record.mat.isVolume > 0.5) {
+            r = Ray(hit_record.HitPoint + 0.001 * hit_record.normal, r.direction);
+            radiance += handleVolumeScattering(r, hit_record, throughput);
+            if (hit_record.mat.emission.r > 0.0001) {
+                radiance += throughput * hit_record.mat.emission * 0.2;  // 可以调整强度以模拟云的发光
+            }
+            // break;
+            // return radiance;
+            // 自发光
+            // radiance += throughput * hit_record.emission;
+            // return radiance;
+            // continue;
+        }
 
         // 6. 间接光照计算（路径延续）
         // 7. 俄罗斯轮盘赌优化
@@ -291,7 +380,7 @@ vec3 PathTrace(Ray r, int maxDepth, int RR_maxDepth)
         throughput *= m_prob; // 更新通量权重以考虑路径终止的概率
         
         // 4. 处理透明材质的反射和折射
-        if(hit_record.mat.alpha < 1.0) 
+        if(hit_record.mat.alpha < 0.99) 
         {
             vec3 refractedDirection;
             bool isTotalInternalReflection = !Refract(r.direction, hit_record.ffnormal, hit_record.mat.ior, refractedDirection);
@@ -321,7 +410,7 @@ vec3 PathTrace(Ray r, int maxDepth, int RR_maxDepth)
                 r = Ray(hit_record.HitPoint + 0.001 * reflectedDirection, reflectedDirection);
             }
 
-            throughput *= hit_record.mat.baseColor; // 透明材质的颜色
+            // throughput *= hit_record.mat.baseColor; // 透明材质的颜色
             continue;
         }
         // 8. 采样下一个方向 -- 漫反射
