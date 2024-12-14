@@ -360,7 +360,7 @@ vec3 PathTrace(Ray r, int maxDepth, int RR_maxDepth)
             r = Ray(hit_record.HitPoint + 0.001 * hit_record.normal, r.direction);
             radiance += handleVolumeScattering(r, hit_record, throughput);
             if (hit_record.mat.emission.r > 0.0001) {
-                radiance += throughput * hit_record.mat.emission * 0.2;  // 可以调整强度以模拟云的发光
+                radiance += throughput * hit_record.mat.emission * 0.1;  // 可以调整强度以模拟云的发光
             }
             // break;
             // return radiance;
