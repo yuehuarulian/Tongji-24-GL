@@ -25,6 +25,7 @@ void BVHConverter::ProcessBLAS()
     topLevelIndex = nodeCnt;
 
     // 为顶层节点预留空间
+    nodes.clear();
     nodeCnt += 2 * meshInstances.size();
     nodes.resize(nodeCnt);
 

@@ -133,9 +133,10 @@ void RenderManager::render_frame(int frame_number)
     if (offscreen)
     {
         // 循环进行渲染
-        while (scene->getFrameNum() % SAMPLES_PER_FRAME != 0)
+        while (scene->getSampleNum() % SAMPLES_PER_FRAME != 0)
         {
-            printf("SampleNumber: %d\n", scene->getFrameNum());
+            // 当采样数达到一定的数量时生成一帧画面
+            printf("SampleNumber: %d\n", scene->getSampleNum());
             scene->render_scene(camera);
         }
         glm::vec3 *output_frame_ptr = scene->get_frame_output();

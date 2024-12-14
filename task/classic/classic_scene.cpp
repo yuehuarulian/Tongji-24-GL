@@ -18,6 +18,7 @@ namespace GL_TASK
     {
         load_lights();
         load_models();
+        process_data();
         init_GPU_data(); // 将相关数据绑定到纹理中以便传递到GPU中
         init_FBOs();     // 初始化帧缓冲对象
         load_shaders();
@@ -114,7 +115,7 @@ namespace GL_TASK
 
         this->createBLAS();   // 建立低层次的BVH加速结构
         this->createTLAS();   // 建立高层次的BVH加速结构
-        this->process_data(); // 处理数据 将其转换成可供Shader使用的形式
+         // 处理数据 将其转换成可供Shader使用的形式
         // if (fluid.get() != nullptr)
         //     fluid->start(); // 启动流体模拟
         // if (bulletWorld.get() != nullptr)
@@ -140,7 +141,12 @@ namespace GL_TASK
     // 渲染
     void ClassicScene::render_scene(Camera &camera)
     {
-        frameNum++;
+        if(++sampleNum == 20) {
+            // 每帧采样20次
+            frameNum++; 
+            sampleNum = 1;
+        }
+            
         currentBuffer = 1 - currentBuffer;
         glActiveTexture(GL_TEXTURE0);
         render_path_tracing(camera);
@@ -157,7 +163,7 @@ namespace GL_TASK
         path_tracing_shader->setVec3("camera.right", camera.get_right());
         path_tracing_shader->setVec3("camera.forward", camera.get_direction());
         path_tracing_shader->setFloat("camera.fov", camera.get_fov());
-        path_tracing_shader->setInt("frameNum", frameNum);
+        path_tracing_shader->setInt("SampleNum", sampleNum); // 设置采样数量
         path_tracing_shader->stopUsing();
 
         glBindFramebuffer(GL_FRAMEBUFFER, pathTraceFBO);
@@ -180,7 +186,7 @@ namespace GL_TASK
     {
         auto post_process_shader = shader_manager.get_shader("postProcessShader");
         post_process_shader->use();
-        post_process_shader->setFloat("invSampleCounter", 1.0 / float(this->frameNum));
+        post_process_shader->setFloat("invSampleCounter", 1.0 / float(this->sampleNum));
         post_process_shader->stopUsing();
         glBindFramebuffer(GL_FRAMEBUFFER, outputFBO);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, outputTexture[currentBuffer], 0);
@@ -196,13 +202,12 @@ namespace GL_TASK
         auto accumulation_shader = shader_manager.get_shader("accumulationShader");
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, outputTexture[1 - currentBuffer]);
-        // this->DenoiseProcess();                        // 进行降噪处理
-        // glBindTexture(GL_TEXTURE_2D, denoisedTexture); // 降噪之后的纹理
         quad->Draw(accumulation_shader.get());
     }
 
     void ClassicScene::update_models()
     {
+        // 更新模型
         for (auto &butterfly : butterflies)
             butterfly->update();
         if (butterflies.size() > 0)
@@ -238,14 +243,13 @@ namespace GL_TASK
         }
         if (dirty)
         {
-            // printf("Scene is dirty\n");
+            // 清除上次路径追踪的渲染结果
             glBindFramebuffer(GL_FRAMEBUFFER, accumFBO);
             glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
             glClear(GL_COLOR_BUFFER_BIT);
-
+            // 重置帧数和采样数
             frameNum = 1;
-            std::cout << "reset FrameNum: " << frameNum << std::endl;
-            // TODO: 数据修改与传输
+            sampleNum = 1;
         }
         TbvhDirty = false;
         dirty = false;

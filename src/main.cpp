@@ -69,13 +69,11 @@ int main()
     while (glfwWindowShouldClose(window) == 0 && glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS) // 窗口没有关闭，esc键没有按下
     {
         bool dirty = false;
-        camera.compute_matrices_from_inputs(window, dirty);
+        camera.compute_matrices_from_inputs(window, dirty); // 更新摄像机位置
         classic_scene.setDirty(dirty);
-        static int frame = 1;
-        if (frame++ % 3 == 0)
+        if (classic_scene.getFrameNum() % 3 == 0)
         {
-            frame = 1;
-            classic_scene.update_models();
+            classic_scene.update_models(); // 蝴蝶每三帧画面更新一次
         }
         classic_scene.update_scene();
 
@@ -91,7 +89,7 @@ int main()
 
         glfwSwapBuffers(window);
         glfwPollEvents();
-        printf("SampleNumber: %d\n", classic_scene.getFrameNum());
+        printf("SampleNumber: %d\n", classic_scene.getSampleNum());
     }
     glfwTerminate();
     return 0;

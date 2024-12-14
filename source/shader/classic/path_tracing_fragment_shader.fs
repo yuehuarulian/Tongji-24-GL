@@ -177,14 +177,13 @@ DistantLight distantLights[maxNumOfLights];
 
 uniform vec2 resolution;
 uniform Camera camera;
-uniform int frameNum;
+uniform int SampleNum; // 采样数量 -- 
 
 void main()
 {
     // 屏幕坐标直接映射生成光线
     // TODO: 添加扰动
-    // InitRNG(gl_FragCoord.xy, frameNum);
-    InitRNG(gl_FragCoord.xy+vec2(rand(),rand()),frameNum);
+    InitRNG(gl_FragCoord.xy + vec2(rand(), rand()), SampleNum); // 更新随机数种子
     vec2 d=(TexCoords*2.-1.);// 将坐标范围映射到 [-1, 1]
     float scale=tan(camera.fov*.5);
     d.y*=resolution.y/resolution.x*scale;
@@ -242,7 +241,7 @@ vec3 PathTrace(Ray r, int maxDepth, int RR_maxDepth)
         
         // 2. 从材质贴图中加载材质信息
         GetMaterial(hit_record, r); // 获取材质
-        // return hit_record.mat.baseColor;
+        return hit_record.mat.baseColor;
         
         // 3. 如果击中了发光体，添加其辐射贡献
         if (hit_record.isEmitter) {

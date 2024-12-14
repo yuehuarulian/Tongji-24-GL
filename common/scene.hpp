@@ -42,6 +42,7 @@ public:
     }
     bool getDirty() const { return this->dirty; }
     int getFrameNum() const { return this->frameNum; }
+    int getSampleNum() const { return this->sampleNum; }
     glm::vec3 *get_frame_output();
 
     void SaveFrame(const std::string filename);
@@ -63,7 +64,8 @@ protected:
     const int WINDOW_WIDTH, WINDOW_HEIGHT;
     const int texArrayHeight = 2048;
     const int texArrayWidth = 2048;
-    int frameNum = 1;
+    int frameNum = 1;  // 帧数量 -- 记录当前的帧数
+    int sampleNum = 1; // 采样数量 -- 记录当前的采样数量
     bool dirty; // 脏位
 
     // 存储所有的网格
