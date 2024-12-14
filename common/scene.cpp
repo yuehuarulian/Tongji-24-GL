@@ -1,6 +1,11 @@
 #include <scene.hpp>
 #include <mesh.hpp>
 #include <model.hpp>
+#include <iostream>
+#include <vector>
+#include <sstream>
+#include <iomanip>
+#include <filesystem>
 
 #define STB_IMAGE_RESIZE_IMPLEMENTATION
 #include "stb_image_resize.h"
@@ -91,11 +96,7 @@ void Scene::createBLAS()
 #pragma omp parallel for
     for (int i = 0; i < meshes.size(); i++)
     {
-        printf("\n*****************\n");
-        printf("MESH #%d BVH INFO: \n", i);
         meshes[i]->BuildBVH();
-        meshes[i]->bvh->PrintStatistics(std::cout);
-        printf("\n*****************\n");
     }
 }
 
@@ -134,7 +135,7 @@ void Scene::createTLAS()
         bounds[i] = bound;
     }
     printf("\n*****************\n");
-    printf("SCENE MESH BVH:\n");
+    printf("SCENE TOP MESH BVH:\n");
     if (sceneBVH)
     {
         delete sceneBVH;
@@ -196,10 +197,6 @@ void Scene::process_data()
     transforms.resize(meshInstances.size());
     for (int i = 0; i < meshInstances.size(); i++)
         transforms[i] = meshInstances[i]->transform;
-
-    // 纹理数据
-    if (!textures.empty())
-        printf("Copying and resizing textures\n");
 
     const int texBytes = texArrayHeight * texArrayWidth * 4;
     textureMapsArray.resize(texBytes * textures.size());
@@ -374,15 +371,12 @@ void Scene::init_FBOs()
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
         std::cerr << "Output FBO is not complete!" << std::endl;
 
-    denoiserInputFramePtr = new glm::vec3[WINDOW_WIDTH * WINDOW_HEIGHT];
-
     // Clear accumulation buffer
     glBindFramebuffer(GL_FRAMEBUFFER, accumFBO);
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
     // For Denoiser
-    denoiserInputFramePtr = new glm::vec3[WINDOW_WIDTH * WINDOW_HEIGHT];
     frameOutputPtr = new glm::vec3[WINDOW_WIDTH * WINDOW_HEIGHT];
 
     glGenTextures(1, &denoisedTexture);
@@ -393,9 +387,25 @@ void Scene::init_FBOs()
     glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-void Scene::SaveFrame(const std::string filename)
+void Scene::SaveFrameImage()
 {
-    // 保存
+    glBindTexture(GL_TEXTURE_2D, outputTexture[1 - currentBuffer]);
+    glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_FLOAT, frameOutputPtr);
+    std::vector<unsigned char> pixels(WINDOW_WIDTH * WINDOW_HEIGHT * 3);
+
+    for (int i = 0; i < WINDOW_WIDTH * WINDOW_HEIGHT; ++i)
+    {
+        glm::vec3 color = frameOutputPtr[i];
+        pixels[i * 3 + 0] = static_cast<unsigned char>(glm::clamp(color.r * 255.0f, 0.0f, 255.0f)); // Red
+        pixels[i * 3 + 1] = static_cast<unsigned char>(glm::clamp(color.g * 255.0f, 0.0f, 255.0f)); // Green
+        pixels[i * 3 + 2] = static_cast<unsigned char>(glm::clamp(color.b * 255.0f, 0.0f, 255.0f)); // Blue
+    }
+
+    std::ostringstream oss;
+    oss << "./render_imgs/frame_" << std::setw(3) << std::setfill('0') << frameNum << ".png";
+    std::cout << "Save Picture " << oss.str() << std::endl;
+    stbi_flip_vertically_on_write(true);
+    stbi_write_png(oss.str().c_str(), WINDOW_WIDTH, WINDOW_HEIGHT, 3, pixels.data(), WINDOW_WIDTH * 3);
 }
 
 void Scene::update_GPU_data()
@@ -490,10 +500,6 @@ void Scene::update_FBOs()
     glBindFramebuffer(GL_FRAMEBUFFER, accumFBO);
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
     glClear(GL_COLOR_BUFFER_BIT);
-}
-
-void Scene::DenoiseProcess()
-{
 }
 
 glm::vec3 *Scene::get_frame_output()

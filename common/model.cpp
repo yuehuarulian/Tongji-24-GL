@@ -46,9 +46,7 @@ unsigned int TextureFromFile(const char *path, const std::string &directory, boo
 
 Model::Model(std::string const &path, bool gamma) : gammaCorrection(gamma)
 {
-    printf("start load model: %s\n", path.c_str());
     loadModel(path);
-    printf("end load model: %s\n", path.c_str());
 }
 
 bool Model::loadModel(std::string const &path)
@@ -57,7 +55,6 @@ bool Model::loadModel(std::string const &path)
     // 加载模型文件(.obj)
     // 使用Assimp库进行加载
     //
-    printf("Load Model\n");
     Assimp::Importer importer;
     const aiScene *scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs);
 
@@ -66,10 +63,6 @@ bool Model::loadModel(std::string const &path)
     {
         std::cout << "ERROR::ASSIMP:: " << importer.GetErrorString() << std::endl;
         return false;
-    }
-    else
-    {
-        printf("Load Model Success\n");
     }
     // 提取文件路径的目录部分，用于后续加载纹理
     directory = path.substr(0, path.find_last_of('/'));
@@ -148,7 +141,7 @@ Mesh *Model::processMesh(aiMesh *mesh, const aiScene *scene)
     // 3. 获取材质
     Material m_material = Material();
     aiMaterial *material = scene->mMaterials[mesh->mMaterialIndex];
-    printf("## Material %d Material Params ##\n", loadMaterialParams(m_material, material));
+    printf("## The Material Params Number: %d ##\n", loadMaterialParams(m_material, material));
     // 4. 获取纹理贴图
     {
         // 1. 漫反射纹理
@@ -166,17 +159,6 @@ Mesh *Model::processMesh(aiMesh *mesh, const aiScene *scene)
         m_material.diffuse_roughnessTexId = loadMaterialTextures(material, aiTextureType_DIFFUSE_ROUGHNESS);
         // 7. 环境光遮蔽贴图
         m_material.ambient_occlusionTexId = loadMaterialTextures(material, aiTextureType_AMBIENT_OCCLUSION);
-
-        // printf("/******************************/\n");
-        // printf("Material Texture ID INFO:\n");
-        // printf("diffuseTexId: #%f\n", m_material.diffuseTexId);
-        // printf("specularTexId: #%f\n", m_material.specularTexId);
-        // printf("normalTexId: #%f\n", m_material.normalTexId);
-        // printf("heightTexId: #%f\n", m_material.heightTexId);
-        // printf("metalnessTexId: #%f\n", m_material.metalnessTexId);
-        // printf("diffuse_roughnessTexId: #%f\n", m_material.diffuse_roughnessTexId);
-        // printf("ambient_occlusionTexId: #%f\n", m_material.ambient_occlusionTexId);
-        // printf("/******************************/\n");
     }
 
     // 使用提取的数据创建并返回 Mesh 对象

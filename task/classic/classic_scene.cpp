@@ -23,8 +23,8 @@ namespace GL_TASK
         createTLAS();   // 建立高层次的BVH加速结构
         process_data(); // 将数据转换为传递给着色器的数据形式
         // 模拟启动
-        if (fluid.get() != nullptr)
-            fluid->start(); // 启动流体模拟
+        // if (fluid.get() != nullptr)
+        //     fluid->start(); // 启动流体模拟
         // if (bulletWorld.get() != nullptr)
         //     bulletWorld->start(); // 启动物理模拟
         init_GPU_data(); // 将相关数据绑定到纹理中以便传递到GPU中
@@ -61,13 +61,26 @@ namespace GL_TASK
     {
         // 先加载所有的模型文件 存储在meshes中
         // Room model
-        glm::vec3 roomMin, roomMax;
-        room = std::make_shared<Room>("source/model/room2/test.obj", meshes, meshInstances, textures, materials);
-        printf("Load Room Model Over\n");
-        room->getBoundingBox(roomMin, roomMax);
+        // printf("/*************************************/\n");
+        // printf("Load Room Model\n");
+        // glm::vec3 roomMin, roomMax;
+        // room = std::make_shared<Room>("source/model/room2/test.obj", meshes, meshInstances, textures, materials);
+        // room->getBoundingBox(roomMin, roomMax);
+
+        // // butterfly model
+        // printf("/*************************************/\n");
+        // printf("Load Butterfly Model\n");
+        // for (int i = 0; i < butterfly_count; i++)
+        // {
+        //     auto butterfly_model_single = std::make_shared<Butterfly>("source/model/butterfly/ok.dae", meshes, meshInstances, textures, materials);
+        //     butterflies.push_back(butterfly_model_single);
+        // }
 
         // liquid model
-        glm::mat4 room_model_matrix = room->get_model_matrix();
+        printf("/*************************************/\n");
+        printf("Load Liquid Model\n");
+        // glm::mat4 room_model_matrix = room->get_model_matrix();
+        glm::mat4 room_model_matrix = glm::mat4(1.0f);
         fluid = std::make_shared<Fluid>(meshes, meshInstances, textures, materials);
         fluid->BindDirty(&BbvhDirty);
         fluid->set_model_matrix(room_model_matrix);
@@ -92,19 +105,14 @@ namespace GL_TASK
         // bulletWorld->add_model(glm::vec3(-20.0, water_level + 2.0, -50.0));
         // bulletWorld->add_model(glm::vec3(20.0, water_level + 2.0, 50.0));
 
-        // butterfly model
-        for (int i = 0; i < butterfly_count; i++)
-        {
-            auto butterfly_model_single = std::make_shared<Butterfly>("source/model/butterfly/ok.dae", meshes, meshInstances, textures, materials);
-            butterflies.push_back(butterfly_model_single);
-        }
-
         // 点云 1
-        glm::mat4 model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(0.0f, -120.0f, -160.0f));
-        model = glm::scale(model, glm::vec3(0.3f));
-        auto point_cloud1 = std::make_shared<PointCloud>("./source/model/point_cloud/Cumulonimbus_11.vdb", meshes, meshInstances, textures, materials, model);
-        point_clouds.push_back(point_cloud1);
+        // printf("/*************************************/\n");
+        // printf("Load PointCloud Model\n");
+        // glm::mat4 model = glm::mat4(1.0f);
+        // model = glm::translate(model, glm::vec3(0.0f, -120.0f, -160.0f));
+        // model = glm::scale(model, glm::vec3(0.3f));
+        // auto point_cloud1 = std::make_shared<PointCloud>("./source/model/point_cloud/Cumulonimbus_11.vdb", meshes, meshInstances, textures, materials, model);
+        // point_clouds.push_back(point_cloud1);
         // 点云 2
         // model = glm::mat4(1.0f);
         // model = glm::translate(model, glm::vec3(0.0f, -300.0f, -110.0f));
@@ -117,11 +125,12 @@ namespace GL_TASK
         //  auto point_cloud2 = std::make_shared<PointCloud>("./source/model/point_cloud/Cumulonimbus_14.vdb", meshes, meshInstances, textures, materials, model);
         //  point_clouds.push_back(point_cloud2);
         // 点云 3
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(40.0f, -140.0f, 0.0f));
-        model = glm::scale(model, glm::vec3(0.5f));
-        auto point_cloud3 = std::make_shared<PointCloud>("./source/model/point_cloud/Cumulonimbus_09.vdb", meshes, meshInstances, textures, materials, model);
-        point_clouds.push_back(point_cloud3);
+        // model = glm::mat4(1.0f);
+        // model = glm::translate(model, glm::vec3(40.0f, -140.0f, 0.0f));
+        // model = glm::scale(model, glm::vec3(0.5f));
+        // auto point_cloud3 = std::make_shared<PointCloud>("./source/model/point_cloud/Cumulonimbus_09.vdb", meshes, meshInstances, textures, materials, model);
+        // point_clouds.push_back(point_cloud3);
+        printf("/*************************************/\n");
     }
 
     void ClassicScene::load_lights()
@@ -145,8 +154,13 @@ namespace GL_TASK
         if (++sampleNum == 20)
         {
             // 每帧采样20次
+            SaveFrameImage(); // 保存图片
             frameNum++;
             sampleNum = 1;
+            // 清除上次路径追踪的渲染结果
+            glBindFramebuffer(GL_FRAMEBUFFER, accumFBO);
+            glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+            glClear(GL_COLOR_BUFFER_BIT);
         }
 
         currentBuffer = 1 - currentBuffer;
@@ -210,6 +224,8 @@ namespace GL_TASK
     void ClassicScene::update_models()
     {
         // 更新模型
+        printf("/*************************************/\n");
+        printf("Update Butterfly Matrix\n");
         for (auto &butterfly : butterflies)
             butterfly->update();
         if (butterflies.size() > 0)
@@ -250,7 +266,6 @@ namespace GL_TASK
             glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
             glClear(GL_COLOR_BUFFER_BIT);
             // 重置帧数和采样数
-            frameNum = 1;
             sampleNum = 1;
         }
         TbvhDirty = false;

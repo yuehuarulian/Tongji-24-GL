@@ -16,6 +16,8 @@
 #include <vector>
 #include <map>
 #include <mutex>
+#include <iostream>
+#include <sstream>
 
 #define MAX_BONE_INFLUENCE 4
 
@@ -84,9 +86,32 @@ class Material
     // 对于无法补齐的部分可以使用 float padding_i 进行补齐(其中i是一个变量)
 public:
     Material()
-        : baseColor(glm::vec3(0.0, 1.0, 0.0)),
-          specularColor(glm::vec3(0.0, 0.0, 1.0)),
-          emissiveColor(glm::vec3(0.0, 0.0, 0.0)) {}
+        : baseColor(glm::vec3(1.0f)), // 默认白色
+          specularColor(glm::vec3(0.5f)), // 默认中等强度的镜面反射
+          emissiveColor(glm::vec3(0.0f)), // 默认无自发光
+          padding_kd(0.0f),
+          padding_ks(0.0f),
+          padding_ke(0.0f),
+          refractionIndex(1.0f),
+          transparency(1.0f),
+          illuminationModel(1),
+          roughness(0.5f), // 默认中等粗糙度
+          metalness(0.0f),
+          scattering(0.0f),
+          coating(0.0f),
+          coatRoughness(0.0f),
+          diffuseTexId(-1.0f),
+          specularTexId(-1.0f),
+          normalTexId(-1.0f),
+          heightTexId(-1.0f),
+          metalnessTexId(-1.0f),
+          diffuse_roughnessTexId(-1.0f),
+          ambient_occlusionTexId(-1.0f),
+          padding_id(0.0f),
+          absorption(0.0f),
+          density(0.0f),
+          anisotropy(0.0f),
+          isVolume(0.0f) {}
 
     void updateTexId(const int offset)
     {
@@ -115,35 +140,74 @@ public:
 
     // 材质参数
     // param4
-    float refractionIndex{1.0f}; // 折射率 (Ni)
-    float transparency{1.0f};    // 透明度 (d)
-    int illuminationModel{1};    // 光照模型 (illum)
-    float roughness{0.0f};       // 粗糙度 (Pr)
+    float refractionIndex; // 折射率 (Ni)
+    float transparency;    // 透明度 (d)
+    int illuminationModel; // 光照模型 (illum)
+    float roughness;       // 粗糙度 (Pr)
 
     // param5
-    float metalness{0.0f};     // 金属度 (Pm)
-    float scattering{0.0f};    // 散射系数 (Ps)
-    float coating{0.0f};       // 涂层 (Pc)
-    float coatRoughness{0.0f}; // 涂层粗糙度 (Pcr)
+    float metalness;     // 金属度 (Pm)
+    float scattering;    // 散射系数 (Ps)
+    float coating;       // 涂层 (Pc)
+    float coatRoughness; // 涂层粗糙度 (Pcr)
 
     // 纹理贴图的ID
     // param6
-    float diffuseTexId{-1.0f};
-    float specularTexId{-1.0f};
-    float normalTexId{-1.0f};
-    float heightTexId{-1.0f};
+    float diffuseTexId;
+    float specularTexId;
+    float normalTexId;
+    float heightTexId;
 
     // param7
-    float metalnessTexId{-1.0f};
-    float diffuse_roughnessTexId{-1.0f};
-    float ambient_occlusionTexId{-1.0f};
+    float metalnessTexId;
+    float diffuse_roughnessTexId;
+    float ambient_occlusionTexId;
     float padding_id;
 
     // param8
-    float absorption{0.0}; // 吸收系数 (控制光线穿透的深度)
-    float density{0.0};    // 密度 (控制光线在材质中的传播)
-    float anisotropy{0.0}; // 各向异性 (控制材质的各向异性)
-    float isVolume{0.0};   // 是否是体积材质
+    float absorption; // 吸收系数 (控制光线穿透的深度)
+    float density;    // 密度 (控制光线在材质中的传播)
+    float anisotropy; // 各向异性 (控制材质的各向异性)
+    float isVolume;   // 是否是体积材质
+
+    void printInfo() const
+    {
+        std::ostringstream info;
+        info << "Material Information:\n";
+
+        // Colors
+        info << "Base Color: (" << baseColor.x << ", " << baseColor.y << ", " << baseColor.z << ")\n";
+        info << "Specular Color: (" << specularColor.x << ", " << specularColor.y << ", " << specularColor.z << ")\n";
+        info << "Emissive Color: (" << emissiveColor.x << ", " << emissiveColor.y << ", " << emissiveColor.z << ")\n";
+
+        // Material properties
+        info << "Refraction Index: " << refractionIndex << "\n";
+        info << "Transparency: " << transparency << "\n";
+        info << "Illumination Model: " << illuminationModel << "\n";
+        info << "Roughness: " << roughness << "\n";
+        info << "Metalness: " << metalness << "\n";
+        info << "Scattering: " << scattering << "\n";
+        info << "Coating: " << coating << "\n";
+        info << "Coat Roughness: " << coatRoughness << "\n";
+
+        // Texture IDs
+        info << "Diffuse Texture ID: " << diffuseTexId << "\n";
+        info << "Specular Texture ID: " << specularTexId << "\n";
+        info << "Normal Texture ID: " << normalTexId << "\n";
+        info << "Height Texture ID: " << heightTexId << "\n";
+        info << "Metalness Texture ID: " << metalnessTexId << "\n";
+        info << "Diffuse Roughness Texture ID: " << diffuse_roughnessTexId << "\n";
+        info << "Ambient Occlusion Texture ID: " << ambient_occlusionTexId << "\n";
+
+        // Additional properties
+        info << "Absorption: " << absorption << "\n";
+        info << "Density: " << density << "\n";
+        info << "Anisotropy: " << anisotropy << "\n";
+        info << "Is Volume Material: " << (isVolume != 0.0 ? "Yes" : "No") << "\n";
+
+        // Output to console
+        std::cout << info.str();
+    }
 };
 
 class Mesh

@@ -640,8 +640,6 @@ bool ClosestHit(Ray r, inout HitRec hit_record, inout LightSampleRec lightSample
         // 将切线和副切线转换到世界坐标系并归一化
         hit_record.tangent = normalize(mat3(transform) * hit_record.tangent);
         hit_record.bitangent = normalize(mat3(transform) * hit_record.bitangent);
-        
-        GetMaterial(hit_record, r); // 获取材质
     }
     
     return true;
@@ -908,10 +906,6 @@ void GetMaterial(inout HitRec hit_record, in Ray r)
     float defaultalpha = 0.5;                        // 默认透明度
 
     // 默认设置
-    mat.baseColor = defaultAlbedo;
-    mat.matellic = defaultMetallic;
-    mat.roughness = defaultRoughness;
-    mat.ao = defaultAO;
     mat.normal = hit_record.normal;
     mat.F0 = vec3(0.04);
     // 获取材质的信息
@@ -982,7 +976,6 @@ void GetMaterial(inout HitRec hit_record, in Ray r)
         vec4 ao = texture(textureMapsArrayTex, vec3(hit_record.texCoord, texIDs_2.z));
         mat.ao = ao.r;
     }
-    
     hit_record.mat = mat;
 }
 /********************************/

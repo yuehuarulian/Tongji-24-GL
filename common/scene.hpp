@@ -28,24 +28,19 @@ public:
     }
 
     virtual ~Scene() = default;
-
     virtual void render_scene(Camera &) = 0;
     virtual void update_scene() = 0;  // 进行场景更新
     virtual void present_scene() = 0; // 展示渲染结果
     virtual void update_models() = 0; // 更新场景中的模型
     virtual void wait_until_next_frame(int frame_number) = 0;
-    void DenoiseProcess();
 
-    void setDirty(bool isDirty)
-    {
-        this->dirty = isDirty;
-    }
+    void setDirty(bool isDirty) { this->dirty = isDirty; }
     bool getDirty() const { return this->dirty; }
     int getFrameNum() const { return this->frameNum; }
     int getSampleNum() const { return this->sampleNum; }
     glm::vec3 *get_frame_output();
 
-    void SaveFrame(const std::string filename);
+    void SaveFrameImage();
 
 protected:
     virtual void setup_scene() = 0;
@@ -131,7 +126,6 @@ protected:
     GLuint textureMapsArrayTex;
 
     // Denoiser output
-    glm::vec3 *denoiserInputFramePtr;
     glm::vec3 *frameOutputPtr;
     bool denoised;
 };

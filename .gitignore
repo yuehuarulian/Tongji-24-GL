@@ -9,3 +9,4 @@ source/model/
 *.mp4
 *.ini
 fluid_mesh.obj
+render_imgs/

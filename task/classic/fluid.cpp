@@ -25,7 +25,7 @@ bool GL_TASK::Fluid::add_model(const std::string &modelfilePath)
             int materialStartId = materials.size();
 
             // 3. 将mesh中的材质信息导入scene中
-            //    同时更新纹理索引
+            //    配置mesh材质信息
             mesh->material.updateTexId(textureStartId);
             materials.push_back(mesh->material);
             // 4. 根据网格id和材质id创建一个meshInstance

@@ -71,7 +71,7 @@ int main()
         bool dirty = false;
         camera.compute_matrices_from_inputs(window, dirty); // 更新摄像机位置
         classic_scene.setDirty(dirty);
-        if (classic_scene.getFrameNum() % 3 == 0)
+        if (classic_scene.getFrameNum() % 3 == 0 && classic_scene.getSampleNum() == 1)
         {
             classic_scene.update_models(); // 蝴蝶每三帧画面更新一次
         }
@@ -81,15 +81,12 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glDisable(GL_DEPTH_TEST);
         classic_scene.render_scene(camera);
-
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
-        classic_scene.present_scene(); // 渲染结果展示
+        classic_scene.present_scene();
         gui_manager.render();
 
         glfwSwapBuffers(window);
         glfwPollEvents();
-        printf("SampleNumber: %d\n", classic_scene.getSampleNum());
+        printf("SampleNumber: %d - FrameNum: %d\n", classic_scene.getSampleNum(), classic_scene.getFrameNum());
     }
     glfwTerminate();
     return 0;
