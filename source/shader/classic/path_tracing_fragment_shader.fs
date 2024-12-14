@@ -65,13 +65,25 @@ struct DistantLight
 // 材质
 struct Material
 {
-    vec3 baseColor;// 材质的基础颜色
-    float matellic;// 金属度
+    vec3 baseColor;     // 漫反射颜色
+    vec3 specular;      // 镜面反射颜色
+    vec3 emission;      // 自发光颜色
+    vec3 normal;        // 表面法线贴图
+    vec3 F0;            // 镜面反射的基础反射率
+    
+    float ior;// 折射率
+    float alpha;// 透明度
     float roughness;// 粗糙度
+    float matellic;// 金属度
+    float scatter;// 散射
+    float coat;// 涂层
+    float coatRough;// 涂层粗糙度
     float ao;// 环境光遮蔽
-    vec3 F0;// 镜面反射的基础反射率
-    vec3 emission;// 自发光颜色
-    vec3 normal;// 表面法线贴图
+
+    float absorption;// 吸收
+    float density;// 密度
+    float anisotropy;// 各向异性
+    float isVolume;// 缩放
 };
 // 击中点记录
 struct HitRec
@@ -135,6 +147,8 @@ float DistributionGGX(vec3 N,vec3 H,float roughness);
 float GeometrySchlickGGX(float NdotV,float roughness);
 float GeometrySmith(vec3 N,vec3 V,vec3 L,float roughness);
 vec3 fresnelSchlick(float cosTheta,vec3 F0);
+float fresnelSchlick(float cosTheta, float ior);
+bool Refract(vec3 I, vec3 N, float ior, out vec3 refracted);
 // 随机数函数
 uvec4 seed;
 ivec2 pixel;
@@ -178,11 +192,17 @@ void main()
     
     vec3 rayOrigin = camera.position;
     vec3 rayDirection = normalize(d.x * camera.right + d.y * camera.up + camera.forward);
-    float radius = 5;
-    sphereLights[0] = SphereLight(vec3(0.,0.,0.), vec3(1500), radius, 4 * PI * radius * radius);
-    // sphereLights[1] = SphereLight(vec3(10.0, 20.0, -10.0), vec3(300), radius, 4 * PI * radius * radius);
-    // sphereLights[2] = SphereLight(vec3(-10.0, 20.0, -10.0), vec3(300), radius, 4 * PI * radius * radius);
-    numOfSphereLights = 1;
+    float radius = 1;
+    sphereLights[0] = SphereLight(vec3(-34.53,27.02,8.634), vec3(100), radius, 4 * PI * radius * radius);
+    sphereLights[1] = SphereLight(vec3(34.15,26.82,8.719), vec3(100), radius, 4 * PI * radius * radius);
+    sphereLights[2] = SphereLight(vec3(-36.92,26.97,82.96), vec3(100), radius, 4 * PI * radius * radius);
+    sphereLights[3] = SphereLight(vec3(33.55,26.88,83.29), vec3(100), radius, 4 * PI * radius * radius);
+    sphereLights[4] = SphereLight(vec3(-34.31,26.83,158.16), vec3(100), radius, 4 * PI * radius * radius);
+    sphereLights[5] = SphereLight(vec3(36.96,26.83,154.76), vec3(100), radius, 4 * PI * radius * radius);
+    sphereLights[6] = SphereLight(vec3(-33.80,26.94,227.89), vec3(100), radius, 4 * PI * radius * radius);
+    sphereLights[7] = SphereLight(vec3(34.24,26.84,228.11), vec3(100), radius, 4 * PI * radius * radius);
+    sphereLights[0] = SphereLight(vec3(0.0,0.0,0.0), vec3(100), radius, 4 * PI * radius * radius);
+    numOfSphereLights = 9;
     
     Ray ray=Ray(rayOrigin,rayDirection);// 生成光线
     
@@ -212,7 +232,7 @@ vec3 PathTrace(Ray r, int maxDepth, int RR_maxDepth)
     {
         HitRec hit_record;  // 记录当前的击中状态
         
-        // 判断光线是否与场景相交
+        // 1. 判断光线是否与场景相交
         if(!ClosestHit(r, hit_record, lightSample))
         {
             // 如果没有交点，返回环境背景颜色
@@ -220,12 +240,14 @@ vec3 PathTrace(Ray r, int maxDepth, int RR_maxDepth)
             break;
         }
         
+        // 2. 从材质贴图中加载材质信息
         GetMaterial(hit_record, r); // 获取材质
+        // return hit_record.mat.baseColor;
         
-        // 直接光照计算（光源采样）
-        if(hit_record.isEmitter) {
+        // 3. 如果击中了发光体，添加其辐射贡献
+        if (hit_record.isEmitter) {
             if(depth == 0){
-                radiance += throughput * lightSample.emission;
+                radiance += vec3(0.651, 0.8118, 0.1216);
             } else {
                 radiance += throughput * calculateDirectLighting(r, hit_record, lightSample);
             }
@@ -238,12 +260,29 @@ vec3 PathTrace(Ray r, int maxDepth, int RR_maxDepth)
             if (!isShadow) {
                 vec3 Lo = calculateDirectLighting(r, hit_record, lightSample);
                 Lo = Lo / lightSample.pdf;
+                // return Lo;
                 radiance += throughput * Lo;
             }
         }
-        
-        // 间接光照计算（路径延续）
-        // 俄罗斯轮盘赌优化
+        //  // 4. 处理自发光 
+        // if (hit_record.emission.r > 0.0001) {
+        //     // return vec3(1.0, 0.0, 0.0);
+        //     radiance += throughput * hit_record.emission * 0.001;
+        //     // if (hit_record.mat.alpha < 1.0) {
+        //         // continue;
+        //     // }
+        //     break;
+        // }
+
+        // // 5. 判断是否击中体积散射体
+        // if (hit_record.mat.isVolume > 0.5) {
+        //     r = Ray(hit_record.HitPoint + 0.001 * hit_record.ffnormal, r.direction);
+        //     radiance += handleVolumeScattering(r, hit_record, throughput);
+        //     continue;
+        // }
+
+        // 6. 间接光照计算（路径延续）
+        // 7. 俄罗斯轮盘赌优化
         float prob = 0.7; // 概率阈值
         float m_prob = rand();
         if (depth > RR_maxDepth && m_prob > prob) {
@@ -251,7 +290,41 @@ vec3 PathTrace(Ray r, int maxDepth, int RR_maxDepth)
         }
         throughput *= m_prob; // 更新通量权重以考虑路径终止的概率
         
-        // 采样下一个方向
+        // 4. 处理透明材质的反射和折射
+        if(hit_record.mat.alpha < 1.0) 
+        {
+            vec3 refractedDirection;
+            bool isTotalInternalReflection = !Refract(r.direction, hit_record.ffnormal, hit_record.mat.ior, refractedDirection);
+            
+            if (!isTotalInternalReflection) {
+                // 计算菲涅耳反射系数
+                float cosTheta = dot(-r.direction, hit_record.normal);
+                float fresnel = fresnelSchlick(cosTheta, hit_record.mat.ior);
+
+                // 反射路径
+                vec3 reflectedDirection = reflect(r.direction, hit_record.normal);
+                Ray reflectedRay = Ray(hit_record.HitPoint + 0.001 * reflectedDirection, reflectedDirection);
+
+                // 折射路径
+                Ray refractedRay = Ray(hit_record.HitPoint + 0.001 * refractedDirection, refractedDirection);
+
+                // 通过菲涅耳系数决定光的分支
+                if (rand() < fresnel) {
+                    r = reflectedRay; // 反射路径
+                } else {
+                    r = refractedRay; // 折射路径
+                }
+            } 
+            else {
+                // 处理全内反射
+                vec3 reflectedDirection = reflect(r.direction, hit_record.normal);
+                r = Ray(hit_record.HitPoint + 0.001 * reflectedDirection, reflectedDirection);
+            }
+
+            throughput *= hit_record.mat.baseColor; // 透明材质的颜色
+            continue;
+        }
+        // 8. 采样下一个方向 -- 漫反射
         bool useCosineWeighted = true;
         vec3 wi = SampleDirection(hit_record.normal, useCosineWeighted); // 在半球中随机采样
         float pdf = useCosineWeighted ?  (wi.z / PI) : (1.0 / (2.0 * PI));
@@ -271,7 +344,9 @@ vec3 calculateDirectLighting(Ray r, HitRec hit_record, LightSampleRec lightSampl
     vec3 N = hit_record.normal;
     vec3 V = -r.direction;
     vec3 L = lightSample.direction;
+    // return hit_record.mat.baseColor;
     vec3 albedo = pow(hit_record.mat.baseColor, vec3(2.2));
+    // return albedo;
     float metallic = hit_record.mat.matellic;
     float roughness = hit_record.mat.roughness;
     vec3 F0 = mix(vec3(0.04), albedo, metallic);
@@ -319,6 +394,26 @@ float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness)
 vec3 fresnelSchlick(float cosTheta, vec3 F0)
 {
     return F0 + (1.0 - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
+}
+float fresnelSchlick(float cosTheta, float ior)
+{
+    float r0 = pow((1.0 - ior) / (1.0 + ior), 2.0);
+    return r0 + (1.0 - r0) * pow(1.0 - cosTheta, 5.0);
+}
+// ----------------------------------------------------------------------------
+bool Refract(vec3 I, vec3 N, float ior, out vec3 refracted)
+{
+    float cosThetaI = dot(-I, N);
+    float eta = 1.0 / ior; // 介质比率（例如从空气 (1.0) 到玻璃 (1.5)）
+    float sinThetaTSq = eta * eta * (1.0 - cosThetaI * cosThetaI);
+
+    // 检查是否发生**全内反射**
+    if (sinThetaTSq > 1.0) 
+        return false;
+
+    float cosThetaT = sqrt(1.0 - sinThetaTSq);
+    refracted = eta * I + (eta * cosThetaI - cosThetaT) * N;
+    return true;
 }
 // ----------------------------------------------------------------------------
 vec3 BRDF_PBR(vec3 N, vec3 V, vec3 L, vec3 radiance, vec3 albedo, float metallic, float roughness, vec3 F0)
@@ -781,40 +876,89 @@ void GetMaterial(inout HitRec hit_record, in Ray r)
     // 获取材质信息
     // 并通过光线计算光照颜色
     // TODO: 这里需要根据实际的材质类包含的内容进行调整
-    int index = hit_record.matID * 3;
+    int index = hit_record.matID * 8; // Material类有7块
     Material mat;
     // 材质默认值
-    vec3 waterAlbedo = vec3(0.0, 0.2, 1.0);  // 水的反射率：通常呈现蓝色调
-    float waterMetallic = 0.0;                // 水是非金属材质
-    float waterRoughness = 0.0;               // 水面一般较为平滑，粗糙度较低
-    float waterAO = 1.0;                      // 水表面几乎没有遮蔽，AO 值为 1
+    // 灰色（默认非金属材质）
+    vec3 defaultAlbedo = vec3(0.8, 0.8, 0.8);   // 默认反射率：灰色
+    float defaultMetallic = 0.0;                // 默认金属度：非金属
+    float defaultRoughness = 0.5;               // 默认粗糙度：中等
+    float defaultAO = 1.0;                      // 默认 AO 值：完全无遮蔽
+    // 水体材质的参数设置
+    vec3 defaultAlbedoWater = vec3(0.1, 0.3, 0.5);  // 水的反射率：轻微蓝色
+    float defaultMetallicWater = 0.0;               // 水体是非金属
+    float defaultRoughnessWater = 0.1;              // 水体表面非常平滑
+    float defaultAOWater = 1.0;                     // 水体的环境遮蔽值，假设水面平坦无遮挡
+    // 铝材质（Metal）
+    vec3 defaultAlbedoMetal = vec3(0.8, 0.85, 0.9);  // 默认铝的反射率（银白色）
+    float defaultMetallicMetal = 1.0;                // 完全金属
+    float defaultRoughnessMetal = 0.1;               // 低粗糙度
+    float defaultAOMetal = 1.0;                      // 完全无遮蔽
+    // 木材材质
+    vec3 defaultAlbedoWood = vec3(0.5, 0.25, 0.1);   // 默认木材反射率（棕色）
+    float defaultMetallicWood = 0.0;                 // 非金属
+    float defaultRoughnessWood = 0.7;                // 高粗糙度
+    float defaultAOWood = 1.0;                       // 完全无遮蔽
+    // 云材料
+    vec3 defaultAlbedoCloud = vec3(0.9, 0.9, 0.9);   // 默认云的反射率（白色）
+    float defaultMetallicCloud = 0.0;                // 非金属
+    float defaultRoughnessCloud = 0.8;               // 高粗糙度
+    float defaultAOCloud = 1.0;                      // 完全无遮蔽
+    vec3 defaultemissiveColor = vec3(0.5, 0.5, 0.5); // 默认发光颜色
+    float defaultior = 1.0;                          // 默认折射率
+    float defaultalpha = 0.5;                        // 默认透明度
 
-    mat.baseColor = waterAlbedo;
-    mat.matellic = waterMetallic;
-    mat.roughness = waterRoughness;
-    mat.ao = waterAO;
-    
+    // 默认设置
+    mat.baseColor = defaultAlbedo;
+    mat.matellic = defaultMetallic;
+    mat.roughness = defaultRoughness;
+    mat.ao = defaultAO;
     mat.normal = hit_record.normal;
+    mat.F0 = vec3(0.04);
     // 获取材质的信息
     vec4 param1 = texelFetch(materialsTex, index + 0);  // 获取第一个材质参数
     vec4 param2 = texelFetch(materialsTex, index + 1);  // 获取第二个材质参数
     vec4 param3 = texelFetch(materialsTex, index + 2);  // 获取第三个材质参数
-    
+    vec4 param4 = texelFetch(materialsTex, index + 3);  // 获取第四个材质参数
+    vec4 param5 = texelFetch(materialsTex, index + 4);  // 获取第五个材质参数
+    vec4 param6 = texelFetch(materialsTex, index + 5);  // 获取第六个材质参数
+    vec4 param7 = texelFetch(materialsTex, index + 6);  // 获取第七个材质参数
+    vec4 param8 = texelFetch(materialsTex, index + 7);  // 获取第八个材质参数
+
     // 获取材质的基本颜色
-    // mat.baseColor = param1.rgb;
+    mat.baseColor = param1.rgb;
+    mat.specular = param2.rgb;
+    mat.emission = param3.rgb;
+    hit_record.emission = mat.emission;
+
+    // 获取材质的参数
+    vec4 para_1  = param4;
+    vec4 para_2  = param5;
+    mat.ior = para_1.x; // 折射率
+    mat.alpha = para_1.y;// 透明度
+    mat.roughness = para_1.w;// 粗糙度
+    mat.matellic = para_2.x;// 金属度
+    mat.scatter = para_2.y;// 散射
+    mat.coat = para_2.z;// 涂层
+    mat.coatRough = para_2.w;// 涂层粗糙度
+    mat.absorption = param8.r;// 吸收率
+    mat.density = param8.g;// 透射率
+    mat.anisotropy = param8.b;// 各向异性
+    mat.isVolume = param8.a;// 各向异性旋转
     
     // 获取纹理相应的索引
-    ivec4 texIDs_1  = ivec4(param2);
-    ivec4 texIDs_2  = ivec4(param3);
-    
+    ivec4 texIDs_1  = ivec4(param6);
+    ivec4 texIDs_2  = ivec4(param7);
     // 根据纹理图片修正材质的数据
-    if(texIDs_1.x >= 0)
+    if(texIDs_1.x >= 0) // diffuseTexId
     {
         vec4 col = texture(textureMapsArrayTex, vec3(hit_record.texCoord, texIDs_1.x));
         mat.baseColor.rgb = col.rgb;
     }
     if(texIDs_1.y >= 0) // specularTexId
     {
+        vec4 col = texture(textureMapsArrayTex, vec3(hit_record.texCoord, texIDs_1.y));
+        mat.specular.rgb = col.rgb;
     }
     if(texIDs_1.z >= 0) // normalTexId
     {
@@ -938,24 +1082,6 @@ void sampleLight(vec3 hitPoint,inout LightSampleRec lightSample)
 {
     int lightIndex=int(rand()*float(numOfSphereLights));
     SampleSphereLight(sphereLights[lightIndex],hitPoint,lightSample);
-    
-    // // 随机选择一种光源类型：平面光源、球面光源或远程光源
-    // // 随机选择一个光源类型（0: QUAD_LIGHT, 1: SPHERE_LIGHT, 2: DISTANT_LIGHT）
-    // int lightType = int(rand() * 3.0);
-    
-    // // 根据光源类型确保选取正确的光源索引
-    // if (lightType == 0 && numOfRectLights > 0) {
-        //     int lightIndex = int(rand() * float(numOfRectLights));
-        //     SampleRectLight(rectLights[lightIndex], hitPoint, lightSample);
-    // }
-    // else if (lightType == 1 && numOfSphereLights > 0) {
-        //     int lightIndex = int(rand() * float(numOfSphereLights));
-        //     SampleSphereLight(sphereLights[lightIndex], hitPoint, lightSample);
-    // }
-    // else if (lightType == 2 && numOfDistantLights > 0) {
-        //     int lightIndex = int(rand() * float(numOfDistantLights));
-        //     SampleDistantLight(distantLights[lightIndex], hitPoint, lightSample);
-    // }
 }
 void SampleRectLight(in RectLight light,in vec3 hitPoint,inout LightSampleRec lightSample)
 {
@@ -995,7 +1121,8 @@ void SampleSphereLight(in SphereLight light,in vec3 hitPoint,inout LightSampleRe
     
     lightSample.direction=lightSurfacePos-hitPoint;
     lightSample.dist=length(lightSample.direction);
-    float distSq=lightSample.dist*lightSample.dist;
+    // float distSq=lightSample.dist*lightSample.dist;
+    float distSq = lightSample.dist;
     
     lightSample.direction/=lightSample.dist;
     lightSample.normal=normalize(lightSurfacePos-light.position);

@@ -13,7 +13,7 @@
 #include "renderable_model.hpp"
 // #include <Eigen/Core>
 
-const float MIN_DENSITY = 0.0f;
+const float MIN_DENSITY = 0.5f;
 const float RANDOM_OFFSET = 0.f;
 
 // // Orient2D: 用于计算三点的方向

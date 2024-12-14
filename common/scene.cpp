@@ -10,7 +10,7 @@
 // 添加模型
 bool Scene::add_model(const std::string &modelfilePath, glm::mat4 transformMat)
 {
-    Model *model = new Model();
+    std::shared_ptr<Model> model = std::make_shared<Model>();
     if (model->LoadFromFile(modelfilePath))
     {
         // 1. 将model中的纹理数据导入scene中
@@ -40,11 +40,9 @@ bool Scene::add_model(const std::string &modelfilePath, glm::mat4 transformMat)
     else
     {
         std::cout << "ERROR::UNABLE TO LOAD MESH::" << modelfilePath << std::endl;
-        delete model;
         return false;
     }
 
-    delete model;
     return true;
 }
 
@@ -59,9 +57,7 @@ int Scene::add_material(const Material &material)
 // 添加纹理
 int Scene::add_texture(const std::string &filename)
 {
-    //
     // 根据纹理路径的名称 返回其在纹理数组中的索引位置
-    //
     int id = -1;
     for (int i = 0; i < textures.size(); i++)
     {
@@ -404,49 +400,47 @@ void Scene::SaveFrame(const std::string filename)
 
 void Scene::update_GPU_data()
 {
-    glPixelStorei(GL_PACK_ALIGNMENT, 1);
-
-    // ---------- 更新 BVH树节点数据 ---------- //
+    // 更新 BVH 数据
     glBindBuffer(GL_TEXTURE_BUFFER, BVHBuffer);
     glBufferSubData(GL_TEXTURE_BUFFER, 0, sizeof(BVHConverter::Node) * bvhConverter.nodes.size(), &bvhConverter.nodes[0]);
     glBindTexture(GL_TEXTURE_BUFFER, BVHTex);
     glTexBuffer(GL_TEXTURE_BUFFER, GL_RGB32F, BVHBuffer);
 
-    // ---------- 更新顶点索引数据 ---------- //
+    // 更新顶点索引数据
     glBindBuffer(GL_TEXTURE_BUFFER, vertexIndicesBuffer);
     glBufferSubData(GL_TEXTURE_BUFFER, 0, sizeof(Indices) * vertIndices.size(), &vertIndices[0]);
     glBindTexture(GL_TEXTURE_BUFFER, vertexIndicesTex);
     glTexBuffer(GL_TEXTURE_BUFFER, GL_RGB32I, vertexIndicesBuffer);
 
-    // ---------- 更新顶点/UV数据 ---------- //
+    // 更新顶点/UV数据
     glBindBuffer(GL_TEXTURE_BUFFER, verticesBuffer);
     glBufferSubData(GL_TEXTURE_BUFFER, 0, sizeof(glm::vec4) * verticesUVX.size(), &verticesUVX[0]);
     glBindTexture(GL_TEXTURE_BUFFER, verticesTex);
     glTexBuffer(GL_TEXTURE_BUFFER, GL_RGBA32F, verticesBuffer);
 
-    // ---------- 更新法线/UV数据 ---------- //
+    // 更新法线/UV数据
     glBindBuffer(GL_TEXTURE_BUFFER, normalsBuffer);
     glBufferSubData(GL_TEXTURE_BUFFER, 0, sizeof(glm::vec4) * normalsUVY.size(), &normalsUVY[0]);
     glBindTexture(GL_TEXTURE_BUFFER, normalsTex);
     glTexBuffer(GL_TEXTURE_BUFFER, GL_RGBA32F, normalsBuffer);
 
-    // ---------- 更新转换矩阵数据 ---------- //
+    // 更新转换矩阵数据
     glBindBuffer(GL_TEXTURE_BUFFER, transformsBuffer);
     glBufferSubData(GL_TEXTURE_BUFFER, 0, sizeof(glm::mat4) * transforms.size(), &transforms[0]);
     glBindTexture(GL_TEXTURE_BUFFER, transformsTex);
     glTexBuffer(GL_TEXTURE_BUFFER, GL_RGBA32F, transformsBuffer);
 
-    // ---------- 更新材质数据 ---------- //
+    // 更新材质数据
     glBindBuffer(GL_TEXTURE_BUFFER, materialsBuffer);
     glBufferSubData(GL_TEXTURE_BUFFER, 0, sizeof(Material) * materials.size(), &materials[0]);
     glBindTexture(GL_TEXTURE_BUFFER, materialsTex);
     glTexBuffer(GL_TEXTURE_BUFFER, GL_RGBA32F, materialsBuffer);
 
-    // ---------- 更新纹理数据 ---------- //
+    // 更新纹理数据
     if (!textures.empty())
     {
         glBindTexture(GL_TEXTURE_2D_ARRAY, textureMapsArrayTex);
-        glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, 0, texArrayWidth, texArrayHeight, textures.size(), GL_RGBA, GL_UNSIGNED_BYTE, &textureMapsArray[0]);
+        glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA8, texArrayWidth, texArrayHeight, textures.size(), 0, GL_RGBA, GL_UNSIGNED_BYTE, &textureMapsArray[0]);
         glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
@@ -455,61 +449,57 @@ void Scene::update_GPU_data()
 
 void Scene::update_FBOs()
 {
-    // 更新 Path tracing FBO
+    // 更新 Path Trace FBO 数据
     glBindFramebuffer(GL_FRAMEBUFFER, pathTraceFBO);
     glBindTexture(GL_TEXTURE_2D, pathTraceTexture);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, WINDOW_WIDTH, WINDOW_HEIGHT, 0, GL_RGBA, GL_FLOAT, nullptr);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, pathTraceTexture, 0);
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
         std::cerr << "Path trace FBO is not complete!" << std::endl;
 
-    // 更新 Accumulation FBO
+    // 更新 Accumulation FBO 数据
     glBindFramebuffer(GL_FRAMEBUFFER, accumFBO);
     glBindTexture(GL_TEXTURE_2D, accumTexture);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, WINDOW_WIDTH, WINDOW_HEIGHT, 0, GL_RGBA, GL_FLOAT, nullptr);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, accumTexture, 0);
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
         std::cerr << "Accumulation FBO is not complete!" << std::endl;
 
-    // 更新 Output FBO
+    // 更新 Output FBO 数据
     glBindFramebuffer(GL_FRAMEBUFFER, outputFBO);
     glBindTexture(GL_TEXTURE_2D, outputTexture[0]);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, WINDOW_WIDTH, WINDOW_HEIGHT, 0, GL_RGBA, GL_FLOAT, nullptr);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-    glBindTexture(GL_TEXTURE_2D, outputTexture[1]);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, WINDOW_WIDTH, WINDOW_HEIGHT, 0, GL_RGBA, GL_FLOAT, 0);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, outputTexture[0], 0);
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
         std::cerr << "Output FBO is not complete!" << std::endl;
 
-    // 清除积累缓冲区
+    glBindTexture(GL_TEXTURE_2D, outputTexture[1]);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, WINDOW_WIDTH, WINDOW_HEIGHT, 0, GL_RGBA, GL_FLOAT, nullptr);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, outputTexture[1], 0);
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+        std::cerr << "Output FBO is not complete!" << std::endl;
+
+    // 更新 Denoised Texture
+    glBindTexture(GL_TEXTURE_2D, denoisedTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, WINDOW_WIDTH, WINDOW_HEIGHT, 0, GL_RGB, GL_FLOAT, nullptr);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    // 清除累积缓冲区
     glBindFramebuffer(GL_FRAMEBUFFER, accumFBO);
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 }
 
-glm::vec3 *Scene::DenoiseProcess()
+void Scene::DenoiseProcess()
 {
-    // 降噪处理
-    // 将GPU中的 tileOutputTexture[1 - currentBuffer] 纹理数据传递到 denoiserInputFramePtr 中
+}
+
+glm::vec3 *Scene::get_frame_output()
+{
+    // 获取当前帧的输出
     glBindTexture(GL_TEXTURE_2D, outputTexture[1 - currentBuffer]);
-    glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_FLOAT, denoiserInputFramePtr);
-    return denoiserInputFramePtr;
+    glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_FLOAT, frameOutputPtr);
+    return frameOutputPtr;
 }

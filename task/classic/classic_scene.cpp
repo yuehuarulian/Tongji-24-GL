@@ -16,7 +16,6 @@ namespace GL_TASK
     // 对场景进行设置
     void ClassicScene::setup_scene()
     {
-        frameNum = 1;
         load_lights();
         load_models();
         init_GPU_data(); // 将相关数据绑定到纹理中以便传递到GPU中
@@ -54,20 +53,20 @@ namespace GL_TASK
         // 先加载所有的模型文件 存储在meshes中
         // Room model
         glm::vec3 roomMin, roomMax;
-        room = std::make_shared<Room>("source/model/room2/room2.obj", meshes, meshInstances, textures, materials);
+        room = std::make_shared<Room>("source/model/room2/test.obj", meshes, meshInstances, textures, materials);
         printf("Load Room Model Over\n");
         room->getBoundingBox(roomMin, roomMax);
-        roomMin = glm::vec3(-104.160004, -359.567505, -430.721375);
-        roomMax = glm::vec3(104.159973, 77.232498, 99.375420);
+        // roomMin = glm::vec3(-104.160004, -359.567505, -430.721375);
+        // roomMax = glm::vec3(104.159973, 77.232498, 99.375420);
 
-        // liquid model
-        glm::mat4 room_model_matrix = room->get_model_matrix(); // glm::mat4(1.0f);
-        // room_model_matrix = glm::rotate(room_model_matrix, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-        // room_model_matrix = glm::scale(room_model_matrix, glm::vec3(1.f, 1.f, 1.f) * 1.3f);
-        fluid = std::make_shared<Fluid>(meshes, meshInstances, textures, materials);
-        fluid->BindDirty(&BbvhDirty);
-        fluid->set_model_matrix(room_model_matrix);
-        fluid->add_model("source/model/fluid/mesh.obj");
+        // // liquid model
+        // glm::mat4 room_model_matrix = room->get_model_matrix(); // glm::mat4(1.0f); //
+        // // room_model_matrix = glm::rotate(room_model_matrix, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+        // // room_model_matrix = glm::scale(room_model_matrix, glm::vec3(1.f, 1.f, 1.f) * 1.3f);
+        // fluid = std::make_shared<Fluid>(meshes, meshInstances, textures, materials);
+        // fluid->BindDirty(&BbvhDirty);
+        // fluid->set_model_matrix(room_model_matrix);
+        // fluid->add_model("source/model/fluid/mesh.obj");
 
         // // bullet world
         // bulletWorld = std::make_shared<BulletWorld>(meshes, meshInstances, textures, materials);
@@ -87,19 +86,19 @@ namespace GL_TASK
         // bulletWorld->add_model(glm::vec3(20.0, water_level + 2.0, 50.0));
 
         // butterfly model
-        // for (int i = 0; i < butterfly_count; i++)
-        // {
-        //     auto butterfly_model_single = std::make_shared<Butterfly>("source/model/butterfly/ok.dae", meshes, meshInstances, textures, materials);
-        //     butterflies.push_back(butterfly_model_single);
-        // }
+        for (int i = 0; i < butterfly_count; i++)
+        {
+            auto butterfly_model_single = std::make_shared<Butterfly>("source/model/butterfly/ok.dae", meshes, meshInstances, textures, materials);
+            butterflies.push_back(butterfly_model_single);
+        }
 
-        // 点云
-        // printf("Load point Cloud Model\n");
+        // // 点云
+        // // printf("Load point Cloud Model\n");
         // glm::mat4 model = glm::mat4(1.0f);
-        // model = glm::translate(model, glm::vec3(0.0f, -100.0f, -160.0f));
-        // model = glm::scale(model, glm::vec3(0.4f));
-        // auto point_cloud1 = std::make_shared<PointCloud>("./source/model/point_cloud/Cumulonimbus_11.vdb", meshes, meshInstances, textures, materials, model);
-        // point_clouds.push_back(point_cloud1);
+        // // model = glm::translate(model, glm::vec3(0.0f, -100.0f, -160.0f));
+        // // model = glm::scale(model, glm::vec3(0.3f));
+        // // auto point_cloud1 = std::make_shared<PointCloud>("./source/model/point_cloud/Cumulonimbus_11.vdb", meshes, meshInstances, textures, materials, model);
+        // // point_clouds.push_back(point_cloud1);
 
         // model = glm::mat4(1.0f);
         // model = glm::translate(model, glm::vec3(-80.0f, -40.0f, -110.0f));
@@ -116,8 +115,10 @@ namespace GL_TASK
         this->createBLAS();   // 建立低层次的BVH加速结构
         this->createTLAS();   // 建立高层次的BVH加速结构
         this->process_data(); // 处理数据 将其转换成可供Shader使用的形式
-        fluid->start();       // 启动流体模拟
-        // bulletWorld->start(); // 启动物理模拟
+        // if (fluid.get() != nullptr)
+        //     fluid->start(); // 启动流体模拟
+        // if (bulletWorld.get() != nullptr)
+        //     bulletWorld->start(); // 启动物理模拟
     }
 
     void ClassicScene::load_lights()
@@ -139,12 +140,12 @@ namespace GL_TASK
     // 渲染
     void ClassicScene::render_scene(Camera &camera)
     {
+        frameNum++;
+        currentBuffer = 1 - currentBuffer;
         glActiveTexture(GL_TEXTURE0);
         render_path_tracing(camera);
         render_accumulation();
         render_post_processing();
-        frameNum++;
-        currentBuffer = 1 - currentBuffer;
     }
 
     void ClassicScene::render_path_tracing(Camera &camera)
@@ -160,6 +161,7 @@ namespace GL_TASK
         path_tracing_shader->stopUsing();
 
         glBindFramebuffer(GL_FRAMEBUFFER, pathTraceFBO);
+        glClear(GL_COLOR_BUFFER_BIT);
         glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
         glBindTexture(GL_TEXTURE_2D, accumTexture);
         quad->Draw(path_tracing_shader.get());
@@ -190,6 +192,7 @@ namespace GL_TASK
     void ClassicScene::present_scene()
     {
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
         auto accumulation_shader = shader_manager.get_shader("accumulationShader");
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, outputTexture[1 - currentBuffer]);
@@ -200,10 +203,6 @@ namespace GL_TASK
 
     void ClassicScene::update_models()
     {
-        if (frameNum < 3)
-            return;
-        static int current_buffer = 0;
-        current_buffer++;
         for (auto &butterfly : butterflies)
             butterfly->update();
         if (butterflies.size() > 0)
@@ -213,9 +212,6 @@ namespace GL_TASK
 
     void ClassicScene::update_scene()
     {
-        if (frameNum < 3)
-            return;
-
         if (BbvhDirty || TbvhDirty)
         {
             dirty = true;
@@ -232,9 +228,7 @@ namespace GL_TASK
             {
                 if (TbvhDirty)
                 {
-                    std::cout << "update butterfly" << std::endl;
                     this->createTLAS(); // 重建高层次的BVH加速结构
-                    TbvhDirty = false;
                 }
                 this->process_data();    // 处理数据 将其转换成可供Shader使用的形式
                 this->update_GPU_data(); // 将相关数据绑定到纹理中以便传递到GPU中
@@ -251,13 +245,15 @@ namespace GL_TASK
 
             frameNum = 1;
             std::cout << "reset FrameNum: " << frameNum << std::endl;
-            dirty = false;
             // TODO: 数据修改与传输
         }
+        TbvhDirty = false;
+        dirty = false;
     }
 
     void ClassicScene::wait_until_next_frame(int frame_number)
     {
-        fluid->wait_until_next_frame(frame_number);
+        // if (fluid.get() != nullptr)
+        //     fluid->wait_until_next_frame(frame_number);
     }
 }
