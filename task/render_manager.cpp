@@ -31,7 +31,7 @@ void RenderManager::initialize()
 {
     initialize_GLFW();
 
-    camera = Camera(window, 75 * D2R, glm::vec3(0.0f, -120.0f, 80.0f), glm::pi<float>(), 15. * D2R, 30.0f, 1.0f);
+    camera = Camera(window, 75 * D2R, glm::vec3(0.0f, -180.0f, 80.0f), glm::pi<float>(), 15. * D2R, 30.0f, 1.0f);
     scene = std::make_unique<GL_TASK::ClassicScene>(shader_manager, light_manager); // TODO
     skybox = std::make_unique<Skybox>(faces, "source/shader/skybox.vs", "source/shader/skybox.fs");
 

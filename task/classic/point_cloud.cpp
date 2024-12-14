@@ -18,7 +18,7 @@ PointCloud::PointCloud(const std::string &vdb_file, std::vector<Mesh *> &meshes,
     // 云层通常有一定的自发光，用于模拟光在云中散射后的效果
     material.emissiveColor = glm::vec3(0.5f, 0.5f, 0.5f); // 自发光颜色
     // 设置透明度和折射率
-    material.transparency = 0.1f;    // 云层半透明
+    material.transparency = 0.8f;    // 云层半透明
     material.refractionIndex = 1.0f; // 近似空气的折射率
     // 设置粗糙度（较高粗糙度模拟云的不规则表面）
     material.roughness = 0.8f;

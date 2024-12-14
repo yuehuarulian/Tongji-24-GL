@@ -10,30 +10,38 @@ namespace GL_TASK
     ClassicScene::ClassicScene(ShaderManager &shader_manager, LightManager &light_manager, const int WINDOW_WIDTH, const int WINDOW_HEIGHT)
         : Scene(shader_manager, light_manager, WINDOW_WIDTH, WINDOW_HEIGHT)
     {
-        setup_scene(); // 配置场景
+        setup_scene();
     }
 
-    // 对场景进行设置
     void ClassicScene::setup_scene()
     {
+        // 加载数据
         load_lights();
         load_models();
-        process_data();
+        // 处理数据
+        createBLAS();   // 建立低层次的BVH加速结构
+        createTLAS();   // 建立高层次的BVH加速结构
+        process_data(); // 将数据转换为传递给着色器的数据形式
+        // 模拟启动
+        if (fluid.get() != nullptr)
+            fluid->start(); // 启动流体模拟
+        // if (bulletWorld.get() != nullptr)
+        //     bulletWorld->start(); // 启动物理模拟
         init_GPU_data(); // 将相关数据绑定到纹理中以便传递到GPU中
         init_FBOs();     // 初始化帧缓冲对象
-        load_shaders();
+        load_shaders();  // 加载着色器
     }
 
     void ClassicScene::load_shaders()
     {
+        // 加载编译着色器
         shader_manager.load_shader("pathTracingShader", "./source/shader/classic/common_vertex_shader.vs", "./source/shader/classic/path_tracing_fragment_shader.fs");
         shader_manager.load_shader("accumulationShader", "./source/shader/classic/common_vertex_shader.vs", "./source/shader/classic/accumulation_fragment_shader.fs");
         shader_manager.load_shader("postProcessShader", "./source/shader/classic/common_vertex_shader.vs", "./source/shader/classic/post_process_fragment_shader.fs");
         shader_manager.load_shader("cubemap_shader", "source/shader/cubemap.vs", "source/shader/cubemap.fs");
-        // shader_manager.load_shader("cloud", "source/shader/point_cloud.vs", "source/shader/point_cloud.fs");
         shader_manager.load_shader("liquid_shader", "source/shader/classic/liquid.vs", "source/shader/classic/liquid.fs");
-        // shader_manager.load_shader("butterfly_shader", "source/shader/classic/butterfly.vs", "source/shader/classic/butterfly.fs");
 
+        // 为着色器传递数据
         auto path_tracing_shader = shader_manager.get_shader("pathTracingShader");
         path_tracing_shader->use();
         path_tracing_shader->setInt("topBVHIndex", bvhConverter.topLevelIndex);
@@ -57,19 +65,17 @@ namespace GL_TASK
         room = std::make_shared<Room>("source/model/room2/test.obj", meshes, meshInstances, textures, materials);
         printf("Load Room Model Over\n");
         room->getBoundingBox(roomMin, roomMax);
-        // roomMin = glm::vec3(-104.160004, -359.567505, -430.721375);
-        // roomMax = glm::vec3(104.159973, 77.232498, 99.375420);
 
-        // // liquid model
-        // glm::mat4 room_model_matrix = room->get_model_matrix(); // glm::mat4(1.0f); //
-        // // room_model_matrix = glm::rotate(room_model_matrix, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-        // // room_model_matrix = glm::scale(room_model_matrix, glm::vec3(1.f, 1.f, 1.f) * 1.3f);
-        // fluid = std::make_shared<Fluid>(meshes, meshInstances, textures, materials);
-        // fluid->BindDirty(&BbvhDirty);
-        // fluid->set_model_matrix(room_model_matrix);
-        // fluid->add_model("source/model/fluid/mesh.obj");
+        // liquid model
+        glm::mat4 room_model_matrix = room->get_model_matrix();
+        fluid = std::make_shared<Fluid>(meshes, meshInstances, textures, materials);
+        fluid->BindDirty(&BbvhDirty);
+        fluid->set_model_matrix(room_model_matrix);
+        fluid->add_model("source/model/fluid/mesh.obj");
 
         // // bullet world
+        // roomMin = glm::vec3(-104.160004, -359.567505, -430.721375);
+        // roomMax = glm::vec3(104.159973, 77.232498, 99.375420);
         // bulletWorld = std::make_shared<BulletWorld>(meshes, meshInstances, textures, materials);
         // bulletWorld->BindDirty(&TbvhDirty);
         // bulletWorld->BindFluid(fluid);
@@ -93,38 +99,33 @@ namespace GL_TASK
             butterflies.push_back(butterfly_model_single);
         }
 
-        // // 点云
-        // // printf("Load point Cloud Model\n");
-        // glm::mat4 model = glm::mat4(1.0f);
-        // // model = glm::translate(model, glm::vec3(0.0f, -100.0f, -160.0f));
-        // // model = glm::scale(model, glm::vec3(0.3f));
-        // // auto point_cloud1 = std::make_shared<PointCloud>("./source/model/point_cloud/Cumulonimbus_11.vdb", meshes, meshInstances, textures, materials, model);
-        // // point_clouds.push_back(point_cloud1);
-
+        // 点云 1
+        glm::mat4 model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(0.0f, -120.0f, -160.0f));
+        model = glm::scale(model, glm::vec3(0.3f));
+        auto point_cloud1 = std::make_shared<PointCloud>("./source/model/point_cloud/Cumulonimbus_11.vdb", meshes, meshInstances, textures, materials, model);
+        point_clouds.push_back(point_cloud1);
+        // 点云 2
         // model = glm::mat4(1.0f);
-        // model = glm::translate(model, glm::vec3(-80.0f, -40.0f, -110.0f));
-        // model = glm::scale(model, glm::vec3(0.4f));
-        // auto point_cloud2 = std::make_shared<PointCloud>("E:/my_code/GL_bigwork/code/source/model/point_cloud/Cumulonimbus_14.vdb", meshes, meshInstances, textures, materials, model);
+        // model = glm::translate(model, glm::vec3(0.0f, -300.0f, -110.0f));
+        // model = glm::scale(model, glm::vec3(1.0f));
+        // auto point_cloud2 = std::make_shared<PointCloud>("./source/model/point_cloud/VDB_PACK_Smoke5.vdb", meshes, meshInstances, textures, materials, model);
         // point_clouds.push_back(point_cloud2);
-
-        // model = glm::mat4(1.0f);
-        // model = glm::translate(model, glm::vec3(40.0f, -80.0f, 40.0f));
-        // model = glm::scale(model, glm::vec3(0.5f));
-        // auto point_cloud3 = std::make_shared<PointCloud>("source/model/point_cloud/Cumulonimbus_09.vdb", meshes, meshInstances, textures, materials, model);
-        // point_clouds.push_back(point_cloud3);
-
-        this->createBLAS();   // 建立低层次的BVH加速结构
-        this->createTLAS();   // 建立高层次的BVH加速结构
-         // 处理数据 将其转换成可供Shader使用的形式
-        // if (fluid.get() != nullptr)
-        //     fluid->start(); // 启动流体模拟
-        // if (bulletWorld.get() != nullptr)
-        //     bulletWorld->start(); // 启动物理模拟
+        //  model = glm::mat4(1.0f);
+        //  model = glm::translate(model, glm::vec3(-60.0f, -100.0f, -110.0f));
+        //  model = glm::scale(model, glm::vec3(0.4f));
+        //  auto point_cloud2 = std::make_shared<PointCloud>("./source/model/point_cloud/Cumulonimbus_14.vdb", meshes, meshInstances, textures, materials, model);
+        //  point_clouds.push_back(point_cloud2);
+        // 点云 3
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(40.0f, -140.0f, 0.0f));
+        model = glm::scale(model, glm::vec3(0.5f));
+        auto point_cloud3 = std::make_shared<PointCloud>("./source/model/point_cloud/Cumulonimbus_09.vdb", meshes, meshInstances, textures, materials, model);
+        point_clouds.push_back(point_cloud3);
     }
 
     void ClassicScene::load_lights()
     {
-        // 添加光源
         for (int i = 0; i < area_lights_position.size(); i++)
         {
             glm::mat4 matrix = glm::mat4(1.0f);
@@ -141,12 +142,13 @@ namespace GL_TASK
     // 渲染
     void ClassicScene::render_scene(Camera &camera)
     {
-        if(++sampleNum == 20) {
+        if (++sampleNum == 20)
+        {
             // 每帧采样20次
-            frameNum++; 
+            frameNum++;
             sampleNum = 1;
         }
-            
+
         currentBuffer = 1 - currentBuffer;
         glActiveTexture(GL_TEXTURE0);
         render_path_tracing(camera);
@@ -257,7 +259,7 @@ namespace GL_TASK
 
     void ClassicScene::wait_until_next_frame(int frame_number)
     {
-        // if (fluid.get() != nullptr)
-        //     fluid->wait_until_next_frame(frame_number);
+        if (fluid.get() != nullptr)
+            fluid->wait_until_next_frame(frame_number);
     }
 }
