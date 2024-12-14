@@ -148,7 +148,8 @@ void BulletWorld::start() {
         return;
     }
     running = true;
-    physicsThread = std::thread(&BulletWorld::updateLoop, this);
+    physicsThread = std::thread([this]() { updateLoop(); });
+    physicsThread.detach();
 }
 
 void BulletWorld::stop() {
@@ -171,13 +172,27 @@ void BulletWorld::updateLoop() {
             dynamicsWorld->stepSimulation(sim_dt, 5);
             enforceBounds();
             std::cout << "BulletWorld:: Applying model Matrices." << std::endl;
-            applyModelMatrices();
+            // applyModelMatrices();
         }
-        sim_time += sim_dt;
-        if (dirty) *dirty = true;
+        {
+            std::lock_guard<std::mutex> guard(dirtyMutex); 
+            sim_time += sim_dt;
+            dirty = true;
+        }
         std::cout << "BulletWorld:: finish a new frame." << std::endl;
         fluid->fluid_sim.wait_until_next_sim();
     }
+}
+
+bool BulletWorld::isDirty(){
+    std::lock_guard<std::mutex> guard(dirtyMutex); 
+    if (dirty) {
+        std::cerr << "Dirty" << std::endl;
+        dirty = false;
+        return true;
+    }
+    std::cerr << "Clean";
+    return false;
 }
 
 void BulletWorld::enforceBounds() {

@@ -13,6 +13,7 @@
 #include <mutex>
 #include <thread>
 #include <functional>
+#include <iostream>
 
 namespace GL_TASK 
 {
@@ -22,8 +23,8 @@ namespace GL_TASK
         BulletWorld(std::vector<Mesh *> &meshes, std::vector<MeshInstance *> &meshInstances, std::vector<Texture *> &textures, std::vector<Material> &materials);
         ~BulletWorld();
 
-        // 绑定脏位
-        void BindDirty(bool* dirtyPtr) {dirty = dirtyPtr;}
+        // 判断脏位
+        bool isDirty();
 
         // 设置房间大小
         void setRoomBounds(const glm::vec3& roomMin, const glm::vec3& roomMax);
@@ -73,8 +74,8 @@ namespace GL_TASK
         float btClamp(float value, float min, float max);
         btVector3 btClamp(const btVector3& position, const btVector3& min, const btVector3& max);
 
-        // 绑定脏位
-        bool* dirty{nullptr};
+        // 脏位
+        bool dirty{false};
 
         // 模拟参数
         double sim_time{0};
@@ -102,6 +103,7 @@ namespace GL_TASK
 
         // 线程同步
         std::mutex worldMutex;
+        std::mutex dirtyMutex;
         std::thread physicsThread;
         bool running{false};
     };
