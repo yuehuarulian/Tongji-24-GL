@@ -1,12 +1,17 @@
-# Fluid Simulation Project
+# Pooled Core Scene Rendering Project
 
-本项目是一个基于高精度流体模拟的研究和展示项目，包含以下三个主要模块：
+建议运行方式：
 
-1. **`fluid_testbed`** - 无渲染水体模拟。
-2. **`fluid_test`** - 实时渲染的水体模拟（受限于高精度模拟计算的开销，无法实现完全实时效果）。
-3. **`main_offline`** - 新增支持流体模拟的离线渲染功能。
+在线渲染：./build/main > output.txt
+
+离线渲染：./build/offline_rendering > output.txt
+
+如果运行失败调试策略：1/电脑重启; 2/选择注释掉房间/蝴蝶/点云/水/物理世界；3/调节fluid_config.json的scale参数（建议1.0-2.0之间）
+
+备注：在线渲染刚开始水的位置不对是正常的，这是因为第一帧水还在计算中，稍事等待即可，如果想加快水速度可以调小fluid_config.json的scale参数。
 
 ## 相机操作：
+
 - A：左移
 - S：下移
 - D：右移
@@ -17,6 +22,7 @@
 万向节死锁现象只是简单的限制了一下角度可能有点奇怪那里
 
 ## 代码规范
+
 - 所有的 class 名称大写并使用驼峰命名法
 - 所有函数，变量，文件名，请不要使用驼峰，下划线分割！！！
 - task文件夹下所有具体类请用命名空间GL_TASK
@@ -33,35 +39,35 @@ namespace fluid {
         void BindMesh(Mesh* const pMesh);
 
         void reset();
-        
+    
         void pause();
-        
+    
         void advance();
 
         vec3d get_grid_offset() const;
-        
+    
         vec3s get_grid_size() const;
-        
+    
         vec3d get_grid_center() const;
-        
+    
         double get_cell_size() const;
-        
+    
         vec3d get_min_corner() const;
-        
+    
         vec3d get_max_corner() const;
 
         std::vector<simulation::particle> get_particles();
-        
+    
         mesher::mesh_t get_mesh_t();
-        
+    
         grid3<std::size_t> get_grid_occupation();
-        
+    
         grid3<vec3d> get_grid_velocities();
-        
+    
         mesher::mesh_t get_room_mesh_t() const;
 
         void save_mesh_to_obj(std::string const& path = "mesh.obj");
-        
+    
         void save_points_to_txt(const std::string& filepath = "points.txt");
 
         void wait_until_next_frame();
@@ -102,13 +108,14 @@ namespace fluid {
             sim_advance = false;
 
         void update_simulation(const simulation& sim);
-        
+    
         void reset_simulation(simulation& sim);
-        
+    
         void simulation_thread();
-        
+    
         void mesher_thread();
-        
+    
         int updateBoundMesh();
     };
 }
+```

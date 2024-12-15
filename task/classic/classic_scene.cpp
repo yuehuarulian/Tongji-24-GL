@@ -22,14 +22,14 @@ namespace GL_TASK
         createBLAS();   // 建立低层次的BVH加速结构
         createTLAS();   // 建立高层次的BVH加速结构
         process_data(); // 将数据转换为传递给着色器的数据形式
+        init_GPU_data();          // 将相关数据绑定到纹理中以便传递到GPU中
+        init_FBOs();              // 初始化帧缓冲对象
+        load_shaders();           // 加载着色器
         // 模拟启动
         if (fluid.get() != nullptr)
             fluid->start(); // 启动流体模拟
         if (bulletWorld.get() != nullptr)
             bulletWorld->start(); // 启动物理模拟
-        init_GPU_data();          // 将相关数据绑定到纹理中以便传递到GPU中
-        init_FBOs();              // 初始化帧缓冲对象
-        load_shaders();           // 加载着色器
     }
 
     void ClassicScene::load_shaders()
@@ -86,21 +86,20 @@ namespace GL_TASK
         fluid->add_model("./source/model/fluid/mesh.obj");
 
         // bullet world
-        // bulletWorld = std::make_shared<BulletWorld>(meshes, meshInstances, textures, materials);
-        // bulletWorld->BindDirty(&TbvhDirty);
-        // bulletWorld->BindFluid(fluid);
-        // bulletWorld->setRoomBounds(roomMin, roomMax);
-        // double water_level = fluid->get_water_level(roomMin, roomMax);
+        bulletWorld = std::make_shared<BulletWorld>(meshes, meshInstances, textures, materials);
+        bulletWorld->BindFluid(fluid);
+        bulletWorld->setRoomBounds(roomMin, roomMax);
+        double water_level = fluid->get_water_level(roomMin, roomMax);
 
-        // // boat model
-        // bulletWorld->bind_model("source/model/boat/boat_obj.obj", ObjectType::BOAT);
-        // bulletWorld->add_model(glm::vec3(15.0, water_level + 5.0, -25.0));
-        // bulletWorld->add_model(glm::vec3(-15.0, water_level + 5.0, 25.0));
+        // boat model
+        bulletWorld->bind_model("source/model/boat/boat_obj.obj", ObjectType::BOAT);
+        bulletWorld->add_model(glm::vec3(15.0, water_level + 5.0, -25.0));
+        bulletWorld->add_model(glm::vec3(-15.0, water_level + 5.0, 25.0));
 
-        // // flower model
-        // bulletWorld->bind_model("source/model/flower/flower.obj", ObjectType::FLOWER);
-        // bulletWorld->add_model(glm::vec3(-20.0, water_level + 2.0, -50.0));
-        // bulletWorld->add_model(glm::vec3(20.0, water_level + 2.0, 50.0));
+        // flower model
+        bulletWorld->bind_model("source/model/flower/flower.obj", ObjectType::FLOWER);
+        bulletWorld->add_model(glm::vec3(-20.0, water_level + 2.0, -50.0));
+        bulletWorld->add_model(glm::vec3(20.0, water_level + 2.0, 50.0));
 
         // 点云 1
         // printf("/*************************************/\n");
@@ -149,7 +148,7 @@ namespace GL_TASK
     {
         update_scene();
         printf("SampleNumber: %d - FrameNumber:%d\n", sampleNum, frameNum);
-        if (++sampleNum >= 20)
+        if (++sampleNum >= SAMPLES_PER_FRAME)
         {
             // 每帧采样20次
             SaveFrameImage(); // 保存图片

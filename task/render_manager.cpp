@@ -5,6 +5,7 @@
 #include <iostream>
 #include <vector>
 #include <sstream>
+#include <iostream>
 #include <iomanip>
 #include <filesystem>
 
@@ -108,11 +109,13 @@ void RenderManager::start_rendering(bool offscreen)
     for (int i = 0; i < frames; ++i)
     {
         printf("Render Frame %d -- Start\n", i);
+        std::cerr << "Render Frame " << i << " -- Start" << std::endl;
         scene->wait_until_next_frame(i);
         update_camera();
         render_frame(i);
         glfwPollEvents();
         printf("Render Frame %d -- End\n", i);
+        std::cerr << "Render Frame " << i << " -- End" << std::endl;
     }
 }
 
@@ -127,6 +130,7 @@ void RenderManager::render_frame(int frame_number)
 {
     // 当采样达到一定数量时将渲染结果提取出来
     scene->setDirty(true);
+    scene->update_models();
     if (offscreen)
     {
         // 循环进行渲染

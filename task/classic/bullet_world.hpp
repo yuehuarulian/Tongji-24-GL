@@ -46,7 +46,7 @@ namespace GL_TASK
         btDiscreteDynamicsWorld* getDynamicsWorld() const;
 
         // override
-        void update() override {};
+        void update() override;
     protected:
         void set_model_matrix() override {};
         bool add_model(const std::string &model_path) override { return false; };

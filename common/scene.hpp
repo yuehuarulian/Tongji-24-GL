@@ -55,6 +55,7 @@ protected:
     void init_GPU_data();
     void init_FBOs();
     void update_GPU_data();
+    void update_GPU_data1();
     void update_FBOs();
 
     const int WINDOW_WIDTH, WINDOW_HEIGHT;
@@ -125,6 +126,14 @@ protected:
     GLuint materialsTex;
     // ---------- 纹理数据 ---------- //
     GLuint textureMapsArrayTex;
+
+    // 存储缓冲区大小，用于动态调整缓冲区大小
+    size_t BVHBufferSize = 0;
+    size_t vertexIndicesBufferSize = 0;
+    size_t verticesBufferSize = 0;
+    size_t normalsBufferSize = 0;
+    size_t transformsBufferSize = 0;
+    size_t materialsBufferSize = 0;
 
     // Denoiser output
     glm::vec3 *frameOutputPtr;

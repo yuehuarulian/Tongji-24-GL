@@ -239,7 +239,8 @@ void Scene::init_GPU_data()
     // 对于顶层Leaf节点(MeshInstance)来说 LRLeaf.x表示所代表mesh起点 LRLeaf.y表示材质ID
     glGenBuffers(1, &BVHBuffer);
     glBindBuffer(GL_TEXTURE_BUFFER, BVHBuffer);
-    glBufferData(GL_TEXTURE_BUFFER, sizeof(BVHConverter::Node) * bvhConverter.nodes.size(), &bvhConverter.nodes[0], GL_DYNAMIC_DRAW);
+    BVHBufferSize = sizeof(BVHConverter::Node) * bvhConverter.nodes.size();
+    glBufferData(GL_TEXTURE_BUFFER, sizeof(BVHConverter::Node) * bvhConverter.nodes.size(), &bvhConverter.nodes[0], GL_STATIC_DRAW);
     glGenTextures(1, &BVHTex);
     glBindTexture(GL_TEXTURE_BUFFER, BVHTex);
     glTexBuffer(GL_TEXTURE_BUFFER, GL_RGB32F, BVHBuffer);
@@ -247,7 +248,8 @@ void Scene::init_GPU_data()
     // 注释:
     glGenBuffers(1, &vertexIndicesBuffer);
     glBindBuffer(GL_TEXTURE_BUFFER, vertexIndicesBuffer);
-    glBufferData(GL_TEXTURE_BUFFER, sizeof(Indices) * vertIndices.size(), &vertIndices[0], GL_DYNAMIC_DRAW);
+    vertexIndicesBufferSize = sizeof(Indices) * vertIndices.size();
+    glBufferData(GL_TEXTURE_BUFFER, sizeof(Indices) * vertIndices.size(), &vertIndices[0], GL_STATIC_DRAW);
     glGenTextures(1, &vertexIndicesTex);
     glBindTexture(GL_TEXTURE_BUFFER, vertexIndicesTex);
     glTexBuffer(GL_TEXTURE_BUFFER, GL_RGB32I, vertexIndicesBuffer);
@@ -255,7 +257,8 @@ void Scene::init_GPU_data()
     // 注释:
     glGenBuffers(1, &verticesBuffer);
     glBindBuffer(GL_TEXTURE_BUFFER, verticesBuffer);
-    glBufferData(GL_TEXTURE_BUFFER, sizeof(glm::vec4) * verticesUVX.size(), &verticesUVX[0], GL_DYNAMIC_DRAW);
+    verticesBufferSize = sizeof(glm::vec4) * verticesUVX.size();
+    glBufferData(GL_TEXTURE_BUFFER, sizeof(glm::vec4) * verticesUVX.size(), &verticesUVX[0], GL_STATIC_DRAW);
     glGenTextures(1, &verticesTex);
     glBindTexture(GL_TEXTURE_BUFFER, verticesTex);
     glTexBuffer(GL_TEXTURE_BUFFER, GL_RGBA32F, verticesBuffer);
@@ -263,7 +266,8 @@ void Scene::init_GPU_data()
     // 注释:
     glGenBuffers(1, &normalsBuffer);
     glBindBuffer(GL_TEXTURE_BUFFER, normalsBuffer);
-    glBufferData(GL_TEXTURE_BUFFER, sizeof(glm::vec4) * normalsUVY.size(), &normalsUVY[0], GL_DYNAMIC_DRAW);
+    normalsBufferSize = sizeof(glm::vec4) * normalsUVY.size();
+    glBufferData(GL_TEXTURE_BUFFER, sizeof(glm::vec4) * normalsUVY.size(), &normalsUVY[0], GL_STATIC_DRAW);
     glGenTextures(1, &normalsTex);
     glBindTexture(GL_TEXTURE_BUFFER, normalsTex);
     glTexBuffer(GL_TEXTURE_BUFFER, GL_RGBA32F, normalsBuffer);
@@ -272,7 +276,8 @@ void Scene::init_GPU_data()
     printf("The Number of Tranform Matrix is %d\n", transforms.size());
     glGenBuffers(1, &transformsBuffer);
     glBindBuffer(GL_TEXTURE_BUFFER, transformsBuffer);
-    glBufferData(GL_TEXTURE_BUFFER, sizeof(glm::mat4) * transforms.size(), &transforms[0], GL_DYNAMIC_DRAW);
+    transformsBufferSize = sizeof(glm::mat4) * transforms.size();
+    glBufferData(GL_TEXTURE_BUFFER, sizeof(glm::mat4) * transforms.size(), &transforms[0], GL_STATIC_DRAW);
     glGenTextures(1, &transformsTex);
     glBindTexture(GL_TEXTURE_BUFFER, transformsTex);
     glTexBuffer(GL_TEXTURE_BUFFER, GL_RGBA32F, transformsBuffer);
@@ -281,7 +286,8 @@ void Scene::init_GPU_data()
     printf("The Number of Material is %d\n", materials.size());
     glGenBuffers(1, &materialsBuffer);
     glBindBuffer(GL_TEXTURE_BUFFER, materialsBuffer);
-    glBufferData(GL_TEXTURE_BUFFER, sizeof(Material) * materials.size(), &materials[0], GL_DYNAMIC_DRAW);
+    materialsBufferSize = sizeof(Material) * materials.size();
+    glBufferData(GL_TEXTURE_BUFFER, sizeof(Material) * materials.size(), &materials[0], GL_STATIC_DRAW);
     glGenTextures(1, &materialsTex);
     glBindTexture(GL_TEXTURE_BUFFER, materialsTex);
     glTexBuffer(GL_TEXTURE_BUFFER, GL_RGBA32F, materialsBuffer);
@@ -400,6 +406,108 @@ void Scene::update_GPU_data()
     glActiveTexture(GL_TEXTURE4);
     glBindTexture(GL_TEXTURE_BUFFER, normalsTex);
 }
+void Scene::update_GPU_data1()
+{
+    glPixelStorei(GL_PACK_ALIGNMENT, 1);
+
+    size_t newSize = 0;
+    // ---------- 更新 BVH树节点数据 ---------- //
+    newSize = sizeof(BVHConverter::Node) * bvhConverter.nodes.size();
+    if (newSize != BVHBufferSize) {
+        // 重新分配缓冲区
+        glBindBuffer(GL_TEXTURE_BUFFER, BVHBuffer);
+        glBufferData(GL_TEXTURE_BUFFER, newSize, &bvhConverter.nodes[0], GL_DYNAMIC_DRAW);
+        std::cerr << "BVH node buffer size changed from " << BVHBufferSize << " to " << newSize << std::endl;
+        BVHBufferSize = newSize;
+    } else {
+        // 仅更新数据
+        glBindBuffer(GL_TEXTURE_BUFFER, BVHBuffer);
+        glBufferSubData(GL_TEXTURE_BUFFER, 0, newSize, &bvhConverter.nodes[0]);
+    }
+    glBindTexture(GL_TEXTURE_BUFFER, BVHTex);
+    glTexBuffer(GL_TEXTURE_BUFFER, GL_RGB32F, BVHBuffer);
+
+    // ---------- 更新顶点索引数据 ---------- //
+    newSize = sizeof(Indices) * vertIndices.size();
+    if (newSize != vertexIndicesBufferSize) {
+        glBindBuffer(GL_TEXTURE_BUFFER, vertexIndicesBuffer);
+        glBufferData(GL_TEXTURE_BUFFER, newSize, &vertIndices[0], GL_DYNAMIC_DRAW);
+        std::cerr << "Vertex index buffer size changed from " << vertexIndicesBufferSize << " to " << newSize << std::endl;
+        vertexIndicesBufferSize = newSize;
+    } else {
+        glBindBuffer(GL_TEXTURE_BUFFER, vertexIndicesBuffer);
+        glBufferSubData(GL_TEXTURE_BUFFER, 0, newSize, &vertIndices[0]);
+    }
+    glBindTexture(GL_TEXTURE_BUFFER, vertexIndicesTex);
+    glTexBuffer(GL_TEXTURE_BUFFER, GL_RGB32I, vertexIndicesBuffer);
+
+    // ---------- 更新顶点/UV数据 ---------- //
+    newSize = sizeof(glm::vec4) * verticesUVX.size();
+    if (newSize != verticesBufferSize) {
+        glBindBuffer(GL_TEXTURE_BUFFER, verticesBuffer);
+        glBufferData(GL_TEXTURE_BUFFER, newSize, &verticesUVX[0], GL_DYNAMIC_DRAW);
+        std::cerr << "Vertex buffer size changed from " << verticesBufferSize << " to " << newSize << std::endl;
+        verticesBufferSize = newSize;
+    } else {
+        glBindBuffer(GL_TEXTURE_BUFFER, verticesBuffer);
+        glBufferSubData(GL_TEXTURE_BUFFER, 0, newSize, &verticesUVX[0]);
+    }
+    glBindTexture(GL_TEXTURE_BUFFER, verticesTex);
+    glTexBuffer(GL_TEXTURE_BUFFER, GL_RGBA32F, verticesBuffer);
+
+    // ---------- 更新法线/UV数据 ---------- //
+    newSize = sizeof(glm::vec4) * normalsUVY.size();
+    if (newSize != normalsBufferSize) {
+        glBindBuffer(GL_TEXTURE_BUFFER, normalsBuffer);
+        glBufferData(GL_TEXTURE_BUFFER, newSize, &normalsUVY[0], GL_DYNAMIC_DRAW);
+        std::cerr << "Normal buffer size changed from " << normalsBufferSize << " to " << newSize << std::endl;
+        normalsBufferSize = newSize;
+    } else {
+        glBindBuffer(GL_TEXTURE_BUFFER, normalsBuffer);
+        glBufferSubData(GL_TEXTURE_BUFFER, 0, newSize, &normalsUVY[0]);
+    }
+    glBindTexture(GL_TEXTURE_BUFFER, normalsTex);
+    glTexBuffer(GL_TEXTURE_BUFFER, GL_RGBA32F, normalsBuffer);
+
+    // ---------- 更新转换矩阵数据 ---------- //
+    newSize = sizeof(glm::mat4) * transforms.size();
+    if (newSize != transformsBufferSize) {
+        glBindBuffer(GL_TEXTURE_BUFFER, transformsBuffer);
+        glBufferData(GL_TEXTURE_BUFFER, newSize, &transforms[0], GL_DYNAMIC_DRAW);
+        std::cerr << "Transform buffer size changed from " << transformsBufferSize << " to " << newSize << std::endl;
+        transformsBufferSize = newSize;
+    } else {
+        glBindBuffer(GL_TEXTURE_BUFFER, transformsBuffer);
+        glBufferSubData(GL_TEXTURE_BUFFER, 0, newSize, &transforms[0]);
+    }
+    glBindTexture(GL_TEXTURE_BUFFER, transformsTex);
+    glTexBuffer(GL_TEXTURE_BUFFER, GL_RGBA32F, transformsBuffer);
+
+    // ---------- 更新材质数据 ---------- //
+    newSize = sizeof(Material) * materials.size();
+
+    if (newSize != materialsBufferSize) {
+        glBindBuffer(GL_TEXTURE_BUFFER, materialsBuffer);
+        glBufferData(GL_TEXTURE_BUFFER, newSize, &materials[0], GL_DYNAMIC_DRAW);
+        std::cerr << "Material buffer size changed from " << materialsBufferSize << " to " << newSize << std::endl;
+        materialsBufferSize = newSize;
+    } else {
+        glBindBuffer(GL_TEXTURE_BUFFER, materialsBuffer);
+        glBufferSubData(GL_TEXTURE_BUFFER, 0, newSize, &materials[0]);
+    }
+    glBindTexture(GL_TEXTURE_BUFFER, materialsTex);
+    glTexBuffer(GL_TEXTURE_BUFFER, GL_RGBA32F, materialsBuffer);
+
+    // ---------- 更新纹理数据 ---------- //
+    if (!textures.empty())
+    {
+        glBindTexture(GL_TEXTURE_2D_ARRAY, textureMapsArrayTex);
+        glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, 0, texArrayWidth, texArrayHeight, textures.size(), GL_RGBA, GL_UNSIGNED_BYTE, &textureMapsArray[0]);
+        glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
+    }
+}
 
 // 初始化帧缓冲数据
 void Scene::init_FBOs()
@@ -486,32 +594,53 @@ void Scene::SaveFrameImage()
     std::ostringstream oss;
     oss << "./render_imgs/frame_" << std::setw(3) << std::setfill('0') << frameNum << ".png";
     std::cout << "Save Picture " << oss.str() << std::endl;
+    std::cerr << "Save Picture " << oss.str() << std::endl;
     stbi_flip_vertically_on_write(true);
     stbi_write_png(oss.str().c_str(), WINDOW_WIDTH, WINDOW_HEIGHT, 3, pixels.data(), WINDOW_WIDTH * 3);
 }
 
 void Scene::update_FBOs()
 {
-    // 更新 Path Trace FBO 数据
+    // 更新 Path tracing FBO
     glBindFramebuffer(GL_FRAMEBUFFER, pathTraceFBO);
     glBindTexture(GL_TEXTURE_2D, pathTraceTexture);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, WINDOW_WIDTH, WINDOW_HEIGHT, 0, GL_RGBA, GL_FLOAT, nullptr);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, pathTraceTexture, 0);
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
         std::cerr << "Path trace FBO is not complete!" << std::endl;
 
-    // 更新 Accumulation FBO 数据
+    // 更新 Accumulation FBO
     glBindFramebuffer(GL_FRAMEBUFFER, accumFBO);
     glBindTexture(GL_TEXTURE_2D, accumTexture);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, WINDOW_WIDTH, WINDOW_HEIGHT, 0, GL_RGBA, GL_FLOAT, nullptr);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, accumTexture, 0);
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
         std::cerr << "Accumulation FBO is not complete!" << std::endl;
 
-    // 更新 Output FBO 数据
+    // 更新 Output FBO
     glBindFramebuffer(GL_FRAMEBUFFER, outputFBO);
     glBindTexture(GL_TEXTURE_2D, outputTexture[0]);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, WINDOW_WIDTH, WINDOW_HEIGHT, 0, GL_RGBA, GL_FLOAT, nullptr);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+    glBindTexture(GL_TEXTURE_2D, outputTexture[1]);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, WINDOW_WIDTH, WINDOW_HEIGHT, 0, GL_RGBA, GL_FLOAT, 0);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, outputTexture[0], 0);
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
         std::cerr << "Output FBO is not complete!" << std::endl;
