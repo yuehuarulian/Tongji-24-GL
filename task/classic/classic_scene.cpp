@@ -30,10 +30,6 @@ namespace GL_TASK
         init_GPU_data();          // 将相关数据绑定到纹理中以便传递到GPU中
         init_FBOs();              // 初始化帧缓冲对象
         load_shaders();           // 加载着色器
-        // 打印MeshInstace信息
-        printf("/*************************************/\n");
-        printf("Material[45] Info:\n");
-        materials[45].printInfo();
     }
 
     void ClassicScene::load_shaders()
@@ -81,7 +77,7 @@ namespace GL_TASK
             butterflies.push_back(butterfly_model_single);
         }
 
-        // // liquid model
+        // liquid model
         printf("/*************************************/\n");
         printf("Load Liquid Model\n");
         fluid = std::make_shared<Fluid>(meshes, meshInstances, textures, materials);
@@ -149,7 +145,7 @@ namespace GL_TASK
     }
 
     // 渲染
-    void ClassicScene::render_scene(Camera &camera)
+    bool ClassicScene::render_scene(Camera &camera)
     {
         if (++sampleNum == 20)
         {
@@ -168,6 +164,10 @@ namespace GL_TASK
         render_path_tracing(camera);
         render_accumulation();
         render_post_processing();
+        if (sampleNum == 1)
+            return true;
+        else
+            return false;
     }
 
     void ClassicScene::render_path_tracing(Camera &camera)
@@ -245,6 +245,10 @@ namespace GL_TASK
 
     void ClassicScene::update_scene()
     {
+        if (BbvhDirty)
+        {
+            for (int i = 0; i < meshes.size(); ++i)
+            {
         if (BbvhDirty)
         {
             for (int i = 0; i < meshes.size(); ++i)

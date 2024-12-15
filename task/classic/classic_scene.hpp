@@ -21,7 +21,7 @@ namespace GL_TASK
         ClassicScene(ShaderManager &shader_manager, LightManager &light_manager, const int WINDOW_WIDTH = 1080, const int WINDOW_HEIGHT = 720);
         ~ClassicScene() = default;
 
-        void render_scene(Camera &) override;
+        bool render_scene(Camera &) override;
         void update_scene() override;
         void present_scene() override;
         void update_models(); // 更新场景

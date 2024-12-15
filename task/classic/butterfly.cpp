@@ -15,7 +15,7 @@ void GL_TASK::Butterfly::update()
     for (int i = start_meshInstance_id_l; i < end_meshInstance_id_l; i++)
         meshInstances[i]->transform = keyframe_transforms_l;
 
-    // std::cout << "keyframe_transforms_r: " << glm::to_string(keyframe_transforms_r) << std::endl;
+    std::cout << "keyframe_transforms_r: " << glm::to_string(keyframe_transforms_r) << std::endl;
 
     for (int i = start_meshInstance_id_r; i < end_meshInstance_id_r; i++)
         meshInstances[i]->transform = keyframe_transforms_r;
