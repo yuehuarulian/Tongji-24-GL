@@ -118,14 +118,21 @@ public:
 
     void updateTexId(const int offset)
     {
-        diffuseTexId += offset;
-        specularTexId += offset;
-        normalTexId += offset;
-        heightTexId += offset;
+        if (diffuseTexId != -1)
+            diffuseTexId += offset;
+        if (specularTexId != -1)
+            specularTexId += offset;
+        if (normalTexId != -1)
+            normalTexId += offset;
+        if (heightTexId != -1)
+            heightTexId += offset;
 
-        metalnessTexId += offset;
-        diffuse_roughnessTexId += offset;
-        ambient_occlusionTexId += offset;
+        if (metalnessTexId != -1)
+            metalnessTexId += offset;
+        if (diffuse_roughnessTexId != -1)
+            diffuse_roughnessTexId += offset;
+        if (ambient_occlusionTexId != -1)
+            ambient_occlusionTexId += offset;
     }
 
     // 颜色参数
