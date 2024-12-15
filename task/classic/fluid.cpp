@@ -2,8 +2,9 @@
 #include "glm/gtx/transform.hpp"
 
 GL_TASK::Fluid::Fluid(std::vector<Mesh *> &meshes, std::vector<MeshInstance *> &meshInstances,
-                    std::vector<Texture *> &textures, std::vector<Material> &materials)
-    : RenderableModel(meshes, meshInstances, textures, materials) {
+                      std::vector<Texture *> &textures, std::vector<Material> &materials)
+    : RenderableModel(meshes, meshInstances, textures, materials)
+{
     fluid_sim.pause(); // 初始先暂停
 }
 
@@ -30,6 +31,7 @@ bool GL_TASK::Fluid::add_model(const std::string &modelfilePath)
             materials.push_back(mesh->material);
             // 4. 根据网格id和材质id创建一个meshInstance
             MeshInstance *instance = new MeshInstance(mesh_id, materialStartId, model_matrix);
+            printf("Water Material Id: %d\n", materialStartId);
 
             meshes.push_back(mesh);
             meshInstances.push_back(instance);
@@ -76,10 +78,11 @@ void GL_TASK::Fluid::wait_until_next_frame(int frame)
     fluid_sim.wait_until_next_frame(frame);
 }
 
-#include <fstream>   // 文件流库
+#include <fstream>           // 文件流库
 #include <nlohmann/json.hpp> // 配置文件库
 // 自动计算水位高度
-double GL_TASK::Fluid::get_water_level(const glm::vec3& roomMin, const glm::vec3& roomMax) const {
+double GL_TASK::Fluid::get_water_level(const glm::vec3 &roomMin, const glm::vec3 &roomMax) const
+{
     // 加载配置文件
     nlohmann::json config;
     std::ifstream config_file("fluid_config.json");

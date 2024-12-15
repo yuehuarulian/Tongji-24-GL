@@ -269,6 +269,7 @@ void Scene::init_GPU_data()
     glTexBuffer(GL_TEXTURE_BUFFER, GL_RGBA32F, normalsBuffer);
     // ---------- 转换矩阵数据 ---------- //
     // 注释:
+    printf("The Number of Tranform Matrix is %d\n", transforms.size());
     glGenBuffers(1, &transformsBuffer);
     glBindBuffer(GL_TEXTURE_BUFFER, transformsBuffer);
     glBufferData(GL_TEXTURE_BUFFER, sizeof(glm::mat4) * transforms.size(), &transforms[0], GL_DYNAMIC_DRAW);
@@ -277,6 +278,7 @@ void Scene::init_GPU_data()
     glTexBuffer(GL_TEXTURE_BUFFER, GL_RGBA32F, transformsBuffer);
     // ---------- 材质数据 ---------- //
     // 注释：
+    printf("The Number of Material is %d\n", materials.size());
     glGenBuffers(1, &materialsBuffer);
     glBindBuffer(GL_TEXTURE_BUFFER, materialsBuffer);
     glBufferData(GL_TEXTURE_BUFFER, sizeof(Material) * materials.size(), &materials[0], GL_DYNAMIC_DRAW);
@@ -287,6 +289,7 @@ void Scene::init_GPU_data()
     // 注释：
     if (!textures.empty())
     {
+        printf("The Number of Texture is %d\n", textures.size());
         glGenTextures(1, &textureMapsArrayTex);
         glBindTexture(GL_TEXTURE_2D_ARRAY, textureMapsArrayTex);
         glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA8, texArrayWidth, texArrayHeight, textures.size(), 0, GL_RGBA, GL_UNSIGNED_BYTE, &textureMapsArray[0]);
@@ -335,7 +338,7 @@ void Scene::update_GPU_data()
     }
     glGenBuffers(1, &vertexIndicesBuffer);
     glBindBuffer(GL_TEXTURE_BUFFER, vertexIndicesBuffer);
-    glBufferData(GL_TEXTURE_BUFFER, sizeof(Indices) * vertIndices.size(), &vertIndices[0],  GL_STATIC_DRAW);
+    glBufferData(GL_TEXTURE_BUFFER, sizeof(Indices) * vertIndices.size(), &vertIndices[0], GL_STATIC_DRAW);
     glGenTextures(1, &vertexIndicesTex);
     glBindTexture(GL_TEXTURE_BUFFER, vertexIndicesTex);
     glTexBuffer(GL_TEXTURE_BUFFER, GL_RGB32I, vertexIndicesBuffer);
@@ -348,7 +351,7 @@ void Scene::update_GPU_data()
     }
     glGenBuffers(1, &verticesBuffer);
     glBindBuffer(GL_TEXTURE_BUFFER, verticesBuffer);
-    glBufferData(GL_TEXTURE_BUFFER, sizeof(glm::vec4) * verticesUVX.size(), &verticesUVX[0],  GL_STATIC_DRAW);
+    glBufferData(GL_TEXTURE_BUFFER, sizeof(glm::vec4) * verticesUVX.size(), &verticesUVX[0], GL_STATIC_DRAW);
     glGenTextures(1, &verticesTex);
     glBindTexture(GL_TEXTURE_BUFFER, verticesTex);
     glTexBuffer(GL_TEXTURE_BUFFER, GL_RGBA32F, verticesBuffer);
@@ -361,7 +364,7 @@ void Scene::update_GPU_data()
     }
     glGenBuffers(1, &normalsBuffer);
     glBindBuffer(GL_TEXTURE_BUFFER, normalsBuffer);
-    glBufferData(GL_TEXTURE_BUFFER, sizeof(glm::vec4) * normalsUVY.size(), &normalsUVY[0],  GL_STATIC_DRAW);
+    glBufferData(GL_TEXTURE_BUFFER, sizeof(glm::vec4) * normalsUVY.size(), &normalsUVY[0], GL_STATIC_DRAW);
     glGenTextures(1, &normalsTex);
     glBindTexture(GL_TEXTURE_BUFFER, normalsTex);
     glTexBuffer(GL_TEXTURE_BUFFER, GL_RGBA32F, normalsBuffer);

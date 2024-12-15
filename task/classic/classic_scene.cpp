@@ -116,7 +116,7 @@ namespace GL_TASK
         // model = glm::scale(model, glm::vec3(1.0f));
         // auto point_cloud2 = std::make_shared<PointCloud>("./source/model/point_cloud/VDB_PACK_Smoke5.vdb", meshes, meshInstances, textures, materials, model);
         // point_clouds.push_back(point_cloud2);
-        //  model = glm::mat4(1.0f);
+        //  model = glm::mat4(1.0f);pCM
         //  model = glm::translate(model, glm::vec3(-60.0f, -100.0f, -110.0f));
         //  model = glm::scale(model, glm::vec3(0.4f));
         //  auto point_cloud2 = std::make_shared<PointCloud>("./source/model/point_cloud/Cumulonimbus_14.vdb", meshes, meshInstances, textures, materials, model);
