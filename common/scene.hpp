@@ -54,7 +54,6 @@ protected:
     void init_GPU_data();
     void init_FBOs();
     void update_GPU_data();
-    void update_FBOs();
 
     const int WINDOW_WIDTH, WINDOW_HEIGHT;
     const int texArrayHeight = 2048;
@@ -79,7 +78,6 @@ protected:
     GLuint pathTraceTexture;
     GLuint accumTexture;
     GLuint outputTexture[2];
-    GLuint denoisedTexture;
     int currentBuffer; // 表示当前渲染结果存储的位置
 
     // Quad

@@ -23,10 +23,10 @@ namespace GL_TASK
         createTLAS();   // 建立高层次的BVH加速结构
         process_data(); // 将数据转换为传递给着色器的数据形式
         // 模拟启动
-        // if (fluid.get() != nullptr)
-        //     fluid->start(); // 启动流体模拟
-        // if (bulletWorld.get() != nullptr)
-        //     bulletWorld->start(); // 启动物理模拟
+        if (fluid.get() != nullptr)
+            fluid->start(); // 启动流体模拟
+        if (bulletWorld.get() != nullptr)
+            bulletWorld->start(); // 启动物理模拟
         init_GPU_data(); // 将相关数据绑定到纹理中以便传递到GPU中
         init_FBOs();     // 初始化帧缓冲对象
         load_shaders();  // 加载着色器
@@ -42,30 +42,31 @@ namespace GL_TASK
         shader_manager.load_shader("liquid_shader", "source/shader/classic/liquid.vs", "source/shader/classic/liquid.fs");
 
         // 为着色器传递数据
-        auto path_tracing_shader = shader_manager.get_shader("pathTracingShader");
-        path_tracing_shader->use();
-        path_tracing_shader->setInt("topBVHIndex", bvhConverter.topLevelIndex);
-        path_tracing_shader->setVec2("resolution", 1080, 720);
-        path_tracing_shader->setInt("accumTexture", 0);
-        path_tracing_shader->setInt("BVHTex", 1);
-        path_tracing_shader->setInt("vertexIndicesTex", 2);
-        path_tracing_shader->setInt("verticesTex", 3);
-        path_tracing_shader->setInt("normalsTex", 4);
-        path_tracing_shader->setInt("transformsTex", 5);
-        path_tracing_shader->setInt("materialsTex", 6);
-        path_tracing_shader->setInt("textureMapsArrayTex", 7);
-        path_tracing_shader->stopUsing();
+        // auto path_tracing_shader = shader_manager.get_shader("pathTracingShader");
+        // path_tracing_shader->use();
+        // path_tracing_shader->setInt("accumTexture", 0);
+        // path_tracing_shader->setInt("BVHTex", 1);
+        // path_tracing_shader->setInt("vertexIndicesTex", 2);
+        // path_tracing_shader->setInt("verticesTex", 3);
+        // path_tracing_shader->setInt("normalsTex", 4);
+        // path_tracing_shader->setInt("transformsTex", 5);
+        // path_tracing_shader->setInt("materialsTex", 6);
+        // path_tracing_shader->setInt("textureMapsArrayTex", 7);
+        // path_tracing_shader->stopUsing();
     }
 
     void ClassicScene::load_models()
     {
-        // 先加载所有的模型文件 存储在meshes中
+        glm::vec3 roomMin = glm::vec3(-104.160004, -359.567505, -430.721375);
+        glm::vec3 roomMax = glm::vec3(104.159973, 77.232498, 99.375420);
+        glm::mat4 room_model_matrix = glm::mat4(1.0f);
+
         // Room model
-        // printf("/*************************************/\n");
-        // printf("Load Room Model\n");
-        // glm::vec3 roomMin, roomMax;
-        // room = std::make_shared<Room>("source/model/room2/test.obj", meshes, meshInstances, textures, materials);
-        // room->getBoundingBox(roomMin, roomMax);
+        printf("/*************************************/\n");
+        printf("Load Room Model\n");
+        room = std::make_shared<Room>("source/model/room2/test.obj", meshes, meshInstances, textures, materials);
+        room->getBoundingBox(roomMin, roomMax);
+        room_model_matrix = room->get_model_matrix();
 
         // // butterfly model
         // printf("/*************************************/\n");
@@ -76,19 +77,15 @@ namespace GL_TASK
         //     butterflies.push_back(butterfly_model_single);
         // }
 
-        // liquid model
+        // // liquid model
         printf("/*************************************/\n");
         printf("Load Liquid Model\n");
-        // glm::mat4 room_model_matrix = room->get_model_matrix();
-        glm::mat4 room_model_matrix = glm::mat4(1.0f);
         fluid = std::make_shared<Fluid>(meshes, meshInstances, textures, materials);
         fluid->BindDirty(&BbvhDirty);
         fluid->set_model_matrix(room_model_matrix);
         fluid->add_model("source/model/fluid/mesh.obj");
 
-        // // bullet world
-        // roomMin = glm::vec3(-104.160004, -359.567505, -430.721375);
-        // roomMax = glm::vec3(104.159973, 77.232498, 99.375420);
+        // bullet world
         // bulletWorld = std::make_shared<BulletWorld>(meshes, meshInstances, textures, materials);
         // bulletWorld->BindDirty(&TbvhDirty);
         // bulletWorld->BindFluid(fluid);
@@ -106,13 +103,13 @@ namespace GL_TASK
         // bulletWorld->add_model(glm::vec3(20.0, water_level + 2.0, 50.0));
 
         // 点云 1
-        // printf("/*************************************/\n");
-        // printf("Load PointCloud Model\n");
-        // glm::mat4 model = glm::mat4(1.0f);
-        // model = glm::translate(model, glm::vec3(0.0f, -120.0f, -160.0f));
-        // model = glm::scale(model, glm::vec3(0.3f));
-        // auto point_cloud1 = std::make_shared<PointCloud>("./source/model/point_cloud/Cumulonimbus_11.vdb", meshes, meshInstances, textures, materials, model);
-        // point_clouds.push_back(point_cloud1);
+        printf("/*************************************/\n");
+        printf("Load PointCloud Model\n");
+        glm::mat4 model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(0.0f, -120.0f, -160.0f));
+        model = glm::scale(model, glm::vec3(0.3f));
+        auto point_cloud1 = std::make_shared<PointCloud>("./source/model/point_cloud/Cumulonimbus_11.vdb", meshes, meshInstances, textures, materials, model);
+        point_clouds.push_back(point_cloud1);
         // 点云 2
         // model = glm::mat4(1.0f);
         // model = glm::translate(model, glm::vec3(0.0f, -300.0f, -110.0f));
@@ -130,7 +127,6 @@ namespace GL_TASK
         // model = glm::scale(model, glm::vec3(0.5f));
         // auto point_cloud3 = std::make_shared<PointCloud>("./source/model/point_cloud/Cumulonimbus_09.vdb", meshes, meshInstances, textures, materials, model);
         // point_clouds.push_back(point_cloud3);
-        printf("/*************************************/\n");
     }
 
     void ClassicScene::load_lights()
@@ -174,6 +170,16 @@ namespace GL_TASK
     {
         auto path_tracing_shader = shader_manager.get_shader("pathTracingShader");
         path_tracing_shader->use();
+        path_tracing_shader->setInt("topBVHIndex", bvhConverter.topLevelIndex);
+        path_tracing_shader->setVec2("resolution", 1080, 720);
+        path_tracing_shader->setInt("accumTexture", 0);
+        path_tracing_shader->setInt("BVHTex", 1);
+        path_tracing_shader->setInt("vertexIndicesTex", 2);
+        path_tracing_shader->setInt("verticesTex", 3);
+        path_tracing_shader->setInt("normalsTex", 4);
+        path_tracing_shader->setInt("transformsTex", 5);
+        path_tracing_shader->setInt("materialsTex", 6);
+        path_tracing_shader->setInt("textureMapsArrayTex", 7);
         path_tracing_shader->setVec3("camera.position", camera.get_pos());
         path_tracing_shader->setVec3("camera.up", camera.get_up());
         path_tracing_shader->setVec3("camera.right", camera.get_right());
@@ -255,7 +261,6 @@ namespace GL_TASK
                 }
                 this->process_data();    // 处理数据 将其转换成可供Shader使用的形式
                 this->update_GPU_data(); // 将相关数据绑定到纹理中以便传递到GPU中
-                this->update_FBOs();     // 重置帧缓冲对象
                 printf("ClassicScene: A new scene is ready\n");
             }
         }

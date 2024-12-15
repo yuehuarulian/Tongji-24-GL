@@ -200,7 +200,7 @@ void main()
     sphereLights[5] = SphereLight(vec3(36.96,26.83,154.76), vec3(100), radius, 4 * PI * radius * radius);
     sphereLights[6] = SphereLight(vec3(-33.80,26.94,227.89), vec3(100), radius, 4 * PI * radius * radius);
     sphereLights[7] = SphereLight(vec3(34.24,26.84,228.11), vec3(100), radius, 4 * PI * radius * radius);
-    sphereLights[0] = SphereLight(vec3(0.0,0.0,0.0), vec3(100), radius, 4 * PI * radius * radius);
+    sphereLights[8] = SphereLight(vec3(0.0,0.0,0.0), vec3(100), radius, 4 * PI * radius * radius);
     numOfSphereLights = 9;
     
     Ray ray=Ray(rayOrigin,rayDirection);// 生成光线
@@ -235,7 +235,7 @@ vec3 PathTrace(Ray r, int maxDepth, int RR_maxDepth)
         if(!ClosestHit(r, hit_record, lightSample))
         {
             // 如果没有交点，返回环境背景颜色
-            radiance += throughput * vec3(0.0, 0.0, 0.0); // 纯黑色
+            radiance += throughput * vec3(0.8353, 0.4745, 0.8745); // 纯黑色
             break;
         }
         

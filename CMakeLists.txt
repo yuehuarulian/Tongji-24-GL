@@ -55,6 +55,7 @@ BulletDynamics   # Bullet 动力学
 BulletCollision  # Bullet 碰撞检测
 LinearMath       # Bullet 线性代数数学支持
 BulletSoftBody   # Bullet 软体支持
+Bullet3Common    # Bullet 通用库
 )
 
 add_executable(offline_rendering src/main_offline.cpp src/glad.c ${FLUID_LIST}  ${TASK_LIST} ${CLASSIC_LIST} ${COMMON_LIST} ${IMGUI_LIST})
