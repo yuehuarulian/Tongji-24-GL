@@ -4,6 +4,7 @@
 #include "glad/glad.h"
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
+#include <glm/gtc/matrix_access.hpp> // 用于访问矩阵元素
 #include "stb_image.h"
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
@@ -86,7 +87,7 @@ class Material
     // 对于无法补齐的部分可以使用 float padding_i 进行补齐(其中i是一个变量)
 public:
     Material()
-        : baseColor(glm::vec3(1.0f)), // 默认白色
+        : baseColor(glm::vec3(1.0f)),     // 默认白色
           specularColor(glm::vec3(0.5f)), // 默认中等强度的镜面反射
           emissiveColor(glm::vec3(0.0f)), // 默认无自发光
           padding_kd(0.0f),
@@ -111,7 +112,9 @@ public:
           absorption(0.0f),
           density(0.0f),
           anisotropy(0.0f),
-          isVolume(0.0f) {}
+          isVolume(0.0f)
+    {
+    }
 
     void updateTexId(const int offset)
     {
@@ -229,9 +232,9 @@ public:
     std::vector<unsigned int> indices; // 假设所有的面都为三角形 三个索引一个面 indices.size()/3表示三角形的数量
     Material material;
     BVH *bvh;
+    bool dirty{false}; // 标志变量，指示是否需要更新
 
 private:
-    bool dirty{false}; // 标志变量，指示是否需要更新
 };
 
 class MeshInstance
@@ -247,5 +250,20 @@ public:
 
     int meshID;
     int materialID;
+
+    // 输出信息的函数
+    void printInfo() const
+    {
+        std::cout << "MeshInstance Info:" << std::endl;
+        std::cout << "Mesh ID: " << meshID << std::endl;
+        std::cout << "Material ID: " << materialID << std::endl;
+
+        std::cout << "Transform Matrix (Local to World):" << std::endl;
+        for (int i = 0; i < 4; ++i)
+        {
+            glm::vec4 row = glm::row(transform, i); // 获取矩阵的每一行
+            std::cout << row.x << " " << row.y << " " << row.z << " " << row.w << std::endl;
+        }
+    }
 };
 #endif

@@ -27,9 +27,13 @@ namespace GL_TASK
             fluid->start(); // 启动流体模拟
         if (bulletWorld.get() != nullptr)
             bulletWorld->start(); // 启动物理模拟
-        init_GPU_data(); // 将相关数据绑定到纹理中以便传递到GPU中
-        init_FBOs();     // 初始化帧缓冲对象
-        load_shaders();  // 加载着色器
+        init_GPU_data();          // 将相关数据绑定到纹理中以便传递到GPU中
+        init_FBOs();              // 初始化帧缓冲对象
+        load_shaders();           // 加载着色器
+        // 打印MeshInstace信息
+        printf("/*************************************/\n");
+        printf("Material[45] Info:\n");
+        materials[45].printInfo();
     }
 
     void ClassicScene::load_shaders()
@@ -103,20 +107,20 @@ namespace GL_TASK
         // bulletWorld->add_model(glm::vec3(20.0, water_level + 2.0, 50.0));
 
         // 点云 1
-        printf("/*************************************/\n");
-        printf("Load PointCloud Model\n");
-        glm::mat4 model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(0.0f, -120.0f, -160.0f));
-        model = glm::scale(model, glm::vec3(0.3f));
-        auto point_cloud1 = std::make_shared<PointCloud>("./source/model/point_cloud/Cumulonimbus_11.vdb", meshes, meshInstances, textures, materials, model);
-        point_clouds.push_back(point_cloud1);
+        // printf("/*************************************/\n");
+        // printf("Load PointCloud Model\n");
+        // glm::mat4 model = glm::mat4(1.0f);
+        // model = glm::translate(model, glm::vec3(0.0f, -120.0f, -160.0f));
+        // model = glm::scale(model, glm::vec3(0.3f));
+        // auto point_cloud1 = std::make_shared<PointCloud>("./source/model/point_cloud/Cumulonimbus_11.vdb", meshes, meshInstances, textures, materials, model);
+        // point_clouds.push_back(point_cloud1);
         // 点云 2
         // model = glm::mat4(1.0f);
         // model = glm::translate(model, glm::vec3(0.0f, -300.0f, -110.0f));
         // model = glm::scale(model, glm::vec3(1.0f));
         // auto point_cloud2 = std::make_shared<PointCloud>("./source/model/point_cloud/VDB_PACK_Smoke5.vdb", meshes, meshInstances, textures, materials, model);
         // point_clouds.push_back(point_cloud2);
-        //  model = glm::mat4(1.0f);
+        //  model = glm::mat4(1.0f);pCM
         //  model = glm::translate(model, glm::vec3(-60.0f, -100.0f, -110.0f));
         //  model = glm::scale(model, glm::vec3(0.4f));
         //  auto point_cloud2 = std::make_shared<PointCloud>("./source/model/point_cloud/Cumulonimbus_14.vdb", meshes, meshInstances, textures, materials, model);
@@ -241,25 +245,31 @@ namespace GL_TASK
 
     void ClassicScene::update_scene()
     {
-        if (BbvhDirty) {
-            for (int i = 0; i < meshes.size(); ++i) {
-                Mesh *mesh = meshes[i];
-                if (mesh->needsUpdate(i)) { // 刷新低层次的BVH加速结构
-                    std::cout << "Mesh " << i << " finish an update." << std::endl;
-                    BbvhDirty = false;
-                    TbvhDirty = true;
-                }
-            }
-            if (!BbvhDirty || TbvhDirty)
+        if (BbvhDirty)
+        {
+            for (int i = 0; i < meshes.size(); ++i)
             {
-                if (TbvhDirty)
+                Mesh *mesh = meshes[i];
+                if (mesh->dirty)
                 {
-                    this->createTLAS(); // 重建高层次的BVH加速结构
+                    printf("\n*****************\n");
+                    printf("REFRESH MESH #%d BVH INFO: \n", i);
+                    mesh->BuildBVH();
+                    mesh->bvh->PrintStatistics(std::cout);
+                    mesh->dirty = false;
                 }
-                this->process_data();    // 处理数据 将其转换成可供Shader使用的形式
-                this->update_GPU_data(); // 将相关数据绑定到纹理中以便传递到GPU中
-                printf("ClassicScene: A new scene is ready\n");
             }
+            this->createTLAS();      // 重建高层次的BVH加速结构
+            this->process_data();    // 处理数据 将其转换成可供Shader使用的形式
+            this->update_GPU_data(); // 将相关数据绑定到纹理中以便传递到GPU中
+            printf("ClassicScene: A new scene is ready\n");
+        }
+        if (TbvhDirty)
+        {
+            this->createTLAS();      // 重建高层次的BVH加速结构
+            this->process_data();    // 处理数据 将其转换成可供Shader使用的形式
+            this->update_GPU_data(); // 将相关数据绑定到纹理中以便传递到GPU中
+            printf("ClassicScene: A new scene is ready\n");
         }
         if (dirty)
         {
@@ -270,6 +280,7 @@ namespace GL_TASK
             // 重置帧数和采样数
             sampleNum = 1;
         }
+        BbvhDirty = false;
         TbvhDirty = false;
         dirty = false;
     }
