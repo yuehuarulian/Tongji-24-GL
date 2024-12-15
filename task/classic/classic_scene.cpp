@@ -148,10 +148,10 @@ namespace GL_TASK
     bool ClassicScene::render_scene(Camera &camera)
     {
         update_scene();
-        printf("sampleNum: %d, is_update: %d\n", sampleNum, is_update);
         if (++sampleNum >= 20 && is_update == true)
         {
             // 每帧采样20次
+            printf("sampleNum: %d, is_update: %d\n", sampleNum, is_update);
             SaveFrameImage(); // 保存图片
             frameNum++;
             sampleNum = 1;
@@ -264,6 +264,7 @@ namespace GL_TASK
                 this->process_data();    // 处理数据 将其转换成可供Shader使用的形式
                 this->update_GPU_data(); // 将相关数据绑定到纹理中以便传递到GPU中
                 printf("ClassicScene: A new scene is ready\n");
+                return; // 不要清除上次路径渲染的结果，等保存完
             }
         }
         if (dirty)

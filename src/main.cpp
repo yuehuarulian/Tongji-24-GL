@@ -51,7 +51,7 @@ int main()
 
     GL_TASK::ClassicScene classic_scene(shader_manager, light_manager);
 
-    Camera camera(window, 75 * D2R, glm::vec3(0.0f, -150.0f, 60.0f), glm::pi<float>(), 0. * D2R, 30.0f, 1.0f);
+    Camera camera(window, 75 * D2R, glm::vec3(0.0f, -140.0f, 60.0f), glm::pi<float>(), 0. * D2R, 30.0f, 1.0f);
 
     Skybox skybox(faces, "source/shader/skybox.vs", "source/shader/skybox.fs");
 
