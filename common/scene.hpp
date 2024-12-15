@@ -54,6 +54,8 @@ protected:
     void init_GPU_data();
     void init_FBOs();
     void update_GPU_data();
+    void update_GPU_data1();
+    void update_FBOs();
 
     const int WINDOW_WIDTH, WINDOW_HEIGHT;
     const int texArrayHeight = 2048;

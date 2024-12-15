@@ -241,16 +241,13 @@ namespace GL_TASK
 
     void ClassicScene::update_scene()
     {
-        if (BbvhDirty || TbvhDirty)
-        {
-            dirty = true;
-            for (int i = 0; i < meshes.size(); ++i)
-            {
+        if (BbvhDirty) {
+            for (int i = 0; i < meshes.size(); ++i) {
                 Mesh *mesh = meshes[i];
-                if (mesh->needsUpdate(i))
-                { // 刷新低层次的BVH加速结构
+                if (mesh->needsUpdate(i)) { // 刷新低层次的BVH加速结构
                     std::cout << "Mesh " << i << " finish an update." << std::endl;
                     BbvhDirty = false;
+                    TbvhDirty = true;
                 }
             }
             if (!BbvhDirty || TbvhDirty)
