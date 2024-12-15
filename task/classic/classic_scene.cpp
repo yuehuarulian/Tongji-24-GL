@@ -64,7 +64,7 @@ namespace GL_TASK
         // Room model
         printf("/*************************************/\n");
         printf("Load Room Model\n");
-        room = std::make_shared<Room>("E:/my_code/GL_bigwork/code/source/model/room2/test.obj", meshes, meshInstances, textures, materials);
+        room = std::make_shared<Room>("./source/model/room2/test.obj", meshes, meshInstances, textures, materials);
         room->getBoundingBox(roomMin, roomMax);
         room_model_matrix = room->get_model_matrix();
 
@@ -73,7 +73,7 @@ namespace GL_TASK
         printf("Load Butterfly Model\n");
         for (int i = 0; i < butterfly_count; i++)
         {
-            auto butterfly_model_single = std::make_shared<Butterfly>("E:/my_code/GL_bigwork/code/source/model/butterfly/ok.dae", meshes, meshInstances, textures, materials);
+            auto butterfly_model_single = std::make_shared<Butterfly>("./source/model/butterfly/ok.dae", meshes, meshInstances, textures, materials);
             butterflies.push_back(butterfly_model_single);
         }
 
@@ -83,7 +83,7 @@ namespace GL_TASK
         fluid = std::make_shared<Fluid>(meshes, meshInstances, textures, materials);
         fluid->BindDirty(&BbvhDirty);
         fluid->set_model_matrix(room_model_matrix);
-        fluid->add_model("E:/my_code/GL_bigwork/code/source/model/fluid/mesh.obj");
+        fluid->add_model("./source/model/fluid/mesh.obj");
 
         // bullet world
         // bulletWorld = std::make_shared<BulletWorld>(meshes, meshInstances, textures, materials);
@@ -148,10 +148,10 @@ namespace GL_TASK
     bool ClassicScene::render_scene(Camera &camera)
     {
         update_scene();
-        if (++sampleNum >= 20 && is_update == true)
+        printf("SampleNumber: %d - FrameNumber:%d\n", sampleNum, frameNum);
+        if (++sampleNum >= 20)
         {
             // 每帧采样20次
-            printf("sampleNum: %d, is_update: %d\n", sampleNum, is_update);
             SaveFrameImage(); // 保存图片
             frameNum++;
             sampleNum = 1;
@@ -159,6 +159,7 @@ namespace GL_TASK
             glBindFramebuffer(GL_FRAMEBUFFER, accumFBO);
             glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
             glClear(GL_COLOR_BUFFER_BIT);
+            return true;
         }
 
         currentBuffer = 1 - currentBuffer;
@@ -166,11 +167,7 @@ namespace GL_TASK
         render_path_tracing(camera);
         render_accumulation();
         render_post_processing();
-        if (is_update)
-        {
-            is_update = false;
-            return true;
-        }
+
         return false;
     }
 
@@ -264,6 +261,7 @@ namespace GL_TASK
                 this->process_data();    // 处理数据 将其转换成可供Shader使用的形式
                 this->update_GPU_data(); // 将相关数据绑定到纹理中以便传递到GPU中
                 printf("ClassicScene: A new scene is ready\n");
+                is_update = false;
                 return; // 不要清除上次路径渲染的结果，等保存完
             }
         }

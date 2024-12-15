@@ -100,8 +100,6 @@ void RenderManager::start_rendering(bool offscreen)
 
     if (offscreen)
     {
-        // glBindFramebuffer(GL_FRAMEBUFFER, msaa_rbo);
-        // glViewport(0, 0, window_width, window_height); // 确保视口匹配 FBO 尺寸
         std::filesystem::create_directories("./offline_rendering");
     }
 
@@ -127,35 +125,13 @@ void RenderManager::render_frame(int frame_number)
 {
     // 当采样达到一定数量时将渲染结果提取出来
     scene->setDirty(true);
-    // scene->update_models();
-    // scene->update_scene();
-
     if (offscreen)
     {
         // 循环进行渲染
-        while (scene->render_scene(camera) == false)
+        while (!scene->render_scene(camera))
         {
             // 当采样数达到一定的数量时生成一帧画面
             printf("SampleNumber: %d\n", scene->getSampleNum());
         }
-        // glm::vec3 *output_frame_ptr = scene->get_frame_output();
-
-        // std::vector<unsigned char> pixels(window_width * window_height * 3);
-
-        // // Copy data from output_frame_ptr to pixels
-        // for (int i = 0; i < window_width * window_height; ++i)
-        // {
-        //     glm::vec3 color = output_frame_ptr[i];
-        //     pixels[i * 3 + 0] = static_cast<unsigned char>(glm::clamp(color.r * 255.0f, 0.0f, 255.0f)); // Red
-        //     pixels[i * 3 + 1] = static_cast<unsigned char>(glm::clamp(color.g * 255.0f, 0.0f, 255.0f)); // Green
-        //     pixels[i * 3 + 2] = static_cast<unsigned char>(glm::clamp(color.b * 255.0f, 0.0f, 255.0f)); // Blue
-        // }
-
-        // // Save the image to disk
-        // std::ostringstream oss;
-        // oss << "./offline_rendering/frame_" << std::setw(3) << std::setfill('0') << frame_number << ".png";
-        // std::cout << "save picture, frame_number: " << frame_number << std::endl;
-        // stbi_flip_vertically_on_write(true);
-        // stbi_write_png(oss.str().c_str(), window_width, window_height, 3, pixels.data(), window_width * 3);
     }
 }
