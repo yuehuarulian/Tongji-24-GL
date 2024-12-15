@@ -84,6 +84,9 @@ void PointCloud::load_vdb_data(const std::string &filename)
     openvdb::initialize();
     openvdb::io::File file(filename);
     file.open();
+    if (!file.isOpen()) {
+        throw std::runtime_error("Failed to open VDB file: " + filename);
+    }   
     openvdb::GridBase::Ptr baseGrid;
 
     for (openvdb::io::File::NameIterator nameIter = file.beginName(); nameIter != file.endName(); ++nameIter)

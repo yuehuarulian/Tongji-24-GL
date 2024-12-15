@@ -877,7 +877,7 @@ void GetMaterial(inout HitRec hit_record, in Ray r)
     Material mat;
     // 材质默认值
     // 灰色（默认非金属材质）
-    vec3 defaultAlbedo = vec3(0.8, 0.8, 0.8);   // 默认反射率：灰色
+    vec3 defaultAlbedo = vec3(0.1804, 0.6745, 0.7294);   // 默认反射率：灰色
     float defaultMetallic = 0.0;                // 默认金属度：非金属
     float defaultRoughness = 0.5;               // 默认粗糙度：中等
     float defaultAO = 1.0;                      // 默认 AO 值：完全无遮蔽
