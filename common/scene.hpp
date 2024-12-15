@@ -36,6 +36,7 @@ public:
 
     void setDirty(bool isDirty) { this->dirty = isDirty; }
     bool getDirty() const { return this->dirty; }
+    bool get_is_update() const { return this->is_update; }
     int getFrameNum() const { return this->frameNum; }
     int getSampleNum() const { return this->sampleNum; }
     glm::vec3 *get_frame_output();
@@ -62,6 +63,7 @@ protected:
     int frameNum = 1;  // 帧数量 -- 记录当前的帧数
     int sampleNum = 1; // 采样数量 -- 记录当前的采样数量
     bool dirty;        // 脏位
+    bool is_update = false;
 
     // 存储所有的网格
     std::vector<Mesh *> meshes;

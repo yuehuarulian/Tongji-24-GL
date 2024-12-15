@@ -51,7 +51,7 @@ int main()
 
     GL_TASK::ClassicScene classic_scene(shader_manager, light_manager);
 
-    Camera camera(window, 75 * D2R, glm::vec3(0.0f, -150.0f, 80.0f), glm::pi<float>(), 0. * D2R, 30.0f, 1.0f);
+    Camera camera(window, 75 * D2R, glm::vec3(0.0f, -150.0f, 60.0f), glm::pi<float>(), 0. * D2R, 30.0f, 1.0f);
 
     Skybox skybox(faces, "source/shader/skybox.vs", "source/shader/skybox.fs");
 
@@ -71,11 +71,11 @@ int main()
         bool dirty = false;
         camera.compute_matrices_from_inputs(window, dirty); // 更新摄像机位置
         classic_scene.setDirty(dirty);
-        if (classic_scene.getFrameNum() % 3 == 0 && classic_scene.getSampleNum() == 1)
-        {
-            classic_scene.update_models(); // 蝴蝶每三帧画面更新一次
-        }
-        classic_scene.update_scene();
+        // if (classic_scene.getFrameNum() % 3 == 0 && classic_scene.getSampleNum() == 1)
+        // {
+        //     classic_scene.update_models(); // 蝴蝶每三帧画面更新一次
+        // }
+        // classic_scene.update_scene();
 
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

@@ -127,13 +127,13 @@ void RenderManager::render_frame(int frame_number)
 {
     // 当采样达到一定数量时将渲染结果提取出来
     scene->setDirty(true);
-    scene->update_models();
-    scene->update_scene();
+    // scene->update_models();
+    // scene->update_scene();
 
     if (offscreen)
     {
         // 循环进行渲染
-        while (scene->render_scene(camera) == false)
+        while (scene->render_scene(camera) == true)
         {
             // 当采样数达到一定的数量时生成一帧画面
             printf("SampleNumber: %d\n", scene->getSampleNum());

@@ -64,7 +64,7 @@ namespace GL_TASK
         // Room model
         printf("/*************************************/\n");
         printf("Load Room Model\n");
-        room = std::make_shared<Room>("source/model/room2/test.obj", meshes, meshInstances, textures, materials);
+        room = std::make_shared<Room>("E:/my_code/GL_bigwork/code/source/model/room2/test.obj", meshes, meshInstances, textures, materials);
         room->getBoundingBox(roomMin, roomMax);
         room_model_matrix = room->get_model_matrix();
 
@@ -73,7 +73,7 @@ namespace GL_TASK
         printf("Load Butterfly Model\n");
         for (int i = 0; i < butterfly_count; i++)
         {
-            auto butterfly_model_single = std::make_shared<Butterfly>("source/model/butterfly/ok.dae", meshes, meshInstances, textures, materials);
+            auto butterfly_model_single = std::make_shared<Butterfly>("E:/my_code/GL_bigwork/code/source/model/butterfly/ok.dae", meshes, meshInstances, textures, materials);
             butterflies.push_back(butterfly_model_single);
         }
 
@@ -83,7 +83,7 @@ namespace GL_TASK
         fluid = std::make_shared<Fluid>(meshes, meshInstances, textures, materials);
         fluid->BindDirty(&BbvhDirty);
         fluid->set_model_matrix(room_model_matrix);
-        fluid->add_model("source/model/fluid/mesh.obj");
+        fluid->add_model("E:/my_code/GL_bigwork/code/source/model/fluid/mesh.obj");
 
         // bullet world
         // bulletWorld = std::make_shared<BulletWorld>(meshes, meshInstances, textures, materials);
@@ -147,7 +147,9 @@ namespace GL_TASK
     // 渲染
     bool ClassicScene::render_scene(Camera &camera)
     {
-        if (++sampleNum == 20)
+        update_scene();
+        printf("sampleNum: %d, is_update: %d\n", sampleNum, is_update);
+        if (++sampleNum >= 20 && is_update == true)
         {
             // 每帧采样20次
             SaveFrameImage(); // 保存图片
@@ -164,10 +166,12 @@ namespace GL_TASK
         render_path_tracing(camera);
         render_accumulation();
         render_post_processing();
-        if (sampleNum == 1)
+        if (is_update)
+        {
+            is_update = false;
             return true;
-        else
-            return false;
+        }
+        return false;
     }
 
     void ClassicScene::render_path_tracing(Camera &camera)
@@ -238,9 +242,6 @@ namespace GL_TASK
         printf("Update Butterfly Matrix\n");
         for (auto &butterfly : butterflies)
             butterfly->update();
-        if (butterflies.size() > 0)
-            TbvhDirty = true;
-        update_scene();
     }
 
     void ClassicScene::update_scene()
@@ -253,16 +254,13 @@ namespace GL_TASK
                 if (mesh->needsUpdate(i))
                 { // 刷新低层次的BVH加速结构
                     std::cout << "Mesh " << i << " finish an update." << std::endl;
-                    BbvhDirty = false;
-                    TbvhDirty = true;
+                    is_update = true;
                 }
             }
-            if (!BbvhDirty || TbvhDirty)
+            if (is_update)
             {
-                if (TbvhDirty)
-                {
-                    this->createTLAS(); // 重建高层次的BVH加速结构
-                }
+                this->update_models();   // 更新模型
+                this->createTLAS();      // 重建高层次的BVH加速结构
                 this->process_data();    // 处理数据 将其转换成可供Shader使用的形式
                 this->update_GPU_data(); // 将相关数据绑定到纹理中以便传递到GPU中
                 printf("ClassicScene: A new scene is ready\n");
@@ -276,9 +274,8 @@ namespace GL_TASK
             glClear(GL_COLOR_BUFFER_BIT);
             // 重置帧数和采样数
             sampleNum = 1;
+            dirty = false;
         }
-        TbvhDirty = false;
-        dirty = false;
     }
 
     void ClassicScene::wait_until_next_frame(int frame_number)
