@@ -249,10 +249,6 @@ namespace GL_TASK
         {
             for (int i = 0; i < meshes.size(); ++i)
             {
-        if (BbvhDirty)
-        {
-            for (int i = 0; i < meshes.size(); ++i)
-            {
                 Mesh *mesh = meshes[i];
                 if (mesh->dirty)
                 {
