@@ -28,7 +28,7 @@ public:
     }
 
     virtual ~Scene() = default;
-    virtual void render_scene(Camera &) = 0;
+    virtual bool render_scene(Camera &) = 0;
     virtual void update_scene() = 0;  // 进行场景更新
     virtual void present_scene() = 0; // 展示渲染结果
     virtual void update_models() = 0; // 更新场景中的模型
@@ -61,7 +61,7 @@ protected:
     const int texArrayWidth = 2048;
     int frameNum = 1;  // 帧数量 -- 记录当前的帧数
     int sampleNum = 1; // 采样数量 -- 记录当前的采样数量
-    bool dirty; // 脏位
+    bool dirty;        // 脏位
 
     // 存储所有的网格
     std::vector<Mesh *> meshes;

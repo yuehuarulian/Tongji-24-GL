@@ -27,9 +27,9 @@ namespace GL_TASK
             fluid->start(); // 启动流体模拟
         if (bulletWorld.get() != nullptr)
             bulletWorld->start(); // 启动物理模拟
-        init_GPU_data(); // 将相关数据绑定到纹理中以便传递到GPU中
-        init_FBOs();     // 初始化帧缓冲对象
-        load_shaders();  // 加载着色器
+        init_GPU_data();          // 将相关数据绑定到纹理中以便传递到GPU中
+        init_FBOs();              // 初始化帧缓冲对象
+        load_shaders();           // 加载着色器
     }
 
     void ClassicScene::load_shaders()
@@ -77,7 +77,7 @@ namespace GL_TASK
             butterflies.push_back(butterfly_model_single);
         }
 
-        // // liquid model
+        // liquid model
         printf("/*************************************/\n");
         printf("Load Liquid Model\n");
         fluid = std::make_shared<Fluid>(meshes, meshInstances, textures, materials);
@@ -103,13 +103,13 @@ namespace GL_TASK
         // bulletWorld->add_model(glm::vec3(20.0, water_level + 2.0, 50.0));
 
         // 点云 1
-        printf("/*************************************/\n");
-        printf("Load PointCloud Model\n");
-        glm::mat4 model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(0.0f, -120.0f, -160.0f));
-        model = glm::scale(model, glm::vec3(0.3f));
-        auto point_cloud1 = std::make_shared<PointCloud>("./source/model/point_cloud/Cumulonimbus_11.vdb", meshes, meshInstances, textures, materials, model);
-        point_clouds.push_back(point_cloud1);
+        // printf("/*************************************/\n");
+        // printf("Load PointCloud Model\n");
+        // glm::mat4 model = glm::mat4(1.0f);
+        // model = glm::translate(model, glm::vec3(0.0f, -120.0f, -160.0f));
+        // model = glm::scale(model, glm::vec3(0.3f));
+        // auto point_cloud1 = std::make_shared<PointCloud>("./source/model/point_cloud/Cumulonimbus_11.vdb", meshes, meshInstances, textures, materials, model);
+        // point_clouds.push_back(point_cloud1);
         // 点云 2
         // model = glm::mat4(1.0f);
         // model = glm::translate(model, glm::vec3(0.0f, -300.0f, -110.0f));
@@ -145,7 +145,7 @@ namespace GL_TASK
     }
 
     // 渲染
-    void ClassicScene::render_scene(Camera &camera)
+    bool ClassicScene::render_scene(Camera &camera)
     {
         if (++sampleNum == 20)
         {
@@ -164,6 +164,10 @@ namespace GL_TASK
         render_path_tracing(camera);
         render_accumulation();
         render_post_processing();
+        if (sampleNum == 1)
+            return true;
+        else
+            return false;
     }
 
     void ClassicScene::render_path_tracing(Camera &camera)
@@ -241,10 +245,13 @@ namespace GL_TASK
 
     void ClassicScene::update_scene()
     {
-        if (BbvhDirty) {
-            for (int i = 0; i < meshes.size(); ++i) {
+        if (BbvhDirty)
+        {
+            for (int i = 0; i < meshes.size(); ++i)
+            {
                 Mesh *mesh = meshes[i];
-                if (mesh->needsUpdate(i)) { // 刷新低层次的BVH加速结构
+                if (mesh->needsUpdate(i))
+                { // 刷新低层次的BVH加速结构
                     std::cout << "Mesh " << i << " finish an update." << std::endl;
                     BbvhDirty = false;
                     TbvhDirty = true;
