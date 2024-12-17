@@ -235,7 +235,7 @@ vec3 PathTrace(Ray r, int maxDepth, int RR_maxDepth)
         if(!ClosestHit(r, hit_record, lightSample))
         {
             // 如果没有交点，返回环境背景颜色
-            radiance += throughput * vec3(0.8353, 0.4745, 0.8745); // 纯黑色
+            radiance += throughput * vec3(0.3882, 0.6627, 0.9373); // 纯黑色
             break;
         }
         

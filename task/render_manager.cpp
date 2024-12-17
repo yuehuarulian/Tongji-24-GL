@@ -70,7 +70,7 @@ void RenderManager::start_rendering(bool offscreen)
     if (CAMERA_ANIMATION)
     {
         // 打开文件读取相机动画
-        std::ifstream camera_file("E:/my_code/GL_bigwork/code/source/camera_path/camera_transforms.txt");
+        std::ifstream camera_file("./source/camera_path/camera_transforms.txt");
         if (!camera_file.is_open())
         {
             std::cerr << "Unable to open file for reading camera animation\n";

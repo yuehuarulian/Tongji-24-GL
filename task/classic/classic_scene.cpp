@@ -64,7 +64,7 @@ namespace GL_TASK
         // Room model
         printf("/*************************************/\n");
         printf("Load Room Model\n");
-        room = std::make_shared<Room>("E:/my_code/GL_bigwork/code/source/model/room2/test.obj", meshes, meshInstances, textures, materials);
+        room = std::make_shared<Room>("./source/model/room2/test.obj", meshes, meshInstances, textures, materials);
         room->getBoundingBox(roomMin, roomMax);
         room_model_matrix = room->get_model_matrix();
 
@@ -73,7 +73,7 @@ namespace GL_TASK
         printf("Load Butterfly Model\n");
         for (int i = 0; i < butterfly_count; i++)
         {
-            auto butterfly_model_single = std::make_shared<Butterfly>("E:/my_code/GL_bigwork/code/source/model/butterfly/ok.dae", meshes, meshInstances, textures, materials);
+            auto butterfly_model_single = std::make_shared<Butterfly>("./source/model/butterfly/ok.dae", meshes, meshInstances, textures, materials);
             butterflies.push_back(butterfly_model_single);
         }
 
