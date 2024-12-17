@@ -110,12 +110,12 @@ void RenderManager::start_rendering(bool offscreen)
         camera_file.close();
     }
 
-    if (offscreen)
-    {
-        // glBindFramebuffer(GL_FRAMEBUFFER, msaa_rbo);
-        // glViewport(0, 0, window_width, window_height); // 确保视口匹配 FBO 尺寸
-        std::filesystem::create_directories("./offline_rendering");
-    }
+    // if (offscreen)
+    // {
+    // glBindFramebuffer(GL_FRAMEBUFFER, msaa_rbo);
+    // glViewport(0, 0, window_width, window_height); // 确保视口匹配 FBO 尺寸
+    // std::filesystem::create_directories("./offline_rendering");
+    // }
 
     for (int i = 0; i < frames; ++i)
     {
