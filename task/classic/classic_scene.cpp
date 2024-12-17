@@ -148,6 +148,7 @@ namespace GL_TASK
     {
         update_scene();
         printf("SampleNumber: %d - FrameNumber:%d\n", sampleNum, frameNum);
+        currentBuffer = 1 - currentBuffer;
         if (++sampleNum >= SAMPLES_PER_FRAME)
         {
             // 每帧采样20次
@@ -161,7 +162,6 @@ namespace GL_TASK
             return true;
         }
 
-        currentBuffer = 1 - currentBuffer;
         glActiveTexture(GL_TEXTURE0);
         render_path_tracing(camera);
         render_accumulation();
