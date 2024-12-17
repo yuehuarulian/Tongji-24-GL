@@ -200,8 +200,8 @@ void main()
     sphereLights[5] = SphereLight(vec3(-36.96,26.83,154.76) * vec3(1.3), vec3(1000), radius, 4 * PI * radius * radius);
     sphereLights[6] = SphereLight(vec3(33.80,26.94,-227.89) * vec3(1.3), vec3(1000), radius, 4 * PI * radius * radius);
     sphereLights[7] = SphereLight(vec3(-34.24,26.84,-228.11) * vec3(1.3), vec3(1000), radius, 4 * PI * radius * radius);
-    // sphereLights[8] = SphereLight(vec3(0.0,0.0,0.0), vec3(1000), radius, 4 * PI * radius * radius);
-    numOfSphereLights = 8;
+    sphereLights[8] = SphereLight(vec3(0.0,0.0,0.0), vec3(1000), radius, 4 * PI * radius * radius);
+    numOfSphereLights = 9;
 // (8.634,-34.53,27.02)(8.719,34.15,26.82)
 // (82.96,-36.92,26.97)(83.29,33.55,26.88)
 // (158.16,-34.31,26.83)(154.76,36.96,26.83)
@@ -459,22 +459,22 @@ bool ClosestHit(Ray r, inout HitRec hit_record, inout LightSampleRec lightSample
     }
     for (int i = 0; i < numOfSphereLights; i++)
     {
-        vec3 position = sphereLights[i].position;
-        vec3 emission = sphereLights[i].emission;
-        float radius  = sphereLights[i].radius;
-        float area    = sphereLights[i].area;
-        tTmp = SphereIntersect(radius, position, r);
-        if (tTmp < 0.)
-        tTmp = INF;
-        if (tTmp < tMin)
-        {
-            tMin = tTmp;
-            vec3 hitPt = r.origin + tMin * r.direction;
-            float cosTheta = dot(-r.direction, normalize(hitPt - position));
-            lightSample.pdf = (tMin * tMin) / (area * cosTheta * 0.5);
-            lightSample.emission = emission;
-            hit_record.isEmitter = true;
-        }
+        // vec3 position = sphereLights[i].position;
+        // vec3 emission = sphereLights[i].emission;
+        // float radius  = sphereLights[i].radius;
+        // float area    = sphereLights[i].area;
+        // tTmp = SphereIntersect(radius, position, r);
+        // if (tTmp < 0.)
+        // tTmp = INF;
+        // if (tTmp < tMin)
+        // {
+        //     tMin = tTmp;
+        //     vec3 hitPt = r.origin + tMin * r.direction;
+        //     float cosTheta = dot(-r.direction, normalize(hitPt - position));
+        //     lightSample.pdf = (tMin * tMin) / (area * cosTheta * 0.5);
+        //     lightSample.emission = emission;
+        //     hit_record.isEmitter = true;
+        // }
     }
     
     // 检查是否击中模型的BVH节点
