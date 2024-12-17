@@ -26,8 +26,8 @@ namespace GL_TASK
         init_FBOs();     // 初始化帧缓冲对象
         load_shaders();  // 加载着色器
         // 模拟启动
-        if (fluid.get() != nullptr)
-            fluid->advance(); // 启动流体模拟
+        // if (fluid.get() != nullptr)
+        //     fluid->advance(); // 启动流体模拟
         if (bulletWorld.get() != nullptr)
             bulletWorld->start(); // 启动物理模拟
     }
@@ -80,13 +80,13 @@ namespace GL_TASK
         auto butterfly_model_main = std::make_shared<Butterfly>("./source/model/butterfly/ok.dae", meshes, meshInstances, textures, materials,true);
         butterflies.push_back(butterfly_model_main);
 
-        // // liquid model
-        // printf("/*************************************/\n");
-        // printf("Load Liquid Model\n");
-        // fluid = std::make_shared<Fluid>(meshes, meshInstances, textures, materials);
-        // fluid->BindDirty(&BbvhDirty);
-        // fluid->set_model_matrix(room_model_matrix);
-        // fluid->add_model("./source/model/fluid/mesh.obj");
+        // liquid model
+        printf("/*************************************/\n");
+        printf("Load Liquid Model\n");
+        fluid = std::make_shared<Fluid>(meshes, meshInstances, textures, materials);
+        fluid->BindDirty(&BbvhDirty);
+        fluid->set_model_matrix(room_model_matrix);
+        fluid->add_model("./source/model/fluid/mesh.obj");
 
         // bullet world
         bulletWorld = std::make_shared<BulletWorld>(meshes, meshInstances, textures, materials);
@@ -97,15 +97,13 @@ namespace GL_TASK
 
         // boat model
         bulletWorld->bind_model("source/model/boat/boat_obj.obj", ObjectType::BOAT);
-        bulletWorld->add_model(glm::vec3(15.0, water_level + 2.0, -25.0));
-        bulletWorld->add_model(glm::vec3(-15.0, water_level + 2.0, 25.0));
-        // bulletWorld->add_model(glm::vec3(0.0, 0.0, 0.0));
+        bulletWorld->add_model(glm::vec3(15.0, water_level, -25.0));
+        bulletWorld->add_model(glm::vec3(-15.0, water_level, 25.0));
 
         // flower model
         bulletWorld->bind_model("source/model/flower/flower.obj", ObjectType::FLOWER);
         bulletWorld->add_model(glm::vec3(-20.0, water_level, -50.0));
         bulletWorld->add_model(glm::vec3(20.0, water_level, 50.0));
-        // bulletWorld->add_model(glm::vec3(0.0, 0.0, 0.0));
 
         // 点云 1
         // printf("/*************************************/\n");

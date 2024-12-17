@@ -10,3 +10,4 @@ source/model/
 *.ini
 fluid_mesh.obj
 render_imgs/
+output.txt

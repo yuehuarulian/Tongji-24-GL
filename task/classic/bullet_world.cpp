@@ -367,7 +367,7 @@ void BulletWorld::applyFluidForces()
             rigidBody->applyCentralForce(totalForces[i]); // 应用浮力            
             rigidBody->applyTorque(totalTorques[i]); // 应用扭矩
             printf("totalForce%d: %f %f %f\n", i, totalForces[i].getX(), totalForces[i].getY(), totalForces[i].getZ());
-            fprintf(stderr, "totalForce%d: %f %f %f\n", i, totalForces[i].getX(), totalForces[i].getY(), totalForces[i].getZ());
+            // fprintf(stderr, "totalForce%d: %f %f %f\n", i, totalForces[i].getX(), totalForces[i].getY(), totalForces[i].getZ());
             printf("totalTorque%d: %f %f %f\n", i, totalTorques[i].getX(), totalTorques[i].getY(), totalTorques[i].getZ());
         }
     }
@@ -410,7 +410,7 @@ void BulletWorld::applyModelMatrices() {
             glm::mat4 world_matrix = btTransformToMat4(bodyTransform);//glm::mat4(1.0f);
             // bodyTransform.getOpenGLMatrix(glm::value_ptr(world_matrix));
             printf("Rigid body #%d position: %f %f %f\n", i, world_matrix[3][0], world_matrix[3][1], world_matrix[3][2]);
-            fprintf(stderr, "Rigid body #%d position: %f %f %f\n", i, world_matrix[3][0], world_matrix[3][1], world_matrix[3][2]);
+            // fprintf(stderr, "Rigid body #%d position: %f %f %f\n", i, world_matrix[3][0], world_matrix[3][1], world_matrix[3][2]);
             glm::mat4 model_matrix = objectBaseMatrices[i];
             
             for (auto pmat : objectMatrices[i])

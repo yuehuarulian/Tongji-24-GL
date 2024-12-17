@@ -135,17 +135,16 @@ void RenderManager::start_rendering(bool offscreen)
     {
         printf("Render Frame %d -- Start\n", i);
         std::cerr << "Render Frame " << i << " -- Start" << std::endl;
-        // scene->wait_until_next_frame(i);
-        // if (CAMERA_ANIMATION)
-        // {
-        //     if (5 * i >= camera_transforms.size())
-        //         break;
-        //     update_camera(camera_transforms[5 * i]);
-        // }
-        // else
-        // {
-        //     update_camera(i);
-        // }
+        if (CAMERA_ANIMATION)
+        {
+            if (5 * i >= camera_transforms.size())
+                break;
+            update_camera(camera_transforms[5 * i]);
+        }
+        else
+        {
+            update_camera(i);
+        }
         render_frame(i);
         glfwPollEvents();
         printf("Render Frame %d -- End\n", i);
@@ -176,11 +175,12 @@ void RenderManager::update_camera(glm::mat4 transform)
     camera.set_direction(rotation_matrix);
 }
 
+
 void RenderManager::update_camera(int current_frame)
 {
     // 起始点和终点
-    static glm::vec3 start_point = glm::vec3(0.0f, -30.0f, 180.0f);
-    static glm::vec3 end_point = glm::vec3(-64.35f, -78.99f, -69.98f);
+    static glm::vec3 start_point = glm::vec3(4.96f, -195.08f, 4.64f);
+    static glm::vec3 end_point = glm::vec3(29.44f, -168.12f, -153.22f);
 
     // 插值因子
     float t = static_cast<float>(current_frame) / frames;
@@ -191,7 +191,7 @@ void RenderManager::update_camera(int current_frame)
     camera.set_position(interpolated_pos);
 
     // 手动设置相机的方向向量
-    glm::vec3 new_direction = glm::vec3(0.96f, 0.02f, -0.27f);
+    glm::vec3 new_direction = glm::vec3(-0.15f, -0.17f, 0.97f);
     camera.set_direction(new_direction);
 
     camera.set_fov(103.26 / 180.0f * glm::pi<float>());
