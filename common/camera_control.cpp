@@ -132,3 +132,37 @@ void Camera::set_position(glm::vec3 position)
 }
 
 glm::vec3 Camera::get_direction() { return _direction; }
+
+void Camera::set_direction(glm::vec3 direction)
+{
+    _direction = glm::normalize(direction); // 确保方向向量是单位向量
+
+    // 更新右向量和上向量
+    _right = glm::normalize(glm::cross(_direction, glm::vec3(0.0f, 1.0f, 0.0f))); // 基于世界空间中的 y 轴计算右向量
+    _up = glm::normalize(glm::cross(_right, _direction));                         // 基于右向量和方向向量计算上向量
+
+    // 计算水平角度和垂直角度
+    _horizontal_angle = glm::atan(_direction.x, _direction.z);
+    _vertical_angle = glm::asin(_direction.y);
+    std::cout << "horizontal_angle: " << _horizontal_angle << " vertical_angle: " << _vertical_angle << std::endl;
+
+    // 更新视图矩阵
+    calculate_view_and_projection_matrix();
+}
+
+void Camera::set_direction(glm::mat3 rotation_matrix)
+{
+    // 从旋转矩阵中提取方向向量
+    _direction = glm::vec3(rotation_matrix * glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
+    _right = glm::vec3(rotation_matrix * glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
+    _up = glm::vec3(rotation_matrix * glm::vec4(0.0f, 0.0f, 1.0f, 1.0f));
+    // _up = glm::normalize(glm::cross(_right, _direction));
+
+    // 计算水平角度和垂直角度
+    _horizontal_angle = glm::atan(_direction.x, _direction.z);
+    _vertical_angle = glm::asin(_direction.y);
+    std::cout << "horizontal_angle: " << _horizontal_angle << " vertical_angle: " << _vertical_angle << std::endl;
+
+    // 更新视图矩阵
+    calculate_view_and_projection_matrix();
+}

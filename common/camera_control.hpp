@@ -27,8 +27,11 @@ public:
     glm::vec3 get_up() { return _up; }
     float get_horizontal_angle() { return _horizontal_angle; }
     float get_vertical_angle() { return _vertical_angle; }
+
     void set_position(glm::vec3 position);
     void set_fov(float fov) { this->_initial_fov = fov; }
+    void set_direction(glm::vec3 direction);
+    void set_direction(glm::mat3 rotation_matrix);
 
     // 投影和观察矩阵
     glm::mat4 projection;

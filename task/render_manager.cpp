@@ -5,6 +5,8 @@
 #include <iostream>
 #include <vector>
 #include <sstream>
+#include <iostream>
+#include <fstream>
 #include <iomanip>
 #include <filesystem>
 
@@ -61,42 +63,52 @@ void RenderManager::initialize_GLFW()
     //     initialize_framebuffer();
 }
 
-// void RenderManager::initialize_framebuffer()
-// {
-//     // 创建多重采样帧缓冲区
-//     glGenFramebuffers(1, &msaa_fbo);
-//     glBindFramebuffer(GL_FRAMEBUFFER, msaa_fbo);
-//     // 创建多重采样纹理附件
-//     glGenTextures(1, &msaa_texture);
-//     glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, msaa_texture);
-//     glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, 4, GL_RGB, window_width, window_height, GL_TRUE);
-//     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, msaa_texture, 0);
-//     // 创建多重采样的渲染缓冲附件（深度和模板）
-//     glGenRenderbuffers(1, &msaa_rbo);
-//     glBindRenderbuffer(GL_RENDERBUFFER, msaa_rbo);
-//     glRenderbufferStorageMultisample(GL_RENDERBUFFER, 4, GL_DEPTH24_STENCIL8, window_width, window_height);
-//     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, msaa_rbo);
-//     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-//         std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
-//     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-//     // 创建用于解析多重采样结果的普通帧缓冲区
-//     glGenFramebuffers(1, &resolve_fbo);
-//     glBindFramebuffer(GL_FRAMEBUFFER, resolve_fbo);
-//     glGenTextures(1, &resolve_texture);
-//     glBindTexture(GL_TEXTURE_2D, resolve_texture);
-//     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, window_width, window_height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-//     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-//     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-//     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, resolve_texture, 0);
-//     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-//         std::cout << "ERROR::FRAMEBUFFER:: Resolve Framebuffer is not complete!" << std::endl;
-//     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-// }
-
 void RenderManager::start_rendering(bool offscreen)
 {
     this->offscreen = offscreen;
     initialize();
+    if (CAMERA_ANIMATION)
+    {
+        // 打开文件读取相机动画
+        std::ifstream camera_file("E:/my_code/GL_bigwork/code/source/camera_path/camera_transforms.txt");
+        if (!camera_file.is_open())
+        {
+            std::cerr << "Unable to open file for reading camera animation\n";
+            return;
+        }
+
+        // 读取旋转矩阵和位移数据
+        // | R11 R12 R13 Tx |
+        // | R21 R22 R23 Ty |
+        // | R31 R32 R33 Tz |
+        // |  0   0   0  1 |
+        camera_transforms.clear(); // 清空之前的路径数据
+        float M[16];               // 用于存储 4x4 变换矩阵的 16 个值
+
+        glm::mat4 room_matrix = glm::mat4(1.0f);
+        room_matrix = glm::rotate(room_matrix, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+        room_matrix = glm::scale(room_matrix, glm::vec3(1.f, 1.f, 1.f) * 1.3f);
+
+        while (camera_file)
+        {
+            // 读取 4x4 变换矩阵数据
+            for (int i = 0; i < 16; ++i)
+                camera_file >> M[i];
+
+            if (camera_file)
+            {
+                // 使用 glm::mat4 来表示 4x4 变换矩阵
+                glm::mat4 transform_matrix(
+                    M[0], M[1], M[2], M[3],
+                    M[4], M[5], M[6], M[7],
+                    M[8], M[9], M[10], M[11],
+                    M[12], M[13], M[14], M[15]);
+
+                camera_transforms.push_back(room_matrix * transform_matrix); // 将每一帧的变换矩阵存储
+            }
+        }
+        camera_file.close();
+    }
 
     if (offscreen)
     {
@@ -108,11 +120,22 @@ void RenderManager::start_rendering(bool offscreen)
     for (int i = 0; i < frames; ++i)
     {
         printf("Render Frame %d -- Start\n", i);
+        std::cerr << "Render Frame " << i << " -- Start" << std::endl;
         scene->wait_until_next_frame(i);
-        update_camera();
+        if (CAMERA_ANIMATION)
+        {
+            if (20 * i >= camera_transforms.size())
+                break;
+            update_camera(camera_transforms[20 * i]);
+        }
+        else
+        {
+            update_camera(i);
+        }
         render_frame(i);
         glfwPollEvents();
         printf("Render Frame %d -- End\n", i);
+        std::cerr << "Render Frame " << i << " -- End" << std::endl;
     }
 }
 
@@ -121,6 +144,44 @@ void RenderManager::update_camera()
     auto camera_pos = camera.get_pos();
     camera.set_position(camera_pos - glm::vec3(0, 0, 2.0));
     camera.compute_matrices_from_inputs(window, dirty);
+}
+
+void RenderManager::update_camera(glm::mat4 transform)
+{
+    // 从变换矩阵中提取旋转部分
+    glm::mat3 rotation_matrix = glm::mat3(transform); // 提取 3x3 的旋转矩阵
+
+    std::cout << "camera_matrix: " << glm::to_string(transform) << std::endl;
+
+    // 从变换矩阵中提取平移部分
+    glm::vec3 translation = glm::vec3(transform[0][3], transform[1][3], transform[2][3]);
+
+    // 设置相机的新位置
+    camera.set_position(translation);
+
+    // 设置相机的旋转方向（可以通过相机的方向向量来控制相机朝向）
+    camera.set_direction(rotation_matrix);
+}
+
+void RenderManager::update_camera(int current_frame)
+{
+    // 起始点和终点
+    static glm::vec3 start_point = glm::vec3(0.0f, -30.0f, 180.0f);
+    static glm::vec3 end_point = glm::vec3(-64.35f, -78.99f, -69.98f);
+
+    // 插值因子
+    float t = static_cast<float>(current_frame) / frames;
+
+    // 使用线性插值来更新相机位置
+    glm::vec3 interpolated_pos = glm::mix(start_point, end_point, t);
+
+    camera.set_position(interpolated_pos);
+
+    // 手动设置相机的方向向量
+    glm::vec3 new_direction = glm::vec3(0.96f, 0.02f, -0.27f);
+    camera.set_direction(new_direction);
+
+    camera.set_fov(103.26 / 180.0f * glm::pi<float>());
 }
 
 void RenderManager::render_frame(int frame_number)
@@ -135,24 +196,5 @@ void RenderManager::render_frame(int frame_number)
             // 当采样数达到一定的数量时生成一帧画面
             printf("SampleNumber: %d\n", scene->getSampleNum());
         }
-        // glm::vec3 *output_frame_ptr = scene->get_frame_output();
-
-        // std::vector<unsigned char> pixels(window_width * window_height * 3);
-
-        // // Copy data from output_frame_ptr to pixels
-        // for (int i = 0; i < window_width * window_height; ++i)
-        // {
-        //     glm::vec3 color = output_frame_ptr[i];
-        //     pixels[i * 3 + 0] = static_cast<unsigned char>(glm::clamp(color.r * 255.0f, 0.0f, 255.0f)); // Red
-        //     pixels[i * 3 + 1] = static_cast<unsigned char>(glm::clamp(color.g * 255.0f, 0.0f, 255.0f)); // Green
-        //     pixels[i * 3 + 2] = static_cast<unsigned char>(glm::clamp(color.b * 255.0f, 0.0f, 255.0f)); // Blue
-        // }
-
-        // // Save the image to disk
-        // std::ostringstream oss;
-        // oss << "./offline_rendering/frame_" << std::setw(3) << std::setfill('0') << frame_number << ".png";
-        // std::cout << "save picture, frame_number: " << frame_number << std::endl;
-        // stbi_flip_vertically_on_write(true);
-        // stbi_write_png(oss.str().c_str(), window_width, window_height, 3, pixels.data(), window_width * 3);
     }
 }

@@ -241,7 +241,7 @@ vec3 PathTrace(Ray r, int maxDepth, int RR_maxDepth)
         
         // 2. 从材质贴图中加载材质信息
         GetMaterial(hit_record, r); // 获取材质
-        // return hit_record.mat.baseColor;
+        return hit_record.mat.baseColor;
         
         // 3. 如果击中了发光体，添加其辐射贡献
         if (hit_record.isEmitter) {

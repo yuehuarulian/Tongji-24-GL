@@ -2,7 +2,7 @@ import cv2
 import os
 
 # 设置输入和输出路径
-image_folder = './offline_rendering'
+image_folder = './render_imgs'
 output_video = 'output_video.mp4'
 
 # 视频参数

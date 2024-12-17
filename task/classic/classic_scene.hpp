@@ -26,6 +26,7 @@ namespace GL_TASK
         void present_scene() override;
         void update_models(); // 更新场景
         void wait_until_next_frame(int frame_number) override;
+        glm::mat4 get_room_matrix();
 
         bool BbvhDirty{false}; // 底层bvh树脏位
         bool TbvhDirty{false}; // 顶层bvh树脏位
