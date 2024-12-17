@@ -64,11 +64,12 @@ namespace GL_TASK
         // Room model
         printf("/*************************************/\n");
         printf("Load Room Model\n");
-        room = std::make_shared<Room>("./source/model/room2/test.obj", meshes, meshInstances, textures, materials);
+        room = std::make_shared<Room>("./source/model/room2/room2.obj", meshes, meshInstances, textures, materials);
+        // room = std::make_shared<Room>("./source/model/room2/test.obj", meshes, meshInstances, textures, materials);
         room->getBoundingBox(roomMin, roomMax);
         room_model_matrix = room->get_model_matrix();
 
-        // // butterfly model
+        // // // butterfly model
         printf("/*************************************/\n");
         printf("Load Butterfly Model\n");
         for (int i = 0; i < butterfly_count; i++)
@@ -76,14 +77,16 @@ namespace GL_TASK
             auto butterfly_model_single = std::make_shared<Butterfly>("./source/model/butterfly/ok.dae", meshes, meshInstances, textures, materials);
             butterflies.push_back(butterfly_model_single);
         }
+        auto butterfly_model_main = std::make_shared<Butterfly>("./source/model/butterfly/ok.dae", meshes, meshInstances, textures, materials,true);
+        butterflies.push_back(butterfly_model_main);
 
-        // liquid model
-        printf("/*************************************/\n");
-        printf("Load Liquid Model\n");
-        fluid = std::make_shared<Fluid>(meshes, meshInstances, textures, materials);
-        fluid->BindDirty(&BbvhDirty);
-        fluid->set_model_matrix(room_model_matrix);
-        fluid->add_model("./source/model/fluid/mesh.obj");
+        // // liquid model
+        // printf("/*************************************/\n");
+        // printf("Load Liquid Model\n");
+        // fluid = std::make_shared<Fluid>(meshes, meshInstances, textures, materials);
+        // fluid->BindDirty(&BbvhDirty);
+        // fluid->set_model_matrix(room_model_matrix);
+        // fluid->add_model("./source/model/fluid/mesh.obj");
 
         // bullet world
         bulletWorld = std::make_shared<BulletWorld>(meshes, meshInstances, textures, materials);

@@ -10,7 +10,7 @@ const double R2D = 180.0 / glm::pi<double>(); // 弧度转角度
 const unsigned int WINDOW_HEIGHT = 720;
 const unsigned int WINDOW_WIDTH = 1080;
 const unsigned int FRAMES = 300;
-const unsigned int SAMPLES_PER_FRAME = 20; // 每帧采样的数量
+const unsigned int SAMPLES_PER_FRAME = 40; // 每帧采样的数量
 const bool CAMERA_ANIMATION = true;        // 是否开启相机动画
 const std::vector<std::string> faces{
     "source/skybox/sky/right.jpg",

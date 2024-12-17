@@ -192,17 +192,20 @@ void main()
     vec3 rayOrigin = camera.position;
     vec3 rayDirection = normalize(d.x * camera.right + d.y * camera.up + camera.forward);
     float radius = 1;
-    sphereLights[0] = SphereLight(vec3(-34.53,27.02,8.634), vec3(100), radius, 4 * PI * radius * radius);
-    sphereLights[1] = SphereLight(vec3(34.15,26.82,8.719), vec3(100), radius, 4 * PI * radius * radius);
-    sphereLights[2] = SphereLight(vec3(-36.92,26.97,82.96), vec3(100), radius, 4 * PI * radius * radius);
-    sphereLights[3] = SphereLight(vec3(33.55,26.88,83.29), vec3(100), radius, 4 * PI * radius * radius);
-    sphereLights[4] = SphereLight(vec3(-34.31,26.83,158.16), vec3(100), radius, 4 * PI * radius * radius);
-    sphereLights[5] = SphereLight(vec3(36.96,26.83,154.76), vec3(100), radius, 4 * PI * radius * radius);
-    sphereLights[6] = SphereLight(vec3(-33.80,26.94,227.89), vec3(100), radius, 4 * PI * radius * radius);
-    sphereLights[7] = SphereLight(vec3(34.24,26.84,228.11), vec3(100), radius, 4 * PI * radius * radius);
-    sphereLights[8] = SphereLight(vec3(0.0,0.0,0.0), vec3(100), radius, 4 * PI * radius * radius);
-    numOfSphereLights = 9;
-    
+    sphereLights[0] = SphereLight(vec3(34.53,27.02,-8.634) * vec3(1.3), vec3(1000), radius, 4 * PI * radius * radius);
+    sphereLights[1] = SphereLight(vec3(-34.15,26.82,-8.719) * vec3(1.3), vec3(1000), radius, 4 * PI * radius * radius);
+    sphereLights[2] = SphereLight(vec3(36.92,26.97,-82.96) * vec3(1.3), vec3(1000), radius, 4 * PI * radius * radius);
+    sphereLights[3] = SphereLight(vec3(-33.55,26.88,-83.29) * vec3(1.3), vec3(1000), radius, 4 * PI * radius * radius);
+    sphereLights[4] = SphereLight(vec3(34.31,26.83,-158.16) * vec3(1.3), vec3(1000), radius, 4 * PI * radius * radius);
+    sphereLights[5] = SphereLight(vec3(-36.96,26.83,154.76) * vec3(1.3), vec3(1000), radius, 4 * PI * radius * radius);
+    sphereLights[6] = SphereLight(vec3(33.80,26.94,-227.89) * vec3(1.3), vec3(1000), radius, 4 * PI * radius * radius);
+    sphereLights[7] = SphereLight(vec3(-34.24,26.84,-228.11) * vec3(1.3), vec3(1000), radius, 4 * PI * radius * radius);
+    // sphereLights[8] = SphereLight(vec3(0.0,0.0,0.0), vec3(1000), radius, 4 * PI * radius * radius);
+    numOfSphereLights = 8;
+// (8.634,-34.53,27.02)(8.719,34.15,26.82)
+// (82.96,-36.92,26.97)(83.29,33.55,26.88)
+// (158.16,-34.31,26.83)(154.76,36.96,26.83)
+// (227.89,-33.80,26.94)(228.11,34.24,26.84)
     Ray ray=Ray(rayOrigin,rayDirection);// 生成光线
     
     // 后面可以更改为 uniform 使用imgui进行调节
@@ -262,6 +265,9 @@ vec3 PathTrace(Ray r, int maxDepth, int RR_maxDepth)
                 // return Lo;
                 radiance += throughput * Lo;
             }
+            else{
+                radiance += vec3(0.001);
+            }
         }
         //  // 4. 处理自发光 
         // if (hit_record.emission.r > 0.0001) {
@@ -290,7 +296,7 @@ vec3 PathTrace(Ray r, int maxDepth, int RR_maxDepth)
         throughput *= m_prob; // 更新通量权重以考虑路径终止的概率
         
         // 4. 处理透明材质的反射和折射
-        if(hit_record.mat.alpha < 1.0) 
+        if(hit_record.mat.alpha < 0.9) 
         {
             vec3 refractedDirection;
             bool isTotalInternalReflection = !Refract(r.direction, hit_record.ffnormal, hit_record.mat.ior, refractedDirection);
