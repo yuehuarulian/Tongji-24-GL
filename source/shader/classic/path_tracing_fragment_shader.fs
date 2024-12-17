@@ -192,15 +192,15 @@ void main()
     vec3 rayOrigin = camera.position;
     vec3 rayDirection = normalize(d.x * camera.right + d.y * camera.up + camera.forward);
     float radius = 1;
-    sphereLights[0] = SphereLight(vec3(34.53,27.02,-8.634) * vec3(1.3), vec3(100), radius, 4 * PI * radius * radius);
-    sphereLights[1] = SphereLight(vec3(-34.15,26.82,-8.719) * vec3(1.3), vec3(100), radius, 4 * PI * radius * radius);
-    sphereLights[2] = SphereLight(vec3(36.92,26.97,-82.96) * vec3(1.3), vec3(100), radius, 4 * PI * radius * radius);
-    sphereLights[3] = SphereLight(vec3(-33.55,26.88,-83.29) * vec3(1.3), vec3(100), radius, 4 * PI * radius * radius);
-    sphereLights[4] = SphereLight(vec3(34.31,26.83,-158.16) * vec3(1.3), vec3(100), radius, 4 * PI * radius * radius);
-    sphereLights[5] = SphereLight(vec3(-36.96,26.83,154.76) * vec3(1.3), vec3(100), radius, 4 * PI * radius * radius);
-    sphereLights[6] = SphereLight(vec3(33.80,26.94,-227.89) * vec3(1.3), vec3(100), radius, 4 * PI * radius * radius);
-    sphereLights[7] = SphereLight(vec3(-34.24,26.84,-228.11) * vec3(1.3), vec3(100), radius, 4 * PI * radius * radius);
-    // sphereLights[8] = SphereLight(vec3(0.0,0.0,0.0), vec3(100), radius, 4 * PI * radius * radius);
+    sphereLights[0] = SphereLight(vec3(34.53,27.02,-8.634) * vec3(1.3), vec3(1000), radius, 4 * PI * radius * radius);
+    sphereLights[1] = SphereLight(vec3(-34.15,26.82,-8.719) * vec3(1.3), vec3(1000), radius, 4 * PI * radius * radius);
+    sphereLights[2] = SphereLight(vec3(36.92,26.97,-82.96) * vec3(1.3), vec3(1000), radius, 4 * PI * radius * radius);
+    sphereLights[3] = SphereLight(vec3(-33.55,26.88,-83.29) * vec3(1.3), vec3(1000), radius, 4 * PI * radius * radius);
+    sphereLights[4] = SphereLight(vec3(34.31,26.83,-158.16) * vec3(1.3), vec3(1000), radius, 4 * PI * radius * radius);
+    sphereLights[5] = SphereLight(vec3(-36.96,26.83,154.76) * vec3(1.3), vec3(1000), radius, 4 * PI * radius * radius);
+    sphereLights[6] = SphereLight(vec3(33.80,26.94,-227.89) * vec3(1.3), vec3(1000), radius, 4 * PI * radius * radius);
+    sphereLights[7] = SphereLight(vec3(-34.24,26.84,-228.11) * vec3(1.3), vec3(1000), radius, 4 * PI * radius * radius);
+    // sphereLights[8] = SphereLight(vec3(0.0,0.0,0.0), vec3(1000), radius, 4 * PI * radius * radius);
     numOfSphereLights = 8;
 // (8.634,-34.53,27.02)(8.719,34.15,26.82)
 // (82.96,-36.92,26.97)(83.29,33.55,26.88)
