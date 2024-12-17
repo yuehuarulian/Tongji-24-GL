@@ -78,12 +78,12 @@ namespace GL_TASK
         }
 
         // liquid model
-        printf("/*************************************/\n");
-        printf("Load Liquid Model\n");
-        fluid = std::make_shared<Fluid>(meshes, meshInstances, textures, materials);
-        fluid->BindDirty(&BbvhDirty);
-        fluid->set_model_matrix(room_model_matrix);
-        fluid->add_model("./source/model/fluid/mesh.obj");
+        // printf("/*************************************/\n");
+        // printf("Load Liquid Model\n");
+        // fluid = std::make_shared<Fluid>(meshes, meshInstances, textures, materials);
+        // fluid->BindDirty(&BbvhDirty);
+        // fluid->set_model_matrix(room_model_matrix);
+        // fluid->add_model("./source/model/fluid/mesh.obj");
 
         // // bullet world
         // bulletWorld = std::make_shared<BulletWorld>(meshes, meshInstances, textures, materials);
