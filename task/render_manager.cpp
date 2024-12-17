@@ -81,13 +81,18 @@ void RenderManager::start_rendering(bool offscreen)
         // | R11 R12 R13 Tx |
         // | R21 R22 R23 Ty |
         // | R31 R32 R33 Tz |
-        // |  0   0   0  1 |
+        // |  0   0   0   1 |
         camera_transforms.clear(); // 清空之前的路径数据
         float M[16];               // 用于存储 4x4 变换矩阵的 16 个值
-
-        glm::mat4 room_matrix = glm::mat4(1.0f);
-        room_matrix = glm::rotate(room_matrix, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-        room_matrix = glm::scale(room_matrix, glm::vec3(1.f, 1.f, 1.f) * 1.3f);
+        glm::mat4 camera_matrix(
+            0.0f, -1.0f, 0.0f, 0.0f,
+            0.0f, 0.0f, 1.0f, 0.0f,
+            -1.0f, 0.0f, 0.0f, 0.0f,
+            0.0f, 0.0f, 0.0f, 1.0f);
+        // glm::mat4 room_matrix = glm::mat4(1.0f);
+        // room_matrix = glm::rotate(room_matrix, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+        // room_matrix = glm::rotate(room_matrix, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+        // room_matrix = glm::scale(room_matrix, glm::vec3(1.f, 1.f, 1.f) * 1.3f);
 
         while (camera_file)
         {
@@ -97,19 +102,28 @@ void RenderManager::start_rendering(bool offscreen)
 
             if (camera_file)
             {
-                // 使用 glm::mat4 来表示 4x4 变换矩阵
+                // 创建变换矩阵
                 glm::mat4 transform_matrix(
                     M[0], M[1], M[2], M[3],
                     M[4], M[5], M[6], M[7],
                     M[8], M[9], M[10], M[11],
                     M[12], M[13], M[14], M[15]);
 
-                camera_transforms.push_back(room_matrix * transform_matrix); // 将每一帧的变换矩阵存储
+                // 应用旋转矩阵和平移向量
+                // xyz -y z -x
+                glm::mat4 final_transform = camera_matrix * transform_matrix;
+                final_transform[0][3] = -M[7] * 1.3;
+                final_transform[1][3] = M[11] * 1.3;
+                final_transform[2][3] = -M[3] * 1.3;
+
+                // std::cout << "final_transform: " << glm::to_string(final_transform) << std::endl;
+
+                // 存储最终的变换矩阵
+                camera_transforms.push_back(final_transform);
             }
         }
         camera_file.close();
     }
-
     // if (offscreen)
     // {
     // glBindFramebuffer(GL_FRAMEBUFFER, msaa_rbo);
@@ -124,9 +138,9 @@ void RenderManager::start_rendering(bool offscreen)
         scene->wait_until_next_frame(i);
         if (CAMERA_ANIMATION)
         {
-            if (20 * i >= camera_transforms.size())
+            if (5 * i >= camera_transforms.size())
                 break;
-            update_camera(camera_transforms[20 * i]);
+            update_camera(camera_transforms[5 * i]);
         }
         else
         {

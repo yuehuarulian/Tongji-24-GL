@@ -153,10 +153,10 @@ void Camera::set_direction(glm::vec3 direction)
 void Camera::set_direction(glm::mat3 rotation_matrix)
 {
     // 从旋转矩阵中提取方向向量
-    _direction = glm::vec3(rotation_matrix * glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
+    _direction = glm::vec3(rotation_matrix * glm::vec4(0.0f, 0.0f, -1.0f, 1.0f));
     _right = glm::vec3(rotation_matrix * glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
-    _up = glm::vec3(rotation_matrix * glm::vec4(0.0f, 0.0f, 1.0f, 1.0f));
-    // _up = glm::normalize(glm::cross(_right, _direction));
+    // _up = glm::vec3(rotation_matrix * glm::vec4(0.0f, 0.0f, 1.0f, 1.0f));
+    _up = glm::normalize(glm::cross(_right, _direction));
 
     // 计算水平角度和垂直角度
     _horizontal_angle = glm::atan(_direction.x, _direction.z);
