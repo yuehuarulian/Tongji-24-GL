@@ -405,7 +405,14 @@ void Scene::update_GPU_data()
     glBindTexture(GL_TEXTURE_BUFFER, verticesTex);
     glActiveTexture(GL_TEXTURE4);
     glBindTexture(GL_TEXTURE_BUFFER, normalsTex);
+    glActiveTexture(GL_TEXTURE5);
+    glBindTexture(GL_TEXTURE_BUFFER, transformsTex);
+    glActiveTexture(GL_TEXTURE6);
+    glBindTexture(GL_TEXTURE_BUFFER, materialsTex);
+    glActiveTexture(GL_TEXTURE7);
+    glBindTexture(GL_TEXTURE_2D_ARRAY, textureMapsArrayTex);
 }
+
 void Scene::update_GPU_data1()
 {
     glPixelStorei(GL_PACK_ALIGNMENT, 1);
@@ -413,13 +420,16 @@ void Scene::update_GPU_data1()
     size_t newSize = 0;
     // ---------- 更新 BVH树节点数据 ---------- //
     newSize = sizeof(BVHConverter::Node) * bvhConverter.nodes.size();
-    if (newSize != BVHBufferSize) {
+    if (newSize != BVHBufferSize)
+    {
         // 重新分配缓冲区
         glBindBuffer(GL_TEXTURE_BUFFER, BVHBuffer);
         glBufferData(GL_TEXTURE_BUFFER, newSize, &bvhConverter.nodes[0], GL_DYNAMIC_DRAW);
         std::cerr << "BVH node buffer size changed from " << BVHBufferSize << " to " << newSize << std::endl;
         BVHBufferSize = newSize;
-    } else {
+    }
+    else
+    {
         // 仅更新数据
         glBindBuffer(GL_TEXTURE_BUFFER, BVHBuffer);
         glBufferSubData(GL_TEXTURE_BUFFER, 0, newSize, &bvhConverter.nodes[0]);
@@ -429,12 +439,15 @@ void Scene::update_GPU_data1()
 
     // ---------- 更新顶点索引数据 ---------- //
     newSize = sizeof(Indices) * vertIndices.size();
-    if (newSize != vertexIndicesBufferSize) {
+    if (newSize != vertexIndicesBufferSize)
+    {
         glBindBuffer(GL_TEXTURE_BUFFER, vertexIndicesBuffer);
         glBufferData(GL_TEXTURE_BUFFER, newSize, &vertIndices[0], GL_DYNAMIC_DRAW);
         std::cerr << "Vertex index buffer size changed from " << vertexIndicesBufferSize << " to " << newSize << std::endl;
         vertexIndicesBufferSize = newSize;
-    } else {
+    }
+    else
+    {
         glBindBuffer(GL_TEXTURE_BUFFER, vertexIndicesBuffer);
         glBufferSubData(GL_TEXTURE_BUFFER, 0, newSize, &vertIndices[0]);
     }
@@ -443,12 +456,15 @@ void Scene::update_GPU_data1()
 
     // ---------- 更新顶点/UV数据 ---------- //
     newSize = sizeof(glm::vec4) * verticesUVX.size();
-    if (newSize != verticesBufferSize) {
+    if (newSize != verticesBufferSize)
+    {
         glBindBuffer(GL_TEXTURE_BUFFER, verticesBuffer);
         glBufferData(GL_TEXTURE_BUFFER, newSize, &verticesUVX[0], GL_DYNAMIC_DRAW);
         std::cerr << "Vertex buffer size changed from " << verticesBufferSize << " to " << newSize << std::endl;
         verticesBufferSize = newSize;
-    } else {
+    }
+    else
+    {
         glBindBuffer(GL_TEXTURE_BUFFER, verticesBuffer);
         glBufferSubData(GL_TEXTURE_BUFFER, 0, newSize, &verticesUVX[0]);
     }
@@ -457,12 +473,15 @@ void Scene::update_GPU_data1()
 
     // ---------- 更新法线/UV数据 ---------- //
     newSize = sizeof(glm::vec4) * normalsUVY.size();
-    if (newSize != normalsBufferSize) {
+    if (newSize != normalsBufferSize)
+    {
         glBindBuffer(GL_TEXTURE_BUFFER, normalsBuffer);
         glBufferData(GL_TEXTURE_BUFFER, newSize, &normalsUVY[0], GL_DYNAMIC_DRAW);
         std::cerr << "Normal buffer size changed from " << normalsBufferSize << " to " << newSize << std::endl;
         normalsBufferSize = newSize;
-    } else {
+    }
+    else
+    {
         glBindBuffer(GL_TEXTURE_BUFFER, normalsBuffer);
         glBufferSubData(GL_TEXTURE_BUFFER, 0, newSize, &normalsUVY[0]);
     }
@@ -471,12 +490,15 @@ void Scene::update_GPU_data1()
 
     // ---------- 更新转换矩阵数据 ---------- //
     newSize = sizeof(glm::mat4) * transforms.size();
-    if (newSize != transformsBufferSize) {
+    if (newSize != transformsBufferSize)
+    {
         glBindBuffer(GL_TEXTURE_BUFFER, transformsBuffer);
         glBufferData(GL_TEXTURE_BUFFER, newSize, &transforms[0], GL_DYNAMIC_DRAW);
         std::cerr << "Transform buffer size changed from " << transformsBufferSize << " to " << newSize << std::endl;
         transformsBufferSize = newSize;
-    } else {
+    }
+    else
+    {
         glBindBuffer(GL_TEXTURE_BUFFER, transformsBuffer);
         glBufferSubData(GL_TEXTURE_BUFFER, 0, newSize, &transforms[0]);
     }
@@ -486,12 +508,15 @@ void Scene::update_GPU_data1()
     // ---------- 更新材质数据 ---------- //
     newSize = sizeof(Material) * materials.size();
 
-    if (newSize != materialsBufferSize) {
+    if (newSize != materialsBufferSize)
+    {
         glBindBuffer(GL_TEXTURE_BUFFER, materialsBuffer);
         glBufferData(GL_TEXTURE_BUFFER, newSize, &materials[0], GL_DYNAMIC_DRAW);
         std::cerr << "Material buffer size changed from " << materialsBufferSize << " to " << newSize << std::endl;
         materialsBufferSize = newSize;
-    } else {
+    }
+    else
+    {
         glBindBuffer(GL_TEXTURE_BUFFER, materialsBuffer);
         glBufferSubData(GL_TEXTURE_BUFFER, 0, newSize, &materials[0]);
     }
