@@ -1,6 +1,7 @@
 #ifndef BULLET_WORLD_H
 #define BULLET_WORLD_H
 
+// #define BT_USE_DOUBLE_PRECISION
 #include <btBulletDynamicsCommon.h>
 #include "renderable_model.hpp"
 #include "rigid_body_info.hpp"
@@ -71,7 +72,7 @@ namespace GL_TASK
         btVector3 to_btVector3(const fluid::vec3d& vec, double scale);
         btVector3 transformPosition(const fluid::vec3d& position, const glm::mat4& matrix);
         btVector3 transformVelocity(const fluid::vec3d& velocity, const glm::mat4& matrix);
-        float btClamp(float value, float min, float max);
+        btScalar btClamp(btScalar value, btScalar min, btScalar max);
         btVector3 btClamp(const btVector3& position, const btVector3& min, const btVector3& max);
 
         // 脏位

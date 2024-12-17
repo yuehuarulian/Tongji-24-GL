@@ -134,6 +134,7 @@ void BulletWorld::addObject(const btTransform& state, const RigidBodyManager& in
 
     btRigidBody::btRigidBodyConstructionInfo rigidBodyCI(mass, motionState, shape, inertia);
     btRigidBody* rigidBody = new btRigidBody(rigidBodyCI);
+    // std::cerr << rigidBody->getMotionState() << ' ' << motionState << std::endl;
     rigidBody->setFriction(friction);
     rigidBody->setRestitution(restitution);
     // 添加到物理世界
@@ -169,10 +170,10 @@ void BulletWorld::updateLoop() {
             std::cout << "BulletWorld:: Applying Fluid Forces." << std::endl;
             applyFluidForces();
             std::cout << "BulletWorld:: Simulating next step: " << sim_dt << "s" << std::endl;
-            dynamicsWorld->stepSimulation(sim_dt, 5);
+            dynamicsWorld->stepSimulation(sim_dt * 2, 10);
             enforceBounds();
-            std::cout << "BulletWorld:: Applying model Matrices." << std::endl;
-            applyModelMatrices();
+            // std::cout << "BulletWorld:: Applying model Matrices." << std::endl;
+            // applyModelMatrices();
         }
         {
             std::lock_guard<std::mutex> guard(dirtyMutex); 
@@ -208,7 +209,9 @@ bool BulletWorld::isDirty(){
 void BulletWorld::enforceBounds() {
     for (btRigidBody* body : objects) {
         btTransform transform;
+        // std::cerr << "BulletWorld:: Enforcing bounds." << std::endl;
         body->getMotionState()->getWorldTransform(transform);
+        // std::cerr << "BulletWorld:: Enforcing bounds." << std::endl;
         btVector3 position = transform.getOrigin();
 
         // Clamp position to the room bounds
@@ -364,20 +367,50 @@ void BulletWorld::applyFluidForces()
             rigidBody->applyCentralForce(totalForces[i]); // 应用浮力            
             rigidBody->applyTorque(totalTorques[i]); // 应用扭矩
             printf("totalForce%d: %f %f %f\n", i, totalForces[i].getX(), totalForces[i].getY(), totalForces[i].getZ());
+            fprintf(stderr, "totalForce%d: %f %f %f\n", i, totalForces[i].getX(), totalForces[i].getY(), totalForces[i].getZ());
             printf("totalTorque%d: %f %f %f\n", i, totalTorques[i].getX(), totalTorques[i].getY(), totalTorques[i].getZ());
         }
     }
 }
 
+
+// 将 btTransform 转换为 glm::mat4
+glm::mat4 btTransformToMat4(const btTransform& btTransform) {
+    // 获取 btTransform 的 4x4 矩阵
+    btMatrix3x3 rotation = btTransform.getBasis();  // 旋转矩阵（3x3）
+    btVector3 translation = btTransform.getOrigin(); // 平移部分（3x1）
+
+    // 创建一个 4x4 的 glm::mat4 矩阵
+    glm::mat4 glmMatrix(1.0f);  // 初始化为单位矩阵
+    // 设置旋转部分（3x3 -> 4x4）
+    glmMatrix[0][0] = static_cast<float>(rotation[0][0]);
+    glmMatrix[0][1] = static_cast<float>(rotation[0][1]);
+    glmMatrix[0][2] = static_cast<float>(rotation[0][2]);
+    glmMatrix[1][0] = static_cast<float>(rotation[1][0]);
+    glmMatrix[1][1] = static_cast<float>(rotation[1][1]);
+    glmMatrix[1][2] = static_cast<float>(rotation[1][2]);
+    glmMatrix[2][0] = static_cast<float>(rotation[2][0]);
+    glmMatrix[2][1] = static_cast<float>(rotation[2][1]);
+    glmMatrix[2][2] = static_cast<float>(rotation[2][2]);
+
+    // 设置平移部分（3x1 -> 4x1）
+    glmMatrix[3][0] = static_cast<float>(translation.getX());
+    glmMatrix[3][1] = static_cast<float>(translation.getY());
+    glmMatrix[3][2] = static_cast<float>(translation.getZ());
+
+    return glmMatrix;  // 返回转换后的 glm::mat4
+}
 // 为每个模型更新变换矩阵
+#include <stdio.h>
 void BulletWorld::applyModelMatrices() {
     for (size_t i = 0; i < objects.size(); ++i) {
         if (objects[i] && i < objectMatrices[i].size()) {
             btTransform bodyTransform;
             objects[i]->getMotionState()->getWorldTransform(bodyTransform);
-            glm::mat4 world_matrix = glm::mat4(1.0f);
-            bodyTransform.getOpenGLMatrix(glm::value_ptr(world_matrix));
+            glm::mat4 world_matrix = btTransformToMat4(bodyTransform);//glm::mat4(1.0f);
+            // bodyTransform.getOpenGLMatrix(glm::value_ptr(world_matrix));
             printf("Rigid body #%d position: %f %f %f\n", i, world_matrix[3][0], world_matrix[3][1], world_matrix[3][2]);
+            fprintf(stderr, "Rigid body #%d position: %f %f %f\n", i, world_matrix[3][0], world_matrix[3][1], world_matrix[3][2]);
             glm::mat4 model_matrix = objectBaseMatrices[i];
             
             for (auto pmat : objectMatrices[i])
@@ -433,14 +466,13 @@ btVector3 BulletWorld::transformVelocity(const fluid::vec3d& velocity, const glm
     return btVector3(transformed.x, transformed.y, transformed.z);
 }
 // btClamp 函数
-float BulletWorld::btClamp(float value, float min, float max) {
+btScalar BulletWorld::btClamp(btScalar value, btScalar min, btScalar max) {
     return std::max(min, std::min(value, max));
 }
 btVector3 BulletWorld::btClamp(const btVector3& position, const btVector3& min, const btVector3& max) {
-    float x = btClamp(position.getX(), min.getX(), max.getX());
-    float y = btClamp(position.getY(), min.getY(), max.getY());
-    float z = btClamp(position.getZ(), min.getZ(), max.getZ());
-    return btVector3(x, y, z);
+    return btVector3(btClamp(position.getX(), min.getX(), max.getX()), 
+                    btClamp(position.getY(), min.getY(), max.getY()), 
+                    btClamp(position.getZ(), min.getZ(), max.getZ()));
 }
 
 } // namespace GL_TASK
