@@ -11,7 +11,7 @@ namespace GL_TASK
     class Butterfly : public RenderableModel
     {
     public:
-        Butterfly(const std::string &model_path, std::vector<Mesh *> &meshes, std::vector<MeshInstance *> &meshInstances, std::vector<Texture *> &textures, std::vector<Material> &materials);
+        Butterfly(const std::string &model_path, std::vector<Mesh *> &meshes, std::vector<MeshInstance *> &meshInstances, std::vector<Texture *> &textures, std::vector<Material> &materials, bool is_main_butterfly = false);
 
         void update() override;
 
@@ -30,7 +30,10 @@ namespace GL_TASK
         glm::mat4 keyframe_transforms_l;
         Animation danceAnimation;
         Animator animator;
+
         int differ = rand(); // 动画时间偏移
+        float CurrentTime = 0.0;
+        bool mainButterfly;
 
         int start_meshInstance_id_l;
         int end_meshInstance_id_l;

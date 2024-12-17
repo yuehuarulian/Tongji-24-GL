@@ -1,8 +1,8 @@
 #include "butterfly.hpp"
 #include "glm/gtx/transform.hpp"
 
-GL_TASK::Butterfly::Butterfly(const std::string &model_path, std::vector<Mesh *> &meshes, std::vector<MeshInstance *> &meshInstances, std::vector<Texture *> &textures, std::vector<Material> &materials)
-    : danceAnimation(model_path), animator(&danceAnimation, translate_rand, rotate_rand), RenderableModel(meshes, meshInstances, textures, materials)
+GL_TASK::Butterfly::Butterfly(const std::string &model_path, std::vector<Mesh *> &meshes, std::vector<MeshInstance *> &meshInstances, std::vector<Texture *> &textures, std::vector<Material> &materials, bool is_main_butterfly = false)
+    : danceAnimation(model_path), animator(&danceAnimation, translate_rand, rotate_rand), RenderableModel(meshes, meshInstances, textures, materials), mainButterfly(is_main_butterfly)
 {
     set_model_matrix();
     update_matrix();
@@ -82,13 +82,67 @@ void GL_TASK::Butterfly::set_model_matrix()
     model_matrix = glm::rotate(model_matrix, glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f));                           // 正向
     model_matrix = glm::translate(model_matrix, glm::vec3(translate_rand, translate_rand + 5.0f, 20.0f + translate_rand)); // 平移远一点
     model_matrix = glm::rotate(model_matrix, glm::radians(rotate_rand), glm::vec3(0.0f, 1.0f, 0.0f));                      // 旋转
+
+    // glm::mat4 model = glm::mat4(1.0f);
+    // if (mainButterfly)
+    // {
+    //     /*蝴蝶原地飞*/
+    //     // model = glm::scale(model, glm::vec3(1.f, 1.f, 1.f) * 8.0f);
+    //     // model = glm::translate(model, glm::vec3(0.0f, translate_rand-9.0f, translate_rand-20.0f));
+    //     // model = glm::rotate(model, glm::radians(-10.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    //     /*蝴蝶贴水飞*/
+    //     // model = glm::scale(model, glm::vec3(1.f, 1.f, 1.f) * 4.0f);
+    //     // model = glm::translate(model, glm::vec3(0.0f, translate_rand-40.0f, translate_rand-20.0f));
+    //     // model = glm::rotate(model, glm::radians(-10.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    //     /*犹豫*/ /*高光*/
+    //     model = glm::scale(model, glm::vec3(1.f, 1.f, 1.f) * 8.0f);
+    //     model = glm::translate(model, glm::vec3(0.0f, translate_rand - 10.0f, translate_rand - 10.0f));
+    //     model = glm::rotate(model, glm::radians(-10.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    // }
+    // else
+    // {
+    //     /*蝴蝶原地飞需要注释clasicscene中的蝴蝶群循环*/ /*蝴蝶贴水飞需要注释clasicscene中的蝴蝶群循环*/
+    //     // model = glm::scale(model, glm::vec3(1.f, 1.f, 1.f) * scale_rand);
+    //     // model = glm::rotate(model, glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f)); // 正向
+    //     // model = glm::translate(model, glm::vec3(translate_rand, translate_rand + 8.0f, translate_rand + 20.0f)); // 平移远一点
+    //     // model = glm::rotate(model, glm::radians(rotate_rand), glm::vec3(0.0f, 1.0f, 0.0f));
+    //     /*犹豫*/                                                            /*高光*/
+    //     translate_rand = (float)((rand() % (200 - (-200))) + (-200)) / 100; // 模型位置偏移
+    //     model = glm::scale(model, glm::vec3(1.f, 1.f, 1.f) * scale_rand);
+    //     model = glm::rotate(model, glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f));                           // 正向
+    //     model = glm::translate(model, glm::vec3(translate_rand, translate_rand + 8.0f, translate_rand + 20.0f)); // 平移远一点
+    //     model = glm::rotate(model, glm::radians(rotate_rand), glm::vec3(0.0f, 1.0f, 0.0f));
+    // }
+
+    // model_matrix = model;
 }
 
 void GL_TASK::Butterfly::update_matrix()
 {
-    // float currentFrame = glfwGetTime() + differ;
-    // deltaTime = currentFrame - lastFrame;
-    // lastFrame = currentFrame;
+    // update位置****************************************************************
+    // float duration = danceAnimation.GetDuration();
+    // CurrentTime += danceAnimation.GetTicksPerSecond() * deltaTime;//这里应该要改成1/30.0f
+    // CurrentTime = fmod(CurrentTime, duration);
+    // // 使用正弦函数而非线性插值计算位置变换
+    // float t = CurrentTime / duration * 2; // 0.0~2.0f
+    // // t = sin(t * glm::pi<float>());
+    // glm::mat4 positiontranslate=glm::mat4(1.0f);
+    // if (mainButterfly)
+    //     /*蝴蝶原地飞*/
+    //     //;
+    //     /*蝴蝶贴水飞*/
+    //     //positiontranslate = glm::translate(glm::mat4(1.0f), glm::vec3(sin(t * glm::pi<float>()), 0.0f,-t/3));
+    //     /*犹豫*/
+    //     //;
+    //     /*俯拍穿过蝴蝶群*/
+    //     positiontranslate = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -t/5));
+    // else
+    //     positiontranslate = glm::translate(glm::mat4(1.0f), glm::vec3(sin(t * glm::pi<float>()) / 5, sin(t * glm::pi<float>()) / 3, 0.0f));
+
+    // model_matrix = positiontranslate * model_matrix;
+    // shader->setMat4("model", model_matrix);
+    // // update位置****************************************************************
+
     animator.UpdateAnimation(1 / 30.);
 
     keyframe_transforms_r = model_matrix * animator.m_KeyframeTransforms["R"];
