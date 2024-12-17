@@ -24,7 +24,7 @@ namespace GL_TASK
 
         const float scale_rand = (float)((rand() % (500 - 200)) + 200) / 100 * 2;       // 缩放
         const float rotate_rand = (float)((rand() % (450 - (-450))) + (-450)) / 10;     // 旋转角
-        const float translate_rand = (float)((rand() % (500 - (-500))) + (-500)) / 100; // 模型位置偏移
+        float translate_rand = (float)((rand() % (500 - (-500))) + (-500)) / 100; // 模型位置偏移
 
         glm::mat4 keyframe_transforms_r;
         glm::mat4 keyframe_transforms_l;

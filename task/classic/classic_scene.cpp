@@ -70,13 +70,15 @@ namespace GL_TASK
         room_model_matrix = room->get_model_matrix();
 
         // // // butterfly model
-        // printf("/*************************************/\n");
-        // printf("Load Butterfly Model\n");
-        // for (int i = 0; i < butterfly_count; i++)
-        // {
-        //     auto butterfly_model_single = std::make_shared<Butterfly>("./source/model/butterfly/ok.dae", meshes, meshInstances, textures, materials);
-        //     butterflies.push_back(butterfly_model_single);
-        // }
+        printf("/*************************************/\n");
+        printf("Load Butterfly Model\n");
+        for (int i = 0; i < butterfly_count; i++)
+        {
+            auto butterfly_model_single = std::make_shared<Butterfly>("./source/model/butterfly/ok.dae", meshes, meshInstances, textures, materials);
+            butterflies.push_back(butterfly_model_single);
+        }
+        auto butterfly_model_main = std::make_shared<Butterfly>("./source/model/butterfly/ok.dae", meshes, meshInstances, textures, materials,true);
+        butterflies.push_back(butterfly_model_main);
 
         // // liquid model
         // printf("/*************************************/\n");
