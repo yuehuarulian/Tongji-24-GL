@@ -33,6 +33,7 @@ void BVHConverter::ProcessBLAS()
     curTriIndex = 0;
 
     // 处理每个网格的 BLAS 数据
+    bvhRootStartIndices.clear();
     for (int i = 0; i < meshes.size(); i++)
     {
         Mesh *mesh = meshes[i];

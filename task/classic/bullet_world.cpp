@@ -172,7 +172,7 @@ void BulletWorld::updateLoop() {
             dynamicsWorld->stepSimulation(sim_dt, 5);
             enforceBounds();
             std::cout << "BulletWorld:: Applying model Matrices." << std::endl;
-            // applyModelMatrices();
+            applyModelMatrices();
         }
         {
             std::lock_guard<std::mutex> guard(dirtyMutex); 
@@ -181,6 +181,16 @@ void BulletWorld::updateLoop() {
         }
         std::cout << "BulletWorld:: finish a new frame." << std::endl;
         fluid->fluid_sim.wait_until_next_sim();
+    }
+}
+
+void BulletWorld::update(){
+    std::lock_guard<std::mutex> guard(dirtyMutex); 
+    if (dirty) {
+        std::lock_guard<std::mutex> lock(worldMutex);
+        std::cout << "BulletWorld:: Applying model Matrices." << std::endl;
+        applyModelMatrices();
+        dirty = false;
     }
 }
 
