@@ -27,7 +27,7 @@ namespace GL_TASK
         load_shaders();  // 加载着色器
         // 模拟启动
         if (fluid.get() != nullptr)
-            fluid->start(); // 启动流体模拟
+            fluid->advance(); // 启动流体模拟
         if (bulletWorld.get() != nullptr)
             bulletWorld->start(); // 启动物理模拟
     }
@@ -90,16 +90,19 @@ namespace GL_TASK
         bulletWorld->BindFluid(fluid);
         bulletWorld->setRoomBounds(roomMin, roomMax);
         double water_level = fluid->get_water_level(roomMin, roomMax);
+        std::cerr << "water level: " << water_level << std::endl;
 
         // boat model
         bulletWorld->bind_model("source/model/boat/boat_obj.obj", ObjectType::BOAT);
-        bulletWorld->add_model(glm::vec3(15.0, water_level + 5.0, -25.0));
-        bulletWorld->add_model(glm::vec3(-15.0, water_level + 5.0, 25.0));
+        bulletWorld->add_model(glm::vec3(15.0, water_level + 2.0, -25.0));
+        bulletWorld->add_model(glm::vec3(-15.0, water_level + 2.0, 25.0));
+        // bulletWorld->add_model(glm::vec3(0.0, 0.0, 0.0));
 
         // flower model
         bulletWorld->bind_model("source/model/flower/flower.obj", ObjectType::FLOWER);
-        bulletWorld->add_model(glm::vec3(-20.0, water_level + 2.0, -50.0));
-        bulletWorld->add_model(glm::vec3(20.0, water_level + 2.0, 50.0));
+        bulletWorld->add_model(glm::vec3(-20.0, water_level, -50.0));
+        bulletWorld->add_model(glm::vec3(20.0, water_level, 50.0));
+        // bulletWorld->add_model(glm::vec3(0.0, 0.0, 0.0));
 
         // 点云 1
         // printf("/*************************************/\n");
@@ -146,8 +149,8 @@ namespace GL_TASK
     // 渲染
     bool ClassicScene::render_scene(Camera &camera)
     {
-        update_scene();
-        printf("SampleNumber: %d - FrameNumber:%d\n", sampleNum, frameNum);
+        // update_scene();
+        // printf("SampleNumber: %d - FrameNumber:%d\n", sampleNum, frameNum);
         currentBuffer = 1 - currentBuffer;
         if (++sampleNum >= SAMPLES_PER_FRAME)
         {
@@ -238,10 +241,13 @@ namespace GL_TASK
         printf("Update Butterfly Matrix\n");
         for (auto &butterfly : butterflies)
             butterfly->update();
+        bulletWorld->update();
     }
 
     void ClassicScene::update_scene()
     {
+        fluid->advance();
+        fluid->wait_until_next_frame(-1);
         if (BbvhDirty)
         {
             for (int i = 0; i < meshes.size(); ++i)

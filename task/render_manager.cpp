@@ -33,7 +33,7 @@ void RenderManager::initialize()
 {
     initialize_GLFW();
 
-    camera = Camera(window, 75 * D2R, glm::vec3(0.0f, -180.0f, 80.0f), glm::pi<float>(), 0. * D2R, 30.0f, 1.0f);
+    camera = Camera(window, 75 * D2R, glm::vec3(0.0f, -205.0f, 80.0f), glm::pi<float>(), 0. * D2R, 30.0f, 1.0f);
     scene = std::make_unique<GL_TASK::ClassicScene>(shader_manager, light_manager); // TODO
     skybox = std::make_unique<Skybox>(faces, "source/shader/skybox.vs", "source/shader/skybox.fs");
 
@@ -135,17 +135,17 @@ void RenderManager::start_rendering(bool offscreen)
     {
         printf("Render Frame %d -- Start\n", i);
         std::cerr << "Render Frame " << i << " -- Start" << std::endl;
-        scene->wait_until_next_frame(i);
-        if (CAMERA_ANIMATION)
-        {
-            if (5 * i >= camera_transforms.size())
-                break;
-            update_camera(camera_transforms[5 * i]);
-        }
-        else
-        {
-            update_camera(i);
-        }
+        // scene->wait_until_next_frame(i);
+        // if (CAMERA_ANIMATION)
+        // {
+        //     if (5 * i >= camera_transforms.size())
+        //         break;
+        //     update_camera(camera_transforms[5 * i]);
+        // }
+        // else
+        // {
+        //     update_camera(i);
+        // }
         render_frame(i);
         glfwPollEvents();
         printf("Render Frame %d -- End\n", i);
@@ -201,13 +201,14 @@ void RenderManager::render_frame(int frame_number)
 {
     // 当采样达到一定数量时将渲染结果提取出来
     scene->setDirty(true);
+    scene->update_scene();
     if (offscreen)
     {
         // 循环进行渲染
         while (!scene->render_scene(camera))
         {
             // 当采样数达到一定的数量时生成一帧画面
-            printf("SampleNumber: %d\n", scene->getSampleNum());
+            // printf("SampleNumber: %d\n", scene->getSampleNum());
         }
     }
 }
