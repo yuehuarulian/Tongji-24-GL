@@ -131,7 +131,7 @@ void RenderManager::start_rendering(bool offscreen)
     // std::filesystem::create_directories("./offline_rendering");
     // }
 
-    for (int i = 0; i < frames; ++i)
+    for (int i = START_FRAME; i < frames; ++i)
     {
         printf("Render Frame %d -- Start\n", i);
         std::cerr << "Render Frame " << i << " -- Start" << std::endl;

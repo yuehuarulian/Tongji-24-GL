@@ -229,7 +229,8 @@ void FluidSimulator::simulation_thread()
 		{ // �������Ϊ����ǰ��
 			sim_advance = false;
 			std::cout << "update\n";
-			sim.time_step(sim_dt);			 // ����һ��ʱ�䲽��
+			sim.update(sim_dt);			 // ����һ��ʱ�䲽��
+			sim_updater_sema.wait();		 // �ȴ��ź�����ȷ�������Ѿ�����
 			update_simulation(sim, sim_cfg); // ����ģ��״̬
 		}
 		else

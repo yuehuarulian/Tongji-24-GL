@@ -26,8 +26,8 @@ namespace GL_TASK
         init_FBOs();     // 初始化帧缓冲对象
         load_shaders();  // 加载着色器
         // 模拟启动
-        // if (fluid.get() != nullptr)
-        //     fluid->advance(); // 启动流体模拟
+        if (fluid.get() != nullptr)
+            fluid->advance(); // 启动流体模拟
         if (bulletWorld.get() != nullptr)
             bulletWorld->start(); // 启动物理模拟
     }
@@ -64,7 +64,7 @@ namespace GL_TASK
         // Room model
         printf("/*************************************/\n");
         printf("Load Room Model\n");
-        room = std::make_shared<Room>("./source/model/room2/room2.obj", meshes, meshInstances, textures, materials);
+        room = std::make_shared<Room>("./source/model/room2/test.obj", meshes, meshInstances, textures, materials);
         // room = std::make_shared<Room>("./source/model/room2/test.obj", meshes, meshInstances, textures, materials);
         room->getBoundingBox(roomMin, roomMax);
         room_model_matrix = room->get_model_matrix();
@@ -151,7 +151,7 @@ namespace GL_TASK
     bool ClassicScene::render_scene(Camera &camera)
     {
         // update_scene();
-        // printf("SampleNumber: %d - FrameNumber:%d\n", sampleNum, frameNum);
+        printf("SampleNumber: %d - FrameNumber:%d\n", sampleNum, frameNum);
         currentBuffer = 1 - currentBuffer;
         if (++sampleNum >= SAMPLES_PER_FRAME)
         {
@@ -247,7 +247,6 @@ namespace GL_TASK
 
     void ClassicScene::update_scene()
     {
-        fluid->advance();
         fluid->wait_until_next_frame(-1);
         if (BbvhDirty)
         {
@@ -269,6 +268,7 @@ namespace GL_TASK
                 this->update_GPU_data(); // 将相关数据绑定到纹理中以便传递到GPU中
                 printf("ClassicScene: A new scene is ready\n");
                 is_update = false;
+                fluid->advance();
                 return; // 不要清除上次路径渲染的结果，等保存完
             }
         }
