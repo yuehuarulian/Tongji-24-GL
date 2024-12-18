@@ -27,7 +27,7 @@ namespace GL_TASK
         load_shaders();  // 加载着色器
         // 模拟启动
         if (fluid.get() != nullptr)
-            fluid->advance(); // 启动流体模拟
+            fluid->start(); // 启动流体模拟
         if (bulletWorld.get() != nullptr)
             bulletWorld->start(); // 启动物理模拟
     }
@@ -93,7 +93,7 @@ namespace GL_TASK
         bulletWorld->BindFluid(fluid);
         bulletWorld->setRoomBounds(roomMin, roomMax);
         double water_level = fluid->get_water_level(roomMin, roomMax);
-        std::cerr << "water level: " << water_level << std::endl;
+        // std::cerr << "water level: " << water_level << std::endl;
 
         // boat model
         bulletWorld->bind_model("source/model/boat/boat_obj.obj", ObjectType::BOAT);
@@ -247,7 +247,7 @@ namespace GL_TASK
 
     void ClassicScene::update_scene()
     {
-        fluid->wait_until_next_frame(-1);
+        // fluid->wait_until_next_frame(-1);
         if (BbvhDirty)
         {
             for (int i = 0; i < meshes.size(); ++i)
@@ -268,7 +268,7 @@ namespace GL_TASK
                 this->update_GPU_data(); // 将相关数据绑定到纹理中以便传递到GPU中
                 printf("ClassicScene: A new scene is ready\n");
                 is_update = false;
-                fluid->advance();
+                // fluid->advance();
                 return; // 不要清除上次路径渲染的结果，等保存完
             }
         }

@@ -72,11 +72,7 @@ int main()
         bool dirty = false;
         camera.compute_matrices_from_inputs(window, dirty); // 更新摄像机位置
         classic_scene.setDirty(dirty);
-        // if (classic_scene.getFrameNum() % 3 == 0 && classic_scene.getSampleNum() == 1)
-        // {
-        //     classic_scene.update_models(); // 蝴蝶每三帧画面更新一次
-        // }
-        // classic_scene.update_scene();
+        classic_scene.update_scene();
 
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
