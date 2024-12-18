@@ -96,10 +96,10 @@ void GL_TASK::Butterfly::set_model_matrix()
     else
     {
         /*蝴蝶原地飞需要注释clasicscene中的蝴蝶群循环*/ /*蝴蝶贴水飞需要注释clasicscene中的蝴蝶群循环*/
-        model_matrix = glm::scale(model_matrix, glm::vec3(1.f, 1.f, 1.f) * scale_rand);
-        model_matrix = glm::rotate(model_matrix, glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f));                           // 正向
-        model_matrix = glm::translate(model_matrix, glm::vec3(translate_rand, translate_rand + 8.0f, translate_rand + 20.0f)); // 平移远一点
-        model_matrix = glm::rotate(model_matrix, glm::radians(rotate_rand), glm::vec3(0.0f, 1.0f, 0.0f));
+        // model_matrix = glm::scale(model_matrix, glm::vec3(1.f, 1.f, 1.f) * scale_rand);
+        // model_matrix = glm::rotate(model_matrix, glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f));                           // 正向
+        // model_matrix = glm::translate(model_matrix, glm::vec3(translate_rand, translate_rand + 8.0f, translate_rand + 20.0f)); // 平移远一点
+        // model_matrix = glm::rotate(model_matrix, glm::radians(rotate_rand), glm::vec3(0.0f, 1.0f, 0.0f));
         /*犹豫*/ /*高光*/
         // translate_rand = (float)((rand() % (200 - (-200))) + (-200)) / 100; // 模型位置偏移
         // model_matrix = glm::scale(model_matrix, glm::vec3(1.f, 1.f, 1.f) * scale_rand);
