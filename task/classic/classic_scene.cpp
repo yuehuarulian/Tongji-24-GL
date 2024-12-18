@@ -97,13 +97,13 @@ namespace GL_TASK
 
         // boat model
         bulletWorld->bind_model("source/model/boat/boat_obj.obj", ObjectType::BOAT);
-        bulletWorld->add_model(glm::vec3(15.0, water_level, -25.0));
-        bulletWorld->add_model(glm::vec3(-15.0, water_level, 25.0));
+        bulletWorld->add_model(glm::vec3(15.0, water_level + 5.0, -25.0));
+        bulletWorld->add_model(glm::vec3(-15.0, water_level + 5.0, 25.0));
 
         // flower model
         bulletWorld->bind_model("source/model/flower/flower.obj", ObjectType::FLOWER);
-        bulletWorld->add_model(glm::vec3(-20.0, water_level, -50.0));
-        bulletWorld->add_model(glm::vec3(20.0, water_level, 50.0));
+        bulletWorld->add_model(glm::vec3(-20.0, water_level + 1.0, -50.0));
+        bulletWorld->add_model(glm::vec3(20.0, water_level + 1.0, 50.0));
 
         // 点云 1
         // printf("/*************************************/\n");
@@ -262,6 +262,7 @@ namespace GL_TASK
             }
             if (is_update)
             {
+                std::cerr << "Update Scene" << std::endl;
                 this->update_models();   // 更新模型
                 this->createTLAS();      // 重建高层次的BVH加速结构
                 this->process_data();    // 处理数据 将其转换成可供Shader使用的形式

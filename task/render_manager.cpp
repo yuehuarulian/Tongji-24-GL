@@ -135,6 +135,7 @@ void RenderManager::start_rendering(bool offscreen)
     {
         printf("Render Frame %d -- Start\n", i);
         std::cerr << "Render Frame " << i << " -- Start" << std::endl;
+        // update_camera();
         if (CAMERA_ANIMATION)
         {
             if (5 * i >= camera_transforms.size())
@@ -154,8 +155,10 @@ void RenderManager::start_rendering(bool offscreen)
 
 void RenderManager::update_camera()
 {
-    auto camera_pos = camera.get_pos();
-    camera.set_position(camera_pos - glm::vec3(0, 0, 2.0));
+    // auto camera_pos = camera.get_pos();
+    // camera.set_position(camera_pos - glm::vec3(0, 0, 2.0));
+    camera.set_position(glm::vec3(0.0,0.0,0.0));
+    camera.set_direction(glm::vec3(-0.0f, 0.5f, -1.0f));
 }
 
 void RenderManager::update_camera(glm::mat4 transform)
@@ -178,20 +181,22 @@ void RenderManager::update_camera(glm::mat4 transform)
 
 void RenderManager::update_camera(int current_frame)
 {
+    std::cerr << "update camera" << std::endl;
     // 起始点和终点
-    static glm::vec3 start_point = glm::vec3(4.96f, -195.08f, 4.64f);
-    static glm::vec3 end_point = glm::vec3(29.44f, -168.12f, -153.22f);
+    static glm::vec3 start_point = glm::vec3(0.0f, -205.0f, 80.0f);
+    static glm::vec3 end_point = glm::vec3(0.0f, -205.0f, -160.0f);
 
     // 插值因子
     float t = static_cast<float>(current_frame) / frames;
 
     // 使用线性插值来更新相机位置
     glm::vec3 interpolated_pos = glm::mix(start_point, end_point, t);
+    printf("current_frame: %d, interpolated_pos: %f, %f, %f\n", current_frame, interpolated_pos.x, interpolated_pos.y, interpolated_pos.z);
 
     camera.set_position(interpolated_pos);
 
     // 手动设置相机的方向向量
-    glm::vec3 new_direction = glm::vec3(-0.15f, -0.17f, 0.97f);
+    glm::vec3 new_direction = glm::vec3(-0.0f, -0.0f, -1.0f);
     camera.set_direction(new_direction);
 
     camera.set_fov(103.26 / 180.0f * glm::pi<float>());

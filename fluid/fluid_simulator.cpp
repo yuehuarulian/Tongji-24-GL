@@ -213,9 +213,9 @@ void FluidSimulator::simulation_thread()
 	{
 		if (sim_reset)
 		{ // �����Ҫ����
+			sim_reset = false; // �������
 			reset_simulation(sim_cfg);
 			// update_simulation(sim, sim_cfg);  // ����ģ��״̬
-			sim_reset = false; // �������
 		}
 
 		if (!sim_paused)
@@ -227,11 +227,10 @@ void FluidSimulator::simulation_thread()
 		}
 		else if (sim_advance)
 		{ // �������Ϊ����ǰ��
+			sim_advance = false;
 			std::cout << "update\n";
 			sim.time_step(sim_dt);			 // ����һ��ʱ�䲽��
-			sim_updater_sema.wait();
 			update_simulation(sim, sim_cfg); // ����ģ��״̬
-			sim_advance = false;
 		}
 		else
 			continue;

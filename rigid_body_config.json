@@ -1,16 +1,14 @@
 {
-  "default": {
-    "name": "default",
-    "mass": 10.0,
-    "dimensions": [10.0, 10.0, 10.0],
-    "friction": 0.5,
-    "restitution": 0.5,
-    "offset": [0.0, 0.0, 0.0],
-    "scale": 1.0
+  "world": {
+    "timeScale": 2,
+    "timeDiv" : 10,
+    "gravity": [0, -9.81, 0],
+    "buoyancyForceCoef": 0.1,
+    "dragForceCoef": 0.004
   },
   "boat": {
     "name": "boat",
-    "mass": 100.0,
+    "mass": 10.0,
     "dimensions": [ 4.38177, 7.62693, 7.44805 ],
     "friction": 0.3,
     "restitution": 0.1,
@@ -25,5 +23,14 @@
     "restitution": 0.0,
     "offset": [ 0.0, -1.534479, 0.0 ],
     "scale": 2.0
+  },
+  "default": {
+    "name": "default",
+    "mass": 5.0,
+    "dimensions": [10.0, 10.0, 10.0],
+    "friction": 0.5,
+    "restitution": 0.5,
+    "offset": [0.0, 0.0, 0.0],
+    "scale": 1.0
   }
 }

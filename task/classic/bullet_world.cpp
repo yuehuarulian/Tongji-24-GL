@@ -20,7 +20,8 @@ void BulletWorld::init() {
     solver = new btSequentialImpulseConstraintSolver;
 
     dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher, broadphase, solver, collisionConfiguration);
-    dynamicsWorld->setGravity(btVector3(0, -9.81f, 0)); // 默认重力
+    dynamicsWorld->setGravity(rigidBodyInfo.getGravity()); // 默认重力
+    // dynamicsWorld->setGravity(btVector3(0, -9.81f, 0)); // 默认重力
 }
 
 void BulletWorld::cleanup() {
@@ -163,14 +164,16 @@ void BulletWorld::stop() {
 }
 
 void BulletWorld::updateLoop() {
+    double timeScale = rigidBodyInfo.getTimeScale();
+    int timeDiv = rigidBodyInfo.getTimeDiv();
     while (running) {
         std::cout << "BulletWorld:: start to update next frame." << std::endl;
         {
             std::lock_guard<std::mutex> lock(worldMutex);
             std::cout << "BulletWorld:: Applying Fluid Forces." << std::endl;
             applyFluidForces();
-            std::cout << "BulletWorld:: Simulating next step: " << sim_dt << "s" << std::endl;
-            dynamicsWorld->stepSimulation(sim_dt * 2, 10);
+            std::cout << "BulletWorld:: Simulating next step: " << sim_dt * timeScale << "s" << std::endl;
+            dynamicsWorld->stepSimulation(sim_dt * timeScale, timeDiv);
             enforceBounds();
             // std::cout << "BulletWorld:: Applying model Matrices." << std::endl;
             // applyModelMatrices();
@@ -330,7 +333,7 @@ void BulletWorld::applyFluidForces()
         btVector3 particlePos = transformPosition(particle.position, fluid_model_matrix);
         btVector3 particleVel = transformVelocity(particle.velocity, fluid_model_matrix);
         // 获取粒子压力
-        float pressure = particle.pressure / p_scale * p_scale * p_scale / 100.0;
+        btScalar pressure = particle.pressure * rigidBodyInfo.getBuoyancyForceCoef() / p_scale * p_scale * p_scale;
 
         // 遍历所有的刚体，计算浮力和扭矩
         for (size_t i = 0; i < objects.size(); ++i)
@@ -347,7 +350,8 @@ void BulletWorld::applyFluidForces()
 
                 // 计算阻力 (根据相对速度)
                 btVector3 relativeVelocity = rigidBody->getLinearVelocity() - particleVel;
-                btVector3 dragForce = -0.04 * relativeVelocity.length() * relativeVelocity;  // 简化阻力计算
+                btVector3 dragForce = -rigidBodyInfo.getDragForceCoef() * relativeVelocity.length() * relativeVelocity;
+                // btVector3 dragForce = -0.004 * relativeVelocity.length() * relativeVelocity;  // 简化阻力计算
 
                 // 累积力
                 totalForces[i] += buoyancyForce + dragForce;

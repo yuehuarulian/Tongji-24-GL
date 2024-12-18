@@ -75,6 +75,21 @@ namespace GL_TASK
             return nullptr;
         }
 
+        // 返回时间规模
+        double getTimeScale() const { return timeScale; }
+
+        // 返回时间规模
+        int getTimeDiv() const { return timeDiv; }
+
+        // 返回重力向量
+        btVector3 getGravity() const { return gravity; }
+
+        // 返回浮力系数
+        btScalar getBuoyancyForceCoef() const { return buoyancyForceCoef; }
+
+        // 返回偏转力系数
+        btScalar getDragForceCoef() const { return dragForceCoef; }
+
         // 返回模型名称
         std::string getTypeName() const { return info.name; }
 
@@ -91,6 +106,12 @@ namespace GL_TASK
         glm::mat4 getBaseMatrix() const { return info.base_matrix; }
 
     private:
+        // 物理世界信息
+        double timeScale;
+        int timeDiv;
+        btVector3 gravity;
+        btScalar buoyancyForceCoef;
+        btScalar dragForceCoef;
         // 物体的基本信息
         RigidBodyInfo info;
         std::unordered_map<std::string, RigidBodyInfo> configs;
@@ -112,6 +133,11 @@ namespace GL_TASK
 
                 for (const auto &[key, value] : jsonConfig.items())
                 {
+                    if (key == "world")
+                    {
+                        parseWorldConfig(value);
+                        continue;
+                    }
                     configs[key] = parseConfig(value);
                 }
             }
@@ -137,6 +163,20 @@ namespace GL_TASK
         }
 
         // 从配置文件读取刚体信息
+        void parseWorldConfig(const nlohmann::json &config)
+        {
+            // 解析配置文件
+            timeScale = config.value("timeScale", 2.0);
+            timeDiv = config.value("timeDiv", 10);
+            buoyancyForceCoef = config.value("buoyancyForceCoef", 1.0f);
+            dragForceCoef = config.value("dragForceCoef", 0.4);
+            gravity = btVector3(
+                config["gravity"][0].get<btScalar>(),
+                config["gravity"][1].get<btScalar>(),
+                config["gravity"][2].get<btScalar>()
+            );
+            return;
+        }
         RigidBodyInfo parseConfig(const nlohmann::json &config) const
         {
             // 解析配置文件
@@ -150,7 +190,6 @@ namespace GL_TASK
                 config["dimensions"][2].get<float>() * float(scale));
             info.friction = config.value("friction", 0.0f);
             info.restitution = config.value("restitution", 0.0f);
-            ;
 
             // 配置初始变换矩阵
             glm::vec3 offset = glm::vec3(
