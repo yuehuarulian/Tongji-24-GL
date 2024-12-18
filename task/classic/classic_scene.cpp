@@ -11,6 +11,7 @@ namespace GL_TASK
         : Scene(shader_manager, light_manager, WINDOW_WIDTH, WINDOW_HEIGHT)
     {
         setup_scene();
+        frameNum = START_FRAME;
     }
 
     void ClassicScene::setup_scene()
@@ -27,7 +28,7 @@ namespace GL_TASK
         load_shaders();  // 加载着色器
         // 模拟启动
         if (fluid.get() != nullptr)
-            fluid->start(); // 启动流体模拟
+            fluid->advance(); // 启动流体模拟
         if (bulletWorld.get() != nullptr)
             bulletWorld->start(); // 启动物理模拟
     }
@@ -77,32 +78,32 @@ namespace GL_TASK
             auto butterfly_model_single = std::make_shared<Butterfly>("./source/model/butterfly/ok.dae", meshes, meshInstances, textures, materials);
             butterflies.push_back(butterfly_model_single);
         }
-        auto butterfly_model_main = std::make_shared<Butterfly>("./source/model/butterfly/ok.dae", meshes, meshInstances, textures, materials,true);
+        auto butterfly_model_main = std::make_shared<Butterfly>("./source/model/butterfly/ok.dae", meshes, meshInstances, textures, materials, true);
         butterflies.push_back(butterfly_model_main);
 
         // // liquid model
-        // printf("/*************************************/\n");
-        // printf("Load Liquid Model\n");
-        // fluid = std::make_shared<Fluid>(meshes, meshInstances, textures, materials);
-        // fluid->BindDirty(&BbvhDirty);
-        // fluid->set_model_matrix(room_model_matrix);
-        // fluid->add_model("./source/model/fluid/mesh.obj");
+        printf("/*************************************/\n");
+        printf("Load Liquid Model\n");
+        fluid = std::make_shared<Fluid>(meshes, meshInstances, textures, materials);
+        fluid->BindDirty(&BbvhDirty);
+        fluid->set_model_matrix(room_model_matrix);
+        fluid->add_model("./source/model/fluid/mesh.obj");
 
-        // // bullet world
-        // bulletWorld = std::make_shared<BulletWorld>(meshes, meshInstances, textures, materials);
-        // bulletWorld->BindFluid(fluid);
-        // bulletWorld->setRoomBounds(roomMin, roomMax);
-        // double water_level = fluid->get_water_level(roomMin, roomMax);
+        // bullet world
+        bulletWorld = std::make_shared<BulletWorld>(meshes, meshInstances, textures, materials);
+        bulletWorld->BindFluid(fluid);
+        bulletWorld->setRoomBounds(roomMin, roomMax);
+        double water_level = fluid->get_water_level(roomMin, roomMax);
 
-        // // boat model
-        // bulletWorld->bind_model("source/model/boat/boat_obj.obj", ObjectType::BOAT);
-        // bulletWorld->add_model(glm::vec3(15.0, water_level + 5.0, -25.0));
-        // bulletWorld->add_model(glm::vec3(-15.0, water_level + 5.0, 25.0));
+        // boat model
+        bulletWorld->bind_model("source/model/boat/boat_obj.obj", ObjectType::BOAT);
+        bulletWorld->add_model(glm::vec3(15.0, water_level + 5.0, -25.0));
+        bulletWorld->add_model(glm::vec3(-15.0, water_level + 5.0, 25.0));
 
-        // // flower model
-        // bulletWorld->bind_model("source/model/flower/flower.obj", ObjectType::FLOWER);
-        // bulletWorld->add_model(glm::vec3(-20.0, water_level + 2.0, -50.0));
-        // bulletWorld->add_model(glm::vec3(20.0, water_level + 2.0, 50.0));
+        // flower model
+        bulletWorld->bind_model("source/model/flower/flower.obj", ObjectType::FLOWER);
+        bulletWorld->add_model(glm::vec3(-20.0, water_level + 2.0, -50.0));
+        bulletWorld->add_model(glm::vec3(20.0, water_level + 2.0, 50.0));
 
         // 点云 1
         // printf("/*************************************/\n");
@@ -149,8 +150,6 @@ namespace GL_TASK
     // 渲染
     bool ClassicScene::render_scene(Camera &camera)
     {
-        update_scene();
-        printf("SampleNumber: %d - FrameNumber:%d\n", sampleNum, frameNum);
         currentBuffer = 1 - currentBuffer;
         if (++sampleNum >= SAMPLES_PER_FRAME)
         {
@@ -245,6 +244,7 @@ namespace GL_TASK
 
     void ClassicScene::update_scene()
     {
+        fluid->wait_until_next_frame(-1);
         if (BbvhDirty)
         {
             for (int i = 0; i < meshes.size(); ++i)
@@ -264,6 +264,7 @@ namespace GL_TASK
                 this->update_GPU_data(); // 将相关数据绑定到纹理中以便传递到GPU中
                 printf("ClassicScene: A new scene is ready\n");
                 is_update = false;
+                fluid->advance();
                 return; // 不要清除上次路径渲染的结果，等保存完
             }
         }

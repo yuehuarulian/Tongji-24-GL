@@ -16,7 +16,7 @@ class Animator
 public:
     Animator(Animation *animation, float translate_rand, float rotate_rand)
     {
-        m_CurrentTime = 0.0;
+        m_CurrentTime = (float)(rand() % 10000);
         m_CurrentAnimation = animation;
         path_x = (float)((rand() % (20 - (-20))) + (-20)) / 10;
         path_y = (float)((rand() % (20 - (-20))) + (-20)) / 10; //-2.0-2.0

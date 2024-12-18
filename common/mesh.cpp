@@ -1,4 +1,5 @@
 #include <mesh.hpp>
+#include "config.hpp"
 
 Mesh::Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, const Material &material)
     : vertices(vertices),
@@ -12,9 +13,8 @@ void Mesh::BuildBVH()
 {
     // 对一个Mesh节点构建BVH节点
     int numTris = indices.size() / 3;
-    printf("Triangle Nums: #%d\n", numTris);
     std::vector<AABB> bounds(numTris);
-    
+
     // 遍历所有的三角形 -- 为其创建包围盒
     for (int i = 0; i < numTris; i++)
     {
@@ -57,11 +57,15 @@ bool Mesh::needsUpdate(int i)
 {
     if (!dirty)
         return false;
+    BuildBVH();
+
+#if SHOW_DEBUG_INFO
     printf("\n*****************\n");
     printf("REFRESH MESH #%d BVH INFO: \n", i);
-    BuildBVH();
     bvh->PrintStatistics(std::cout);
     printf("\n*****************\n");
+#endif
+
     dirty = false;
     return true;
 }

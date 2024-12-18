@@ -1,6 +1,7 @@
 #include <BVH.hpp>
 #include <iostream>
 #include <algorithm>
+#include "config.hpp"
 
 static int constexpr kMaxPrimitivesPerLeaf = 1;
 
@@ -342,10 +343,12 @@ BVH::SahSplit BVH::FindSahSplit(SplitRequest const &req, AABB const *bounds, glm
 
 void BVH::PrintStatistics(std::ostream &os) const
 {
+#if SHOW_DEBUG_INFO
     os << "BVH INFO: \n";
     os << "SAH: " << (m_usesah ? "enabled\n" : "disabled\n");
     os << "SAH bins: " << m_num_bins << "\n";
     os << "Number of triangles: " << m_indices.size() << "\n";
     os << "Number of nodes: " << m_nodecnt << "\n";
     os << "Tree height: " << getHeight() << "\n";
+#endif
 }

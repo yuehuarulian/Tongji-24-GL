@@ -227,10 +227,10 @@ void FluidSimulator::simulation_thread()
 		}
 		else if (sim_advance)
 		{ // �������Ϊ����ǰ��
+			sim_advance = false;
 			std::cout << "update\n";
 			sim.time_step(sim_dt);			 // ����һ��ʱ�䲽��
 			update_simulation(sim, sim_cfg); // ����ģ��״̬
-			sim_advance = false;
 		}
 		else
 			continue;
