@@ -131,11 +131,11 @@ void RenderManager::start_rendering(bool offscreen)
     // std::filesystem::create_directories("./offline_rendering");
     // }
 
-    for (int i = 0; i < frames; ++i)
+    for (int i = START_FRAME; i < frames; ++i)
     {
         printf("Render Frame %d -- Start\n", i);
         std::cerr << "Render Frame " << i << " -- Start" << std::endl;
-        scene->wait_until_next_frame(i);
+        // scene->wait_until_next_frame(i);
         if (CAMERA_ANIMATION)
         {
             if (5 * i >= camera_transforms.size())

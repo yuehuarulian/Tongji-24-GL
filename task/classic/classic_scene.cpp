@@ -11,6 +11,7 @@ namespace GL_TASK
         : Scene(shader_manager, light_manager, WINDOW_WIDTH, WINDOW_HEIGHT)
     {
         setup_scene();
+        frameNum = START_FRAME;
     }
 
     void ClassicScene::setup_scene()
@@ -97,14 +98,19 @@ namespace GL_TASK
 
         // boat model
         bulletWorld->bind_model("source/model/boat/boat_obj.obj", ObjectType::BOAT);
-        bulletWorld->add_model(glm::vec3(15.0, water_level + 2.0, -25.0));
+        bulletWorld->add_model(glm::vec3(15.0, water_level + 2.0, -25.0)); // TODO
         bulletWorld->add_model(glm::vec3(-15.0, water_level + 2.0, 25.0));
+        // bulletWorld->add_model(glm::vec3(14.902925, -207.939102, -24.941504));
+        // bulletWorld->add_model(glm::vec3(-14.924468, -207.847351, 24.843338));
         // bulletWorld->add_model(glm::vec3(0.0, 0.0, 0.0));
 
         // flower model
         bulletWorld->bind_model("source/model/flower/flower.obj", ObjectType::FLOWER);
         bulletWorld->add_model(glm::vec3(-20.0, water_level, -50.0));
         bulletWorld->add_model(glm::vec3(20.0, water_level, 50.0));
+        // bulletWorld->add_model(glm::vec3(-19.860762, -207.561752, -50.051205));
+        // bulletWorld->add_model(glm::vec3(19.978252, -207.321869, 50.109562));
+
         // bulletWorld->add_model(glm::vec3(0.0, 0.0, 0.0));
 
         // 点云 1
@@ -249,7 +255,6 @@ namespace GL_TASK
 
     void ClassicScene::update_scene()
     {
-        fluid->advance();
         fluid->wait_until_next_frame(-1);
         if (BbvhDirty)
         {
@@ -270,6 +275,7 @@ namespace GL_TASK
                 this->update_GPU_data(); // 将相关数据绑定到纹理中以便传递到GPU中
                 printf("ClassicScene: A new scene is ready\n");
                 is_update = false;
+                fluid->advance();
                 return; // 不要清除上次路径渲染的结果，等保存完
             }
         }
