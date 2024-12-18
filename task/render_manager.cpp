@@ -208,7 +208,7 @@ void RenderManager::render_frame(int frame_number)
         while (!scene->render_scene(camera))
         {
             // 当采样数达到一定的数量时生成一帧画面
-            // printf("SampleNumber: %d\n", scene->getSampleNum());
+            printf("SampleNumber: %d\n", scene->getSampleNum());
         }
     }
 }

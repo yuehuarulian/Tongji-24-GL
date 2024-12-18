@@ -154,7 +154,7 @@ void Camera::set_direction(glm::mat3 rotation_matrix)
 {
     // 从旋转矩阵中提取方向向量
     _direction = glm::vec3(rotation_matrix * glm::vec4(0.0f, 0.0f, -1.0f, 1.0f));
-    _right = glm::vec3(rotation_matrix * glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
+    _right = glm::vec3(rotation_matrix * glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
     // _up = glm::vec3(rotation_matrix * glm::vec4(0.0f, 0.0f, 1.0f, 1.0f));
     _up = glm::normalize(glm::cross(_right, _direction));
 
@@ -164,5 +164,6 @@ void Camera::set_direction(glm::mat3 rotation_matrix)
     std::cout << "horizontal_angle: " << _horizontal_angle << " vertical_angle: " << _vertical_angle << std::endl;
 
     // 更新视图矩阵
-    calculate_view_and_projection_matrix();
+    projection = glm::perspective(_initial_fov, float(_width) / _height, 0.5f, 1000.0f);
+    view = glm::lookAt(_position, _position + _direction, _up);
 }

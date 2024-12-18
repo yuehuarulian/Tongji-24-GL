@@ -98,18 +98,15 @@ namespace GL_TASK
 
         // boat model
         bulletWorld->bind_model("source/model/boat/boat_obj.obj", ObjectType::BOAT);
-        bulletWorld->add_model(glm::vec3(15.0, water_level + 2.0, -25.0)); // TODO
-        bulletWorld->add_model(glm::vec3(-15.0, water_level + 2.0, 25.0));
-        // bulletWorld->add_model(glm::vec3(14.902925, -207.939102, -24.941504));
-        // bulletWorld->add_model(glm::vec3(-14.924468, -207.847351, 24.843338));
+        bulletWorld->add_model(glm::vec3(15.0, water_level + 4.0, -25.0)); // TODO
+        bulletWorld->add_model(glm::vec3(-15.0, water_level + 4.0, 25.0));
+        bulletWorld->add_model(glm::vec3(0.0, water_level + 4.0, -110.0));
         // bulletWorld->add_model(glm::vec3(0.0, 0.0, 0.0));
 
         // flower model
         bulletWorld->bind_model("source/model/flower/flower.obj", ObjectType::FLOWER);
-        bulletWorld->add_model(glm::vec3(-20.0, water_level, -50.0));
-        bulletWorld->add_model(glm::vec3(20.0, water_level, 50.0));
-        // bulletWorld->add_model(glm::vec3(-19.860762, -207.561752, -50.051205));
-        // bulletWorld->add_model(glm::vec3(19.978252, -207.321869, 50.109562));
+        bulletWorld->add_model(glm::vec3(-20.0, water_level + 1.0, -50.0));
+        bulletWorld->add_model(glm::vec3(20.0, water_level + 1.0, 50.0));
 
         // bulletWorld->add_model(glm::vec3(0.0, 0.0, 0.0));
 
