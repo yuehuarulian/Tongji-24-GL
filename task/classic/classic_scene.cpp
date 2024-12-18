@@ -73,11 +73,11 @@ namespace GL_TASK
         // // // butterfly model
         printf("/*************************************/\n");
         printf("Load Butterfly Model\n");
-        for (int i = 0; i < butterfly_count; i++)
-        {
-            auto butterfly_model_single = std::make_shared<Butterfly>("./source/model/butterfly/ok.dae", meshes, meshInstances, textures, materials);
-            butterflies.push_back(butterfly_model_single);
-        }
+        // for (int i = 0; i < butterfly_count; i++)
+        // {
+        //     auto butterfly_model_single = std::make_shared<Butterfly>("./source/model/butterfly/ok.dae", meshes, meshInstances, textures, materials);
+        //     butterflies.push_back(butterfly_model_single);
+        // }
         auto butterfly_model_main = std::make_shared<Butterfly>("./source/model/butterfly/ok.dae", meshes, meshInstances, textures, materials, true);
         butterflies.push_back(butterfly_model_main);
 
@@ -99,15 +99,15 @@ namespace GL_TASK
         // boat model
         bulletWorld->bind_model("source/model/boat/boat_obj.obj", ObjectType::BOAT);
         bulletWorld->add_model(glm::vec3(15.0, water_level + 4.0, -25.0)); // TODO
-        bulletWorld->add_model(glm::vec3(-15.0, water_level + 4.0, 25.0));
-        bulletWorld->add_model(glm::vec3(0.0, water_level + 4.0, -110.0));
+        bulletWorld->add_model(glm::vec3(-30.0, water_level + 4.0, 25.0));
+        // bulletWorld->add_model(glm::vec3(0.0, water_level + 4.0, -110.0));
         // bulletWorld->add_model(glm::vec3(0.0, 0.0, 0.0));
 
         // flower model
         bulletWorld->bind_model("source/model/flower/flower.obj", ObjectType::FLOWER);
         bulletWorld->add_model(glm::vec3(-20.0, water_level + 1.0, -50.0));
         bulletWorld->add_model(glm::vec3(20.0, water_level + 1.0, 50.0));
-        bulletWorld->add_model(glm::vec3(-40.0, water_level + 1.0, -150.0));
+        // bulletWorld->add_model(glm::vec3(-40.0, water_level + 1.0, -150.0));
 
         // bulletWorld->add_model(glm::vec3(0.0, 0.0, 0.0));
 

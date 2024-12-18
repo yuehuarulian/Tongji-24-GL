@@ -179,8 +179,23 @@ void RenderManager::update_camera(glm::mat4 transform)
 void RenderManager::update_camera(int current_frame)
 {
     // 起始点和终点
-    static glm::vec3 start_point = glm::vec3(4.96f, -195.08f, 4.64f);
-    static glm::vec3 end_point = glm::vec3(29.44f, -168.12f, -153.22f);
+    // TODO --- ：
+    // // 俯拍1：主角穿过蝴蝶群
+    // static glm::vec3 start_point = glm::vec3(-0.83f, 5.71f, 13.22f);
+    // static glm::vec3 end_point = glm::vec3(4.03f, 9.25f, -240.84f);
+    // glm::vec3 new_direction = glm::vec3(0.01f, -0.86f, -0.51f);
+    // 侧拍1：蝴蝶贴水飞行
+    static glm::vec3 start_point = glm::vec3(0.00f, -194.92f, 95.10f);
+    static glm::vec3 end_point = glm::vec3(-0.00f, -194.92f, 174.90f);
+    glm::vec3 new_direction = glm::vec3(-0.0f, -0.0f, -1.00f);
+    // // 犹豫：主角与蝴蝶群，原地小范围动 建议相机不要动
+    // static glm::vec3 start_point = glm::vec3(-101.38f, -77.63f, 5.76f);
+    // static glm::vec3 end_point = glm::vec3(-101.38f, -77.63f, 5.76f);
+    // glm::vec3 new_direction = glm::vec3(-.68f, 0.04f, -0.74f);
+    // // 贴地飞：单只蝴蝶，回避门的出现
+    // static glm::vec3 start_point = glm::vec3(-91.81f, -47.77f, -288.29f);
+    // static glm::vec3 end_point = glm::vec3(-40.03f, -54.1f, -214.95f);
+    // glm::vec3 new_direction = glm::vec3(0.58f, -0.07f, 0.81f);
 
     // 插值因子
     float t = static_cast<float>(current_frame) / frames;
@@ -191,10 +206,9 @@ void RenderManager::update_camera(int current_frame)
     camera.set_position(interpolated_pos);
 
     // 手动设置相机的方向向量
-    glm::vec3 new_direction = glm::vec3(-0.15f, -0.17f, 0.97f);
     camera.set_direction(new_direction);
 
-    camera.set_fov(103.26 / 180.0f * glm::pi<float>());
+    camera.set_fov(90.00 / 180.0f * glm::pi<float>());
 }
 
 void RenderManager::render_frame(int frame_number)
