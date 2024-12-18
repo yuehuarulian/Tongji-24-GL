@@ -1,5 +1,6 @@
 #include "butterfly.hpp"
 #include "glm/gtx/transform.hpp"
+#include "config.hpp"
 
 GL_TASK::Butterfly::Butterfly(const std::string &model_path, std::vector<Mesh *> &meshes, std::vector<MeshInstance *> &meshInstances, std::vector<Texture *> &textures, std::vector<Material> &materials, bool is_main_butterfly)
     : danceAnimation(model_path), animator(&danceAnimation, translate_rand, rotate_rand), RenderableModel(meshes, meshInstances, textures, materials), mainButterfly(is_main_butterfly)

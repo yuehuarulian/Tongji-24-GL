@@ -5,6 +5,8 @@
 #include <vector>
 #include <string>
 
+#define SHOW_DEBUG_INFO 0
+
 const double D2R = glm::pi<double>() / 180.0; // 角度转弧度
 const double R2D = 180.0 / glm::pi<double>(); // 弧度转角度
 const unsigned int WINDOW_HEIGHT = 720;

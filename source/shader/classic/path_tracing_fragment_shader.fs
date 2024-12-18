@@ -266,7 +266,7 @@ vec3 PathTrace(Ray r, int maxDepth, int RR_maxDepth)
                 radiance += throughput * Lo;
             }
             else{
-                // radiance += vec3(0.001);
+                radiance += vec3(0.01) * hit_record.mat.baseColor;
             }
         }
         //  // 4. 处理自发光 

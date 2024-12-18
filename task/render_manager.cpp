@@ -9,6 +9,7 @@
 #include <fstream>
 #include <iomanip>
 #include <filesystem>
+#include <ctime>
 
 RenderManager::RenderManager(int window_width, int window_height, int frames)
     : window_width(window_width), window_height(window_height), frames(frames), offscreen(false) {}
@@ -124,15 +125,10 @@ void RenderManager::start_rendering(bool offscreen)
         }
         camera_file.close();
     }
-    // if (offscreen)
-    // {
-    // glBindFramebuffer(GL_FRAMEBUFFER, msaa_rbo);
-    // glViewport(0, 0, window_width, window_height); // 确保视口匹配 FBO 尺寸
-    // std::filesystem::create_directories("./offline_rendering");
-    // }
 
     for (int i = START_FRAME; i < frames; ++i)
     {
+        clock_t start = clock();
         printf("Render Frame %d -- Start\n", i);
         std::cerr << "Render Frame " << i << " -- Start" << std::endl;
         // scene->wait_until_next_frame(i);
@@ -150,7 +146,33 @@ void RenderManager::start_rendering(bool offscreen)
         glfwPollEvents();
         printf("Render Frame %d -- End\n", i);
         std::cerr << "Render Frame " << i << " -- End" << std::endl;
+        clock_t end = clock();
+        double duration = 1000.0 * (end - start) / CLOCKS_PER_SEC;
+        printf("RenderTime: %.2f ms\n", duration);
+        std::cerr << "RenderTime_FRAME:" << duration << "ms" << std::endl;
     }
+}
+
+void RenderManager::render_frame(int frame_number)
+{
+    // 当采样达到一定数量时将渲染结果提取出来
+    clock_t start1 = clock();
+    scene->setDirty(true);
+    scene->update_scene();
+    clock_t end1 = clock();
+    double duration1 = 1000.0 * (end1 - start1) / CLOCKS_PER_SEC;
+    std::cerr << "RenderTime_UPDATE:" << duration1 << "ms" << std::endl;
+
+    clock_t start2 = clock();
+    if (offscreen)
+    {
+        while (!scene->render_scene(camera))
+        {
+        }
+    }
+    clock_t end2 = clock();
+    double duration2 = 1000.0 * (end2 - start2) / CLOCKS_PER_SEC;
+    std::cerr << "RenderTime_RENDER:" << duration2 << "ms" << std::endl;
 }
 
 void RenderManager::update_camera()
@@ -180,11 +202,11 @@ void RenderManager::update_camera(int current_frame)
 {
     // 起始点和终点
     // TODO --- ：
-    // // 俯拍1：主角穿过蝴蝶群
+    // 俯拍1：主角穿过蝴蝶群
     // static glm::vec3 start_point = glm::vec3(-0.83f, 5.71f, 13.22f);
     // static glm::vec3 end_point = glm::vec3(4.03f, 9.25f, -240.84f);
     // glm::vec3 new_direction = glm::vec3(0.01f, -0.86f, -0.51f);
-    // 侧拍1：蝴蝶贴水飞行
+    // // 侧拍1：蝴蝶贴水飞行
     static glm::vec3 start_point = glm::vec3(0.00f, -194.92f, 95.10f);
     static glm::vec3 end_point = glm::vec3(-0.00f, -194.92f, -174.90f);
     glm::vec3 new_direction = glm::vec3(-0.0f, -0.0f, -1.00f);
@@ -211,18 +233,18 @@ void RenderManager::update_camera(int current_frame)
     camera.set_fov(90.00 / 180.0f * glm::pi<float>());
 }
 
-void RenderManager::render_frame(int frame_number)
-{
-    // 当采样达到一定数量时将渲染结果提取出来
-    scene->setDirty(true);
-    scene->update_scene();
-    if (offscreen)
-    {
-        // 循环进行渲染
-        while (!scene->render_scene(camera))
-        {
-            // 当采样数达到一定的数量时生成一帧画面
-            printf("SampleNumber: %d\n", scene->getSampleNum());
-        }
-    }
-}
+// void RenderManager::render_frame(int frame_number)
+// {
+//     // 当采样达到一定数量时将渲染结果提取出来
+//     scene->setDirty(true);
+//     scene->update_scene();
+//     if (offscreen)
+//     {
+//         // 循环进行渲染
+//         while (!scene->render_scene(camera))
+//         {
+//             // 当采样数达到一定的数量时生成一帧画面
+//             printf("SampleNumber: %d\n", scene->getSampleNum());
+//         }
+//     }
+// }
