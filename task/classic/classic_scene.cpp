@@ -107,6 +107,7 @@ namespace GL_TASK
         bulletWorld->bind_model("source/model/flower/flower.obj", ObjectType::FLOWER);
         bulletWorld->add_model(glm::vec3(-20.0, water_level + 1.0, -50.0));
         bulletWorld->add_model(glm::vec3(20.0, water_level + 1.0, 50.0));
+        bulletWorld->add_model(glm::vec3(-40.0, water_level + 1.0, -150.0));
 
         // bulletWorld->add_model(glm::vec3(0.0, 0.0, 0.0));
 
