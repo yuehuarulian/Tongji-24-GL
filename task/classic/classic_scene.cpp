@@ -99,7 +99,7 @@ namespace GL_TASK
         // boat model
         bulletWorld->bind_model("source/model/boat/boat_obj.obj", ObjectType::BOAT);
         bulletWorld->add_model(glm::vec3(15.0, water_level + 4.0, -25.0)); // TODO
-        bulletWorld->add_model(glm::vec3(-15.0, water_level + 4.0, 25.0));
+        bulletWorld->add_model(glm::vec3(-30.0, water_level + 4.0, 25.0));
         bulletWorld->add_model(glm::vec3(0.0, water_level + 4.0, -110.0));
         // bulletWorld->add_model(glm::vec3(0.0, 0.0, 0.0));
 
