@@ -2,11 +2,11 @@ import cv2
 import os
 
 # 设置输入和输出路径
-image_folder = r'C:\Users\13294\Desktop\Denoise\scene2\denoised_images'
+image_folder = r'C:\Users\13294\Desktop\Denoise\denoised_images'
 output_video = 'output_video.mp4'
 
 # 视频参数
-fps = 30  # 每秒帧数
+fps = 20  # 每秒帧数
 frame_size = (1080 * 2, 720 * 2, )  # 设置视频分辨率 (宽, 高)，需与图片大小一致
 
 # 获取图片文件列表并排序

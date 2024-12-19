@@ -379,7 +379,7 @@ namespace GL_TASK
 
                     // 计算阻力 (根据相对速度)
                     btVector3 relativeVelocity = rigidBody->getLinearVelocity() - particleVel;
-                    btVector3 dragForce = -0.0004 * relativeVelocity.length() * relativeVelocity; // 简化阻力计算
+                    btVector3 dragForce = -0.001 * relativeVelocity.length() * relativeVelocity; // 简化阻力计算
 
                     // 累积力
                     totalForces[i] += buoyancyForce + dragForce;

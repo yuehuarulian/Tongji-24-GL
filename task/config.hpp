@@ -14,7 +14,7 @@ const unsigned int WINDOW_WIDTH = 1080;
 const unsigned int FRAMES = 300;
 const unsigned int SAMPLES_PER_FRAME = 30; // 每帧采样的数量
 const bool CAMERA_ANIMATION = false;       // 是否开启相机动画
-const int START_FRAME = 0;                 // 开始帧数
+const int START_FRAME = 20;                // 开始帧数
 const std::vector<std::string> faces{
     "source/skybox/sky/right.jpg",
     "source/skybox/sky/left.jpg",

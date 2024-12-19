@@ -18,7 +18,7 @@
   },
   "boat": {
     "name": "boat",
-    "mass": 6.0,
+    "mass": 7.0,
     "dimensions": [
       4.38177,
       7.62693,
@@ -35,7 +35,7 @@
   },
   "flower": {
     "name": "flower",
-    "mass": 0.4,
+    "mass": 1.0,
     "dimensions": [
       9.62522,
       3.28684,

@@ -207,8 +207,8 @@ void RenderManager::update_camera(int current_frame)
     // static glm::vec3 end_point = glm::vec3(4.03f, 9.25f, -240.84f);
     // glm::vec3 new_direction = glm::vec3(0.01f, -0.86f, -0.51f);
     // // 侧拍1：蝴蝶贴水飞行
-    static glm::vec3 start_point = glm::vec3(0.00f, -194.92f, 95.10f);
-    static glm::vec3 end_point = glm::vec3(-0.00f, -194.92f, -174.90f);
+    static glm::vec3 start_point = glm::vec3(0.00f, -206.0f, 95.10f);
+    static glm::vec3 end_point = glm::vec3(-0.00f, -190.0f, 30.0f);
     glm::vec3 new_direction = glm::vec3(-0.0f, -0.0f, -1.00f);
     // // 犹豫：主角与蝴蝶群，原地小范围动 建议相机不要动
     // static glm::vec3 start_point = glm::vec3(-101.38f, -77.63f, 5.76f);

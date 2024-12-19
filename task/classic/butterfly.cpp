@@ -87,7 +87,8 @@ void GL_TASK::Butterfly::set_model_matrix()
         // model_matrix = glm::rotate(model_matrix, glm::radians(-10.0f), glm::vec3(0.0f, 1.0f, 0.0f));
         /*蝴蝶贴水飞*/
         model_matrix = glm::scale(model_matrix, glm::vec3(1.f, 1.f, 1.f) * 4.0f);
-        model_matrix = glm::translate(model_matrix, glm::vec3(0.0f, translate_rand - 55.0f, translate_rand + 10.0f));
+        // model_matrix = glm::translate(model_matrix, glm::vec3(0.0f, translate_rand - 55.0f, translate_rand + 5.0f));
+        model_matrix = glm::translate(model_matrix, glm::vec3(0.0f, -50.0f, 5.0f));
         model_matrix = glm::rotate(model_matrix, glm::radians(-10.0f), glm::vec3(0.0f, 1.0f, 0.0f));
         /*犹豫*/ /*高光*/
         // model_matrix = glm::scale(model_matrix, glm::vec3(1.f, 1.f, 1.f) * 8.0f);
@@ -124,7 +125,7 @@ void GL_TASK::Butterfly::update_matrix()
         /*蝴蝶原地飞*/
         //;
         /*蝴蝶贴水飞*/
-        positiontranslate = glm::translate(glm::mat4(1.0f), glm::vec3(2.5f * sin(t * 5 * glm::pi<float>()), 0.0f, -t));
+        positiontranslate = glm::translate(glm::mat4(1.0f), glm::vec3(1.5f * sin(t * 5 * glm::pi<float>()), 0.0f, -t * 0.05));
     /*犹豫*/
     //;
     /*高光*/
@@ -132,7 +133,10 @@ void GL_TASK::Butterfly::update_matrix()
     else
         positiontranslate = glm::translate(glm::mat4(1.0f), glm::vec3(sin(t * glm::pi<float>()) / 5, sin(t * glm::pi<float>()) / 3, 0.0f));
 
+    printf("model_matrix: %s\n", glm::to_string(model_matrix).c_str());
+    printf("positiontranslate: %s\n", glm::to_string(positiontranslate).c_str());
     model_matrix = positiontranslate * model_matrix;
+    printf("model_matrix: %s\n", glm::to_string(model_matrix).c_str());
 
     keyframe_transforms_r = model_matrix * animator.m_KeyframeTransforms["R"];
     keyframe_transforms_l = model_matrix * animator.m_KeyframeTransforms["L"];

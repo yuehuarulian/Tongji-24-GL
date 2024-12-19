@@ -244,7 +244,7 @@ vec3 PathTrace(Ray r, int maxDepth, int RR_maxDepth)
         
         // 2. 从材质贴图中加载材质信息
         GetMaterial(hit_record, r); // 获取材质
-        return hit_record.mat.baseColor;
+        // return hit_record.mat.baseColor;
         
         // 3. 如果击中了发光体，添加其辐射贡献
         if (hit_record.isEmitter) {
@@ -296,7 +296,7 @@ vec3 PathTrace(Ray r, int maxDepth, int RR_maxDepth)
         throughput *= m_prob; // 更新通量权重以考虑路径终止的概率
         
         // 4. 处理透明材质的反射和折射
-        if(hit_record.mat.alpha < 0.9) 
+        if(hit_record.mat.alpha < 1.0) 
         {
             vec3 refractedDirection;
             bool isTotalInternalReflection = !Refract(r.direction, hit_record.ffnormal, hit_record.mat.ior, refractedDirection);
