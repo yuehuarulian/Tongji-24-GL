@@ -194,6 +194,11 @@ void Shader::use()
     glUseProgram(ID);
 }
 
+void Shader::stopUsing()
+{
+    glUseProgram(0);
+}
+
 void Shader::setBool(const std::string &name, bool value) const
 {
     glUniform1i(glGetUniformLocation(ID, name.c_str()), (int)value);
@@ -209,6 +214,16 @@ void Shader::setFloat(const std::string &name, float value) const
     glUniform1f(glGetUniformLocation(ID, name.c_str()), value);
 }
 
+void Shader::setVec2(const std::string &name, float x, float y) const
+{
+    glUniform2f(glGetUniformLocation(ID, name.c_str()), x, y);
+}
+
+void Shader::setVec2(const std::string &name, const glm::vec2 &value) const
+{
+    glUniform2f(glGetUniformLocation(ID, name.c_str()), value.x, value.y);
+}
+
 void Shader::setVec3(const std::string &name, float x, float y, float z) const
 {
     glUniform3f(glGetUniformLocation(ID, name.c_str()), x, y, z);
@@ -219,6 +234,16 @@ void Shader::setVec3(const std::string &name, const glm::vec3 &value) const
     glUniform3fv(glGetUniformLocation(ID, name.c_str()), 1, &value[0]);
 }
 
+void Shader::setVec4(const std::string &name, float x, float y, float z, float w) const
+{
+    glUniform4f(glGetUniformLocation(ID, name.c_str()), x, y, z, w);
+}
+
+void Shader::setVec4(const std::string &name, const glm::vec4 &value) const
+{
+    glUniform4f(glGetUniformLocation(ID, name.c_str()), value.x, value.y, value.z, value.w);
+}
+
 void Shader::setMat3(const std::string &name, const glm::mat3 &mat) const
 {
     glUniformMatrix3fv(glGetUniformLocation(ID, name.c_str()), 1, GL_FALSE, &mat[0][0]);
@@ -227,6 +252,18 @@ void Shader::setMat3(const std::string &name, const glm::mat3 &mat) const
 void Shader::setMat4(const std::string &name, const glm::mat4 &mat) const
 {
     glUniformMatrix4fv(glGetUniformLocation(ID, name.c_str()), 1, GL_FALSE, &mat[0][0]);
+}
+
+void Shader::setMat4(const std::string &name, const glm::mat4 &mat, bool transpose) const
+{
+    glUniformMatrix4fv(glGetUniformLocation(ID, name.c_str()), 1, transpose ? GL_TRUE : GL_FALSE, &mat[0][0]);
+}
+
+void Shader::setTexture(const std::string &name, unsigned int textureID, GLenum textureUnit) const
+{
+    glActiveTexture(textureUnit);
+    glBindTexture(GL_TEXTURE_2D, textureID);
+    glUniform1i(glGetUniformLocation(ID, name.c_str()), textureUnit - GL_TEXTURE0);
 }
 
 void Shader::checkCompileErrors(unsigned int shader, const std::string &type)

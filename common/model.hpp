@@ -11,6 +11,8 @@
 
 #include "mesh.hpp"
 #include "shader.hpp"
+#include "assimp_glm_helpers.hpp"
+#include "BVH.hpp"
 
 #include <string>
 #include <fstream>
@@ -18,35 +20,43 @@
 #include <iostream>
 #include <map>
 #include <vector>
-using namespace std;
 
 class Model
 {
 public:
     // constructor, expects a filepath to a 3D model.
-    Model(string const &path, bool gamma = false);
+    Model() = default;
 
-    // draws the model, and thus all its meshes
-    void Draw(Shader &shader);
+    Model(std::string const &path, bool gamma = false);
 
-    // model data
-    vector<Texture> textures_loaded; // stores all the textures loaded so far, optimization to make sure textures aren't loaded more than once.
-    vector<Mesh> meshes;
-    string directory;
-    bool gammaCorrection;
+    bool LoadFromFile(const std::string &filePath) { return loadModel(filePath); }
+
+    std::vector<Mesh *> getMeshes() const { return meshes; }
+
+    std::vector<Texture *> getTextures() const { return textures_loaded; }
+
+    std::vector<Mesh *> meshes; // 存储模型中的所有网格
 
 private:
+    // 模型数据
+    std::vector<Texture *> textures_loaded; // 存储所有的纹理数据
+
+    std::string directory; // 模型文件目录
+    bool gammaCorrection;  // gamma修正
+
     // loads a model with supported ASSIMP extensions from file and stores the resulting meshes in the meshes vector.
-    void loadModel(string const &path);
+    bool loadModel(std::string const &path);
 
     // processes a node in a recursive fashion. Processes each individual mesh located at the node and repeats this process on its children nodes (if any).
     void processNode(aiNode *node, const aiScene *scene);
 
-    Mesh processMesh(aiMesh *mesh, const aiScene *scene);
+    Mesh *processMesh(aiMesh *mesh, const aiScene *scene);
 
     // checks all material textures of a given type and loads the textures if they're not loaded yet.
     // the required info is returned as a Texture struct.
-    vector<Texture> loadMaterialTextures(aiMaterial *mat, aiTextureType type, string typeName);
+    int loadMaterialTextures(aiMaterial *mat, aiTextureType type);
+
+    int loadMaterialParams(Material &m_material, aiMaterial *mat);
 };
 
 #endif

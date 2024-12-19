@@ -8,3 +8,5 @@ source/model/
 *.vdb
 *.mp4
 *.ini
+fluid_mesh.obj
+render_imgs/

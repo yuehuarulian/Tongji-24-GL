@@ -21,15 +21,24 @@ public:
 
     // 使用着色器程序
     void use();
+    void stopUsing();
 
     // uniform 工具函数
     void setBool(const std::string &name, bool value) const;
     void setInt(const std::string &name, int value) const;
     void setFloat(const std::string &name, float value) const;
+    void setVec2(const std::string &name, float x, float y) const;
+    void setVec2(const std::string &name, const glm::vec2 &value) const;
     void setVec3(const std::string &name, float x, float y, float z) const;
     void setVec3(const std::string &name, const glm::vec3 &value) const;
+    void setVec4(const std::string &name, float x, float y, float z, float w) const;
+    void setVec4(const std::string &name, const glm::vec4 &value) const;
     void setMat3(const std::string &name, const glm::mat3 &mat) const;
     void setMat4(const std::string &name, const glm::mat4 &mat) const;
+    void setMat4(const std::string &name, const glm::mat4 &mat, bool transpose) const;
+
+    // 纹理工具函数
+    void setTexture(const std::string &name, unsigned int textureID, GLenum textureUnit) const;
 
 private:
     // 检查着色器编译/链接时的错误

@@ -12,6 +12,7 @@
 #include "gui_manager.hpp"
 #include "config.hpp"
 #include "skybox.hpp"
+#include "scene.hpp"
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height)
 {
@@ -42,19 +43,23 @@ GLFWwindow *initialize_glfw_window()
 
 int main()
 {
+    // 创建窗口
     GLFWwindow *window = initialize_glfw_window();
 
     ShaderManager shader_manager;
     LightManager light_manager;
+
     GL_TASK::ClassicScene classic_scene(shader_manager, light_manager);
 
-    Camera camera(window, 75 * D2R, glm::vec3(0.0f, 20.0f, 180.0f), glm::pi<float>(), 0.f, 30.0f, 1.0f);
-
+    // Camera camera(window, 75 * D2R, glm::vec3(0.0f, -140.0f, 60.0f), glm::pi<float>(), 0. * D2R, 30.0f, 1.0f);
+    Camera camera(window, 75 * D2R, glm::vec3(0.0f, -205.0f, 80.0f), glm::pi<float>(), 0. * D2R, 30.0f, 1.0f);
+    // xyz -y z -x
     Skybox skybox(faces, "source/shader/skybox.vs", "source/shader/skybox.fs");
 
     GUIManager gui_manager(window, camera, light_manager, shader_manager);
 
     glEnable(GL_DEPTH_TEST);
+    glDisable(GL_CULL_FACE);
     glDepthFunc(GL_LESS);
     glEnable(GL_MULTISAMPLE);
     glEnable(GL_BLEND);
@@ -64,20 +69,25 @@ int main()
     glfwSwapInterval(1);                                                                            // 垂直同步，参数：在 glfwSwapBuffers 交换缓冲区之前要等待的最小屏幕更新数
     while (glfwWindowShouldClose(window) == 0 && glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS) // 窗口没有关闭，esc键没有按下
     {
-        camera.compute_matrices_from_inputs(window);
+        bool dirty = false;
+        camera.compute_matrices_from_inputs(window, dirty); // 更新摄像机位置
+        classic_scene.setDirty(dirty);
+        // if (classic_scene.getFrameNum() % 3 == 0 && classic_scene.getSampleNum() == 1)
+        // {
+        //     classic_scene.update_models(); // 蝴蝶每三帧画面更新一次
+        // }
+        // classic_scene.update_scene();
 
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        auto camera_pos = camera.get_pos();
-        classic_scene.render(camera.projection, camera.view, camera_pos);
-
-        skybox.render(camera.view, camera.projection);
-
+        glDisable(GL_DEPTH_TEST);
+        classic_scene.render_scene(camera);
+        classic_scene.present_scene();
         gui_manager.render();
 
         glfwSwapBuffers(window);
         glfwPollEvents();
+        // printf("SampleNumber: %d - FrameNum: %d\n", classic_scene.getSampleNum(), classic_scene.getFrameNum());
     }
     glfwTerminate();
     return 0;

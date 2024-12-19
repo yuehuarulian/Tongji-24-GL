@@ -9,14 +9,21 @@
 class RenderableModel
 {
 public:
-    RenderableModel(const std::string &modelPath, std::shared_ptr<Shader> shader, bool gamma = false)
-        : model(modelPath, gamma), shader(std::move(shader)) {}
+    RenderableModel(std::vector<Mesh *> &meshes, std::vector<MeshInstance *> &meshInstances, std::vector<Texture *> &textures, std::vector<Material> &materials)
+        : meshes(meshes), meshInstances(meshInstances), textures(textures), materials(materials) {}
 
-    virtual void draw(const glm::mat4 &projection, const glm::mat4 &view, const glm::vec3 &cameraPos) = 0;
+    virtual void update() = 0;
 
 protected:
-    std::shared_ptr<Shader> shader;
-    Model model;
-};
+    virtual void set_model_matrix() = 0;
 
+    virtual bool add_model(const std::string &model_path) = 0;
+
+    glm::mat4 model_matrix;
+
+    std::vector<Mesh *> &meshes;
+    std::vector<MeshInstance *> &meshInstances;
+    std::vector<Texture *> &textures;
+    std::vector<Material> &materials;
+};
 #endif // RENDERABLE_MODEL_H

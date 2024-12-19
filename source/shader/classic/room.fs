@@ -1,4 +1,3 @@
-// 与pbr_texture.fs相同
 #version 330 core
 out vec4 FragColor;
 in vec2 TexCoords;

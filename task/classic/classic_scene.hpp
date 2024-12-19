@@ -6,6 +6,11 @@
 #include "light_manager.hpp"
 #include "renderable_model.hpp"
 #include "point_cloud.hpp"
+#include "camera_control.hpp"
+#include "butterfly.hpp"
+#include "room.hpp"
+#include "fluid.hpp"
+#include "bullet_world.hpp"
 #include <memory>
 
 namespace GL_TASK
@@ -13,36 +18,66 @@ namespace GL_TASK
     class ClassicScene : public Scene
     {
     public:
-        ClassicScene(ShaderManager &shader_manager, LightManager &light_manager);
+        ClassicScene(ShaderManager &shader_manager, LightManager &light_manager, const int WINDOW_WIDTH = 1080, const int WINDOW_HEIGHT = 720);
         ~ClassicScene() = default;
 
-        void render(const glm::mat4 &projection, const glm::mat4 &view, glm::vec3 &camera_pos) override;
+        bool render_scene(Camera &) override;
+        void update_scene() override;
+        void present_scene() override;
+        void update_models(); // 更新场景
+        void wait_until_next_frame(int frame_number) override;
+        glm::mat4 get_room_matrix();
+
+        bool BbvhDirty{false}; // 底层bvh树脏位
+        bool TbvhDirty{false}; // 顶层bvh树脏位
 
     private:
+        void setup_scene();                 // 场景初始化
+        void load_shaders();                // 加载着色器
+        void load_models();                 // 加载模型
+        void load_lights();                 // 加载光源
+        void render_path_tracing(Camera &); // 路径追踪阶段
+        void render_accumulation();         // 累积阶段
+        void render_post_processing();      // 后处理阶段
+
+        // room
+        std::shared_ptr<Room> room;
+
+        // buttefly
+        const int butterfly_count = 5;
+        std::vector<std::shared_ptr<Butterfly>> butterflies;
+
+        // fluid
+        std::shared_ptr<Fluid> fluid;
+
+        // bullet world
+        std::shared_ptr<BulletWorld> bulletWorld;
+
+        // point cloud
         std::vector<std::shared_ptr<PointCloud>> point_clouds;
+
+        // 光源
         std::vector<glm::vec3> area_lights_position = {
-            glm::vec3(33.90, 107.25, -82.75),   // bulb.001  xyz
-            glm::vec3(36.63, 107.25, -10.66),   // bulb.002
-            glm::vec3(33.85, 107.31, 61.95),    // bulb.003
-            glm::vec3(34.35, 107.18, 136.48),   // bulb.004
-            glm::vec3(-33.76, 107.25, -84.019), // bulb.008
-            glm::vec3(-34.33, 107.32, -14.349), // bulb.009
-            glm::vec3(-37.01, 106.93, 60.997),  // bulb.010
-            glm::vec3(-34.19, 106.89, 135.34),  // bulb.011
+            glm::vec3(107.25, 33.9, -82.75),     // bulb.001
+            glm::vec3(107.25, 36.63, -10.666),   // bulb.002
+            glm::vec3(107.31, 33.845, 61.95),    // bulb.003
+            glm::vec3(107.18, 34.346, 136.48),   // bulb.004
+            glm::vec3(107.25, -33.755, -84.019), // bulb.008
+            glm::vec3(107.32, -34.331, -14.349), // bulb.009
+            glm::vec3(106.93, -37.012, 60.997),  // bulb.010
+            glm::vec3(106.89, -34.19, 135.34),   // bulb.011
         };
         std::vector<glm::vec3> area_lights_normal = {
-            glm::vec3(0., -1., 0.),
-            glm::vec3(0., -1., 0.),
-            glm::vec3(0., -1., 0.),
-            glm::vec3(0., -1., 0.),
-            glm::vec3(0., -1., 0.),
-            glm::vec3(0., -1., 0.),
-            glm::vec3(0., -1., 0.),
-            glm::vec3(0., -1., 0.),
+            glm::vec3(0., 0., 1.),
+            glm::vec3(-1., -0., -0.),
+            glm::vec3(-1., -0., -0.),
+            glm::vec3(-1., -0., -0.),
+            glm::vec3(-1., -0., -0.),
+            glm::vec3(-1., -0., -0.),
+            glm::vec3(-1., -0., -0.),
+            glm::vec3(-1., -0., -0.),
         };
-        glm::mat4 room_model_matrix = glm::mat4(1.0f);
-
-        void setup_scene() override;
     };
 }
+
 #endif

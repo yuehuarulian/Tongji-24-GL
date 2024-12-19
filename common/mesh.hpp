@@ -4,169 +4,273 @@
 #include "glad/glad.h"
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
+#include <glm/gtc/matrix_access.hpp> // 用于访问矩阵元素
+#include "stb_image.h"
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
 
 #include "shader.hpp"
+#include "BVH.hpp"
 
 #include <string>
 #include <vector>
 #include <map>
-
-using namespace std;
+#include <mutex>
+#include <iostream>
+#include <sstream>
 
 #define MAX_BONE_INFLUENCE 4
 
 struct Vertex
 {
-    // position
-    glm::vec3 Position;
-    // normal
-    glm::vec3 Normal;
-    // texCoords
-    glm::vec2 TexCoords;
-    // tangent
+    // ---------- 顶点数据 ---------- //
+    //
+    //
+    glm::vec3 Position;  // 顶点位置
+    glm::vec3 Normal;    // 法线
+    glm::vec2 TexCoords; // 纹理坐标
     glm::vec3 Tangent;
-    // bitangent
     glm::vec3 Bitangent;
-    // bone indexes which will influence this vertex
-    int m_BoneIDs[MAX_BONE_INFLUENCE];
-    // weights from each bone
-    float m_Weights[MAX_BONE_INFLUENCE];
+
+    int m_BoneIDs[MAX_BONE_INFLUENCE];   // 影响该顶点的骨骼索引
+    float m_Weights[MAX_BONE_INFLUENCE]; // 每个骨骼的权重
 };
 
-struct Texture
+class Texture
 {
-    unsigned int id;
-    string type; // 例如: "texture_diffuse", "texture_specular", "texture_normal", "texture_metallic"
-    string path;
+    // ---------- 纹理图片数据 ---------- //
+    // 图片宽度: width
+    // 图片高度：height
+    // 图片通道：components
+    // 纹理数据：texData -- 根据 width height components 调整大小
+    // 纹理名称：texName -- 唯一标识符
+public:
+    Texture() : width(0), height(0), components(0) {};
+    Texture(std::string texName, unsigned char *data, int w, int h, int c) : texName(texName), width(w), height(h), components(c)
+    {
+        texData.resize(width * height * components);
+        std::copy(data, data + width * height * components, texData.begin());
+    }
+    ~Texture() {}
+
+    bool LoadTexture(const std::string &filename)
+    {
+        texName = filename;
+        components = 4;
+        unsigned char *data = stbi_load(filename.c_str(), &width, &height, NULL, components);
+        if (data == nullptr)
+            return false;
+        texData.resize(width * height * components);
+        std::copy(data, data + width * height * components, texData.begin());
+        stbi_image_free(data);
+        if (texData.empty())
+        {
+            std::cout << "Failed to load texture: " << filename << std::endl;
+            return false;
+        }
+        std::cout << "Texture loaded: " << filename << std::endl;
+        return true;
+    }
+
+    int width;                          // 纹理的宽度
+    int height;                         // 纹理的高度
+    int components;                     // 纹理的通道数
+    std::vector<unsigned char> texData; // 纹理数据
+    std::string texName;                // 纹理名称
+};
+
+class Material
+{
+    // ---------- 材质数据 ---------- //
+    // 按照每七个float进行分类 -- 便于将数据传递至Shader中
+    // 对于无法补齐的部分可以使用 float padding_i 进行补齐(其中i是一个变量)
+public:
+    Material()
+        : baseColor(glm::vec3(1.0f)),     // 默认白色
+          specularColor(glm::vec3(0.5f)), // 默认中等强度的镜面反射
+          emissiveColor(glm::vec3(0.0f)), // 默认无自发光
+          padding_kd(0.0f),
+          padding_ks(0.0f),
+          padding_ke(0.0f),
+          refractionIndex(1.0f),
+          transparency(1.0f),
+          illuminationModel(1),
+          roughness(0.5f), // 默认中等粗糙度
+          metalness(0.0f),
+          scattering(0.0f),
+          coating(0.0f),
+          coatRoughness(0.0f),
+          diffuseTexId(-1.0f),
+          specularTexId(-1.0f),
+          normalTexId(-1.0f),
+          heightTexId(-1.0f),
+          metalnessTexId(-1.0f),
+          diffuse_roughnessTexId(-1.0f),
+          ambient_occlusionTexId(-1.0f),
+          padding_id(0.0f),
+          absorption(0.0f),
+          density(0.0f),
+          anisotropy(0.0f),
+          isVolume(0.0f)
+    {
+    }
+
+    void updateTexId(const int offset)
+    {
+        if (diffuseTexId != -1)
+            diffuseTexId += offset;
+        if (specularTexId != -1)
+            specularTexId += offset;
+        if (normalTexId != -1)
+            normalTexId += offset;
+        if (heightTexId != -1)
+            heightTexId += offset;
+
+        if (metalnessTexId != -1)
+            metalnessTexId += offset;
+        if (diffuse_roughnessTexId != -1)
+            diffuse_roughnessTexId += offset;
+        if (ambient_occlusionTexId != -1)
+            ambient_occlusionTexId += offset;
+    }
+
+    // 颜色参数
+    // param1
+    glm::vec3 baseColor; // 漫反射颜色 (Kd)
+    float padding_kd;
+
+    // param2
+    glm::vec3 specularColor; // 镜面反射颜色 (Ks)
+    float padding_ks;
+
+    // param3
+    glm::vec3 emissiveColor; // 自发光颜色 (Ke)
+    float padding_ke;
+
+    // 材质参数
+    // param4
+    float refractionIndex; // 折射率 (Ni)
+    float transparency;    // 透明度 (d)
+    int illuminationModel; // 光照模型 (illum)
+    float roughness;       // 粗糙度 (Pr)
+
+    // param5
+    float metalness;     // 金属度 (Pm)
+    float scattering;    // 散射系数 (Ps)
+    float coating;       // 涂层 (Pc)
+    float coatRoughness; // 涂层粗糙度 (Pcr)
+
+    // 纹理贴图的ID
+    // param6
+    float diffuseTexId;
+    float specularTexId;
+    float normalTexId;
+    float heightTexId;
+
+    // param7
+    float metalnessTexId;
+    float diffuse_roughnessTexId;
+    float ambient_occlusionTexId;
+    float padding_id;
+
+    // param8
+    float absorption; // 吸收系数 (控制光线穿透的深度)
+    float density;    // 密度 (控制光线在材质中的传播)
+    float anisotropy; // 各向异性 (控制材质的各向异性)
+    float isVolume;   // 是否是体积材质
+
+    void printInfo() const
+    {
+        std::ostringstream info;
+        info << "Material Information:\n";
+
+        // Colors
+        info << "Base Color: (" << baseColor.x << ", " << baseColor.y << ", " << baseColor.z << ")\n";
+        info << "Specular Color: (" << specularColor.x << ", " << specularColor.y << ", " << specularColor.z << ")\n";
+        info << "Emissive Color: (" << emissiveColor.x << ", " << emissiveColor.y << ", " << emissiveColor.z << ")\n";
+
+        // Material properties
+        info << "Refraction Index: " << refractionIndex << "\n";
+        info << "Transparency: " << transparency << "\n";
+        info << "Illumination Model: " << illuminationModel << "\n";
+        info << "Roughness: " << roughness << "\n";
+        info << "Metalness: " << metalness << "\n";
+        info << "Scattering: " << scattering << "\n";
+        info << "Coating: " << coating << "\n";
+        info << "Coat Roughness: " << coatRoughness << "\n";
+
+        // Texture IDs
+        info << "Diffuse Texture ID: " << diffuseTexId << "\n";
+        info << "Specular Texture ID: " << specularTexId << "\n";
+        info << "Normal Texture ID: " << normalTexId << "\n";
+        info << "Height Texture ID: " << heightTexId << "\n";
+        info << "Metalness Texture ID: " << metalnessTexId << "\n";
+        info << "Diffuse Roughness Texture ID: " << diffuse_roughnessTexId << "\n";
+        info << "Ambient Occlusion Texture ID: " << ambient_occlusionTexId << "\n";
+
+        // Additional properties
+        info << "Absorption: " << absorption << "\n";
+        info << "Density: " << density << "\n";
+        info << "Anisotropy: " << anisotropy << "\n";
+        info << "Is Volume Material: " << (isVolume != 0.0 ? "Yes" : "No") << "\n";
+
+        // Output to console
+        std::cout << info.str();
+    }
 };
 
 class Mesh
 {
 public:
-    // mesh Data
-    vector<Vertex> vertices;
-    vector<unsigned int> indices;
-    vector<Texture> textures;
-    unsigned int VAO;
+    Mesh() = default;
 
-    // constructor
-    Mesh(vector<Vertex> vertices, vector<unsigned int> indices, vector<Texture> textures)
-        : vertices(vertices), indices(indices), textures(textures)
-    {
-        setupMesh();
-    }
+    Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, const Material &material);
 
-    unsigned int createDefaultTexture()
-    {
-        unsigned int textureID;
-        glGenTextures(1, &textureID);
-        glBindTexture(GL_TEXTURE_2D, textureID);
+    void BuildBVH();
 
-        // 创建一个 1x1 的白色像素数据
-        unsigned char whitePixel[3] = {0, 0, 0};
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1, 1, 0, GL_RGB, GL_UNSIGNED_BYTE, whitePixel);
+    void ProcessVertices(std::vector<glm::vec4> &verticesUVX, std::vector<glm::vec4> &normalsUVY);
 
-        // 设置纹理参数
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    void updateMesh();
 
-        return textureID;
-    }
-    // render the mesh
-    void Draw(Shader &shader)
-    {
-        // 确保所有 PBR 纹理都绑定到固定的纹理单元位置
-        unsigned int defaultTextureID = createDefaultTexture(); // 初始化时调用一次
-        unsigned int textureUnit = 0;
+    bool needsUpdate(int i);
 
-        for (const auto &type : {"texture_diffuse", "texture_specular", "texture_normal",
-                                 "texture_height", "texture_metallic", "texture_roughness", "texture_ao"})
-        {
-            bool textureFound = false;
-
-            for (unsigned int i = 0; i < textures.size(); i++)
-            {
-                if (textures[i].type == type)
-                {
-                    // 激活指定的纹理单元并绑定
-                    glActiveTexture(GL_TEXTURE0 + textureUnit);
-                    glBindTexture(GL_TEXTURE_2D, textures[i].id);
-
-                    // 将对应 uniform 设置为这个纹理单元
-                    glUniform1i(glGetUniformLocation(shader.ID, (std::string(type) + "1").c_str()), textureUnit);
-                    // printf("name: %s, number: %d\n", (std::string(type) + "1").c_str(), textureUnit);
-
-                    textureFound = true;
-                    break; // 该类型找到就可以跳出循环
-                }
-            }
-
-            if (!textureFound)
-            {
-                glActiveTexture(GL_TEXTURE0 + textureUnit);
-                glBindTexture(GL_TEXTURE_2D, defaultTextureID); // 使用默认的白色纹理
-            }
-
-            textureUnit++;
-        }
-
-        // draw mesh
-        glBindVertexArray(VAO);
-        glDrawElements(GL_TRIANGLES, static_cast<unsigned int>(indices.size()), GL_UNSIGNED_INT, 0);
-        glBindVertexArray(0);
-
-        // always good practice to set everything back to defaults once configured.
-        glActiveTexture(GL_TEXTURE0);
-    }
+    std::vector<Vertex> vertices;      // 顶点位置、法线方向、纹理坐标
+    std::vector<unsigned int> indices; // 假设所有的面都为三角形 三个索引一个面 indices.size()/3表示三角形的数量
+    Material material;
+    BVH *bvh;
+    bool dirty{false}; // 标志变量，指示是否需要更新
 
 private:
-    // render data
-    unsigned int VBO, EBO;
+};
 
-    // initializes all the buffer objects/arrays
-    void setupMesh()
+class MeshInstance
+{
+public:
+    MeshInstance(int mesh_id, int material_id, glm::mat4 xform)
+        : meshID(mesh_id),
+          materialID(material_id),
+          transform(xform) {}
+    ~MeshInstance() {}
+
+    glm::mat4 transform; // 从局部坐标系转换到世界坐标系的转换矩阵
+
+    int meshID;
+    int materialID;
+
+    // 输出信息的函数
+    void printInfo() const
     {
-        // create buffers/arrays
-        glGenVertexArrays(1, &VAO);
-        glGenBuffers(1, &VBO);
-        glGenBuffers(1, &EBO);
+        std::cout << "MeshInstance Info:" << std::endl;
+        std::cout << "Mesh ID: " << meshID << std::endl;
+        std::cout << "Material ID: " << materialID << std::endl;
 
-        glBindVertexArray(VAO);
-        // load data into vertex buffers
-        glBindBuffer(GL_ARRAY_BUFFER, VBO);
-        // A great thing about structs is that their memory layout is sequential for all its items.
-        // The effect is that we can simply pass a pointer to the struct and it translates perfectly to a glm::vec3/2 array which
-        // again translates to 3/2 floats which translates to a byte array.
-        glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), &vertices[0], GL_STATIC_DRAW);
-
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), &indices[0], GL_STATIC_DRAW);
-
-        // set the vertex attribute pointers
-        glEnableVertexAttribArray(0); // 位置
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)0);
-
-        glEnableVertexAttribArray(1); // 法线
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, Normal));
-
-        glEnableVertexAttribArray(2); // 纹理坐标
-        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, TexCoords));
-
-        glEnableVertexAttribArray(3); // 切线
-        glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, Tangent));
-
-        glEnableVertexAttribArray(4); // 副切线
-        glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, Bitangent));
-
-        glEnableVertexAttribArray(5); // 骨骼ID
-        glVertexAttribIPointer(5, 4, GL_INT, sizeof(Vertex), (void *)offsetof(Vertex, m_BoneIDs));
-
-        glEnableVertexAttribArray(6); // 骨骼权重
-        glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, m_Weights));
-
-        glBindVertexArray(0);
+        std::cout << "Transform Matrix (Local to World):" << std::endl;
+        for (int i = 0; i < 4; ++i)
+        {
+            glm::vec4 row = glm::row(transform, i); // 获取矩阵的每一行
+            std::cout << row.x << " " << row.y << " " << row.z << " " << row.w << std::endl;
+        }
     }
 };
 #endif
