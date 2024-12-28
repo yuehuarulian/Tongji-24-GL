@@ -18,7 +18,7 @@
   },
   "boat": {
     "name": "boat",
-    "mass": 7.0,
+    "mass": 8.0,
     "dimensions": [
       4.38177,
       7.62693,
