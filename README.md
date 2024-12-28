@@ -1,10 +1,21 @@
 # Pooled Core Scene Rendering Project
 
+- github：git@github.com:yuehuarulian/Tongji-24-GL.git
+
+## 渲染结果：
+
+![alt text](image.png)
+
+## 运行：
 建议运行方式：
 
-在线渲染：./build/main > output.txt
+- 在线渲染：
+  - 请选择分支 realtime_scene
+  - ./build/main > output.txt
 
-离线渲染：./build/offline_rendering > output.txt
+- 离线渲染：
+  - 请选择分支 main 或者 scene
+  - ./build/offline_rendering > output.txt
 
 如果运行失败调试策略：1/电脑重启; 2/选择注释掉房间/蝴蝶/点云/水/物理世界；3/调节fluid_config.json的scale参数（建议1.0-2.0之间）
 
