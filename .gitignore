@@ -1,5 +1,4 @@
 build/
 .vscode/
-*.vdb
 *.ini
 output.txt
