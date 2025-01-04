@@ -1,6 +1,5 @@
 build/
 .vscode/
 *.vdb
-*.mp4
 *.ini
 output.txt
