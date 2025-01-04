@@ -1,0 +1,145 @@
+# Blender 4.2.3 LTS MTL File: 'test1+spotlight.blend'
+# www.blender.org
+
+newmtl Material
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+Pr 0.500000
+Pm 0.000000
+Ps 0.000000
+Pc 0.000000
+Pcr 0.030000
+# aniso 0.000000
+# anisor 0.000000
+
+newmtl door
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+Pm 0.000000
+Ps 0.000000
+Pc 0.000000
+Pcr 0.030000
+# aniso 0.000000
+# anisor 0.000000
+map_Kd textures/Wood067_1K-JPG_Color.jpg
+map_Pr textures/Wood067_1K-JPG_Roughness.jpg
+map_Bump -bm 1.000000 textures/Wood067_1K-JPG_NormalGL.jpg
+
+newmtl lamp
+Ks 1.000000 1.000000 1.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2
+Ps 0.000000
+Pc 0.000000
+Pcr 0.030000
+# aniso 0.000000
+# anisor 0.000000
+map_Kd textures/Metal027_1K-JPG_Color.jpg
+map_Pm textures/Metal027_1K-JPG_Metalness.jpg
+map_Pr textures/Metal027_1K-JPG_Roughness.jpg
+map_Bump -bm 1.000000 textures/Metal027_1K-JPG_NormalGL.jpg
+
+newmtl lampholder
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+Ps 0.000000
+Pc 0.000000
+Pcr 0.030000
+# aniso 0.000000
+# anisor 0.000000
+map_Kd textures/Metal027_1K-JPG_Color.jpg
+map_Pm textures/Metal027_1K-JPG_Metalness.jpg
+map_Pr textures/Metal027_1K-JPG_Roughness.jpg
+map_Bump -bm 1.000000 textures/Metal027_1K-JPG_NormalGL.jpg
+
+newmtl poolside_down
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+Pm 0.000000
+Ps 0.000000
+Pc 0.000000
+Pcr 0.030000
+# aniso 0.000000
+# anisor 0.000000
+map_Kd textures/Tiles132A_1K-JPG_Color.jpg
+map_Pr textures/Tiles132A_1K-JPG_Roughness.jpg
+map_Bump -bm 1.000000 textures/Tiles132A_1K-JPG_NormalGL.jpg
+
+newmtl poolside_length
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+Pm 0.000000
+Ps 0.000000
+Pc 0.000000
+Pcr 0.030000
+# aniso 0.000000
+# anisor 0.000000
+map_Kd textures/Tiles132A_1K-JPG_Color.jpg
+map_Pr textures/Tiles132A_1K-JPG_Roughness.jpg
+map_Bump -bm 1.000000 textures/Tiles132A_1K-JPG_NormalGL.jpg
+
+newmtl poolside_up
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+Pm 0.000000
+Ps 0.000000
+Pc 0.000000
+Pcr 0.030000
+# aniso 0.000000
+# anisor 0.000000
+map_Kd textures/Tiles132A_1K-JPG_Color.jpg
+map_Pr textures/Tiles132A_1K-JPG_Roughness.jpg
+map_Bump -bm 1.000000 textures/Tiles132A_1K-JPG_NormalGL.jpg
+
+newmtl poolside_width
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+Pm 0.000000
+Ps 0.000000
+Pc 0.000000
+Pcr 0.030000
+# aniso 0.000000
+# anisor 0.000000
+map_Kd textures/Tiles132A_1K-JPG_Color.jpg
+map_Pr textures/Tiles132A_1K-JPG_Roughness.jpg
+map_Bump -bm 1.000000 textures/Tiles132A_1K-JPG_NormalGL.jpg
+
+newmtl wall
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+Pm 0.000000
+Ps 0.000000
+Pc 0.000000
+Pcr 0.030000
+# aniso 0.000000
+# anisor 0.000000
+map_Kd textures/beige_wall_001_diff_1k_blue.jpg
+map_Pr textures/beige_wall_001_rough_1k.jpg
+map_Bump -bm 1.000000 textures/beige_wall_001_nor_gl_1k.png

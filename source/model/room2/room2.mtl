@@ -1,0 +1,62 @@
+# Blender 4.2.3 LTS MTL File: 'room2.blend'
+# www.blender.org
+
+newmtl cloud
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+Pr 0.500000
+Pm 0.000000
+Ps 0.000000
+Pc 0.000000
+Pcr 0.030000
+map_Kd textures/cloud.png
+map_Bump -bm 0.200000 textures/cloud_normal.png
+
+newmtl metal
+Ka 1.000000 1.000000 1.000000
+Ks 1.000000 1.000000 1.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2
+Ps 0.000000
+Pc 0.000000
+Pcr 0.030000
+map_Kd textures/Metal036_2K-PNG_Color.png
+map_Pm textures/Metal036_2K-PNG_Metalness.png
+map_Pr textures/Metal036_2K-PNG_Roughness.png
+map_Bump -bm 1.000000 textures/Metal036_2K-PNG_NormalGL.png
+
+newmtl pool
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+Pm 0.000000
+Ps 0.000000
+Pc 0.000000
+Pcr 0.030000
+map_Kd textures/Tiles020_2K-PNG_Color.png
+map_Pr textures/Tiles020_2K-PNG_Roughness.png
+map_Bump -bm 1.000000 textures/Tiles020_2K-PNG_NormalGL.png
+
+newmtl wall
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+Pm 0.000000
+Ps 0.000000
+Pc 0.000000
+Pcr 0.030000
+map_Kd textures/Plastic013A_2K-PNG_Color.png
+map_Pr textures/Plastic013A_2K-PNG_Roughness.png
+map_Bump -bm 1.000000 textures/Plastic013A_2K-PNG_NormalGL.png
