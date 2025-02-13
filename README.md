@@ -5,6 +5,7 @@
 ## 渲染结果：
 
 ![alt text](image.png)
+[Click here to watch the video](视频链接)
 
 ## 运行：
 建议运行方式：
